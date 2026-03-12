@@ -6,6 +6,7 @@ import sqlite3, hashlib, os, re, json, random, string
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
 DATABASE = os.environ.get('DATABASE_PATH', 'instance/mobilefix.db')
+IST = timezone(timedelta(hours=5, minutes=30))
 
 def get_db():
     conn = sqlite3.connect(DATABASE)
@@ -256,7 +257,7 @@ def jobs():
     uid = session['user_id']
     all_jobs = db.execute("SELECT * FROM repair_jobs WHERE user_id=? ORDER BY created_at DESC", (uid,)).fetchall()
     jobs_list = [dict(j) for j in all_jobs]
-    today_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    today_str = datetime.now(IST).strftime('%Y-%m-%d')
     overdue_jobs = [j for j in jobs_list if j.get('expected_return') and j['expected_return'] < today_str
                     and j['status'] not in ('Delivered','Cancelled')]
     partial_jobs = [j for j in jobs_list if j.get('paid_status') == 'Partial' and j['status'] == 'Delivered']
@@ -321,7 +322,7 @@ def update_job(job_id):
         old_total = float(existing['advance_amount'] or 0) if existing else 0
         history = json.loads(existing['advance_history'] or '[]') if existing else []
         history.append({'amount': new_adv, 'method': adv_method,
-                        'date': datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')})
+                        'date': datetime.now(IST).strftime('%Y-%m-%d %H:%M')})
         total_adv = old_total + new_adv
         set_parts.insert(-2, 'advance_amount=?')
         set_parts.insert(-2, 'advance_method=?')
@@ -366,7 +367,7 @@ def deliver_job(job_id):
     balance = max(0, total - advance)
     paid = 'Paid' if balance < 0.01 else ('Partial' if advance > 0 else 'Unpaid')
     status = data.get('status', 'Delivered')
-    delivery_date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    delivery_date = datetime.now(IST).strftime('%Y-%m-%d')
     db = get_db()
     imei = data.get('imei','').strip().upper()
     if imei:
@@ -397,7 +398,7 @@ def cancel_job_route(job_id):
 def record_refund(job_id):
     amount = float(request.form.get('amount', 0))
     method = request.form.get('method', 'Cash')
-    date = request.form.get('date', datetime.now(timezone.utc).strftime('%Y-%m-%d'))
+    date = request.form.get('date', datetime.now(IST).strftime('%Y-%m-%d'))
     db = get_db()
     db.execute("UPDATE repair_jobs SET refund_amount=?,refund_method=?,refund_date=? WHERE id=? AND user_id=?",
                (amount, method, date, job_id, session['user_id']))
