@@ -99,13 +99,16 @@ def init_db():
 
 def hash_pw(p): return hashlib.sha256(p.encode()).hexdigest()
 
+def _parse_dt(s):
+    """Parse datetime string as UTC-aware datetime regardless of stored format."""
+    if not s: return None
+    return datetime.fromisoformat(str(s)[:19]).replace(tzinfo=timezone.utc)
+
 def subscription_status(user):
     if not user['enabled']: return 'inactive'
-    now = datetime.utcnow()
-    ts = user['trial_start']
-    se = user['subscription_end']
-    trial_start = datetime.fromisoformat(ts) if ts else None
-    sub_end = datetime.fromisoformat(se) if se else None
+    now = datetime.now(timezone.utc)
+    trial_start = _parse_dt(user['trial_start'])
+    sub_end = _parse_dt(user['subscription_end'])
     if sub_end and now < sub_end: return 'active'
     if trial_start and now < trial_start + timedelta(days=30): return 'trial'
     if sub_end and now >= sub_end: return 'expired'
@@ -113,13 +116,13 @@ def subscription_status(user):
     return 'trial'
 
 def days_left(user):
-    now = datetime.utcnow()
-    se = user['subscription_end']
-    ts = user['trial_start']
-    if se:
-        return max(0, (datetime.fromisoformat(se) - now).days)
-    if ts:
-        return max(0, (datetime.fromisoformat(ts) + timedelta(days=30) - now).days)
+    now = datetime.now(timezone.utc)
+    sub_end = _parse_dt(user['subscription_end'])
+    trial_start = _parse_dt(user['trial_start'])
+    if sub_end:
+        return max(0, (sub_end - now).days)
+    if trial_start:
+        return max(0, (trial_start + timedelta(days=30) - now).days)
     return 0
 
 def login_required(f):
