@@ -126,6 +126,11 @@ def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if 'user_id' not in session: return redirect(url_for('login'))
+        db = get_db()
+        user = db.execute("SELECT id FROM users WHERE id=?", (session['user_id'],)).fetchone()
+        if not user:
+            session.clear()
+            return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated
 
@@ -146,6 +151,11 @@ def active_required(f):
         if session.get('role') == 'admin': return f(*args, **kwargs)
         db = get_db()
         user = db.execute("SELECT * FROM users WHERE id=?", (session['user_id'],)).fetchone()
+        if not user:
+            session.clear()
+            if request.is_json or request.headers.get('X-Requested-With'):
+                return jsonify({'error': 'Session expired'}), 401
+            return redirect(url_for('login'))
         status = subscription_status(user)
         if status in ('inactive', 'trial_expired', 'expired'):
             if request.is_json or request.headers.get('X-Requested-With'):
