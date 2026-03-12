@@ -438,7 +438,8 @@ def print_invoice(inv_id):
     if not inv:
         flash('Invoice not found.', 'error')
         return redirect(url_for('invoices'))
-    return render_template('print_invoice.html', inv=inv, user=user)
+    job = db.execute("SELECT * FROM repair_jobs WHERE id=? AND user_id=?", (inv['job_id'], session['user_id'])).fetchone() if inv['job_id'] else None
+    return render_template('print_invoice.html', inv=inv, user=user, job=job)
 
 @app.route('/invoices/<int:inv_id>/mark_paid', methods=['POST'])
 @active_required

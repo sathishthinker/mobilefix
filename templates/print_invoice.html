@@ -5,40 +5,69 @@
 <title>Invoice INV-{{ '%04d'|format(inv.id) }}</title>
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--teal:#00BCD4;}
+:root{--teal:#00BCD4;--dark:#0d1b2a;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'DM Sans',sans-serif;background:#f0f4f8;padding:30px;color:#1a2332;}
-.invoice{max-width:760px;margin:0 auto;background:white;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.1);overflow:hidden;}
-.inv-header{background:linear-gradient(135deg,#0d1b2a,#1a3a5c);padding:36px 40px;display:flex;justify-content:space-between;align-items:center;}
-.inv-logo{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.6rem;color:white;}
+@page{size:A4;margin:10mm;}
+body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size:0.82rem;}
+.page-wrap{max-width:780px;margin:0 auto;background:white;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.1);overflow:hidden;}
+
+/* Header */
+.inv-header{background:linear-gradient(135deg,var(--dark),#1a3a5c);padding:18px 28px;display:flex;justify-content:space-between;align-items:center;}
+.inv-logo{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.3rem;color:white;}
 .inv-logo span{color:var(--teal);}
-.inv-number{text-align:right;color:rgba(255,255,255,0.7);font-size:0.85rem;}
-.inv-number strong{display:block;font-size:1.4rem;color:white;font-family:'Exo 2',sans-serif;}
-.inv-body{padding:40px;}
-.inv-parties{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-bottom:36px;}
-.party-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:8px;}
-.party-name{font-family:'Exo 2',sans-serif;font-weight:700;font-size:1.05rem;color:#1a2332;margin-bottom:4px;}
-.party-detail{font-size:0.85rem;color:#64748b;line-height:1.6;}
-.items-table{width:100%;border-collapse:collapse;margin-bottom:20px;}
-.items-table th{padding:10px 14px;background:#f8fafc;text-align:left;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;border-bottom:2px solid #e2e8f0;}
-.items-table td{padding:13px 14px;border-bottom:1px solid #f1f5f9;font-size:0.9rem;vertical-align:middle;}
+.inv-shop{color:rgba(255,255,255,0.6);font-size:0.75rem;margin-top:2px;}
+.inv-number{text-align:right;color:rgba(255,255,255,0.7);font-size:0.75rem;}
+.inv-number strong{display:block;font-size:1.2rem;color:white;font-family:'Exo 2',sans-serif;}
+
+/* Two-column info row */
+.inv-info{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border-bottom:1px solid #e2e8f0;}
+.inv-info-cell{padding:12px 18px;border-right:1px solid #e2e8f0;}
+.inv-info-cell:last-child{border-right:none;}
+.info-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:4px;}
+.info-name{font-family:'Exo 2',sans-serif;font-weight:700;font-size:0.92rem;color:#1a2332;}
+.info-detail{font-size:0.78rem;color:#64748b;line-height:1.5;margin-top:2px;}
+
+/* Items table */
+.inv-body{padding:14px 18px;}
+.items-table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+.items-table th{padding:7px 10px;background:#f8fafc;text-align:left;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;border-bottom:2px solid #e2e8f0;}
+.items-table td{padding:8px 10px;border-bottom:1px solid #f1f5f9;font-size:0.82rem;vertical-align:middle;}
 .items-table tr:last-child td{border-bottom:none;}
-.items-table .num{text-align:right;font-weight:600;}
-.summary-table{width:100%;border-collapse:collapse;margin-top:8px;}
-.summary-table td{padding:7px 14px;font-size:0.88rem;}
+.num{text-align:right;font-weight:600;}
+
+/* Bottom two columns: summary + payment */
+.inv-bottom{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px;align-items:start;}
+.payment-box{background:#f8fafc;border-radius:10px;padding:12px 14px;}
+.payment-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:8px;}
+.pay-method{display:inline-block;background:#e0f7fa;color:#006064;padding:4px 12px;border-radius:999px;font-size:0.75rem;font-weight:700;margin-top:4px;}
+
+.summary-table{width:100%;border-collapse:collapse;}
+.summary-table td{padding:5px 10px;font-size:0.82rem;}
 .summary-table td:last-child{text-align:right;font-weight:600;}
-.summary-table .grand td{font-family:'Exo 2',sans-serif;font-size:1rem;font-weight:800;border-top:2px solid #e2e8f0;padding-top:12px;}
-.total-box{background:linear-gradient(135deg,var(--teal),#0097A7);color:white;border-radius:12px;padding:18px 28px;text-align:right;display:inline-block;float:right;}
-.total-label{font-size:0.8rem;opacity:0.85;margin-bottom:4px;}
-.total-amount{font-family:'Exo 2',sans-serif;font-size:1.8rem;font-weight:900;}
-.inv-footer{background:#f8fafc;padding:22px 40px;text-align:center;color:#94a3b8;font-size:0.82rem;border-top:1px solid #e2e8f0;clear:both;}
-.print-btn{text-align:center;margin-bottom:20px;display:flex;gap:10px;justify-content:center;}
-.print-btn button{background:linear-gradient(135deg,var(--teal),#0097A7);color:white;border:none;padding:12px 28px;border-radius:10px;cursor:pointer;font-size:0.9rem;font-weight:600;font-family:inherit;}
-.badge{display:inline-block;padding:4px 14px;border-radius:999px;font-size:0.78rem;font-weight:700;margin-left:10px;}
+.summary-table .grand td{font-family:'Exo 2',sans-serif;font-size:0.95rem;font-weight:800;border-top:2px solid #e2e8f0;padding-top:8px;color:var(--teal);}
+.summary-table .balance td{color:#ef4444;font-weight:800;}
+
+.badge{display:inline-block;padding:3px 12px;border-radius:999px;font-size:0.72rem;font-weight:700;}
 .badge-paid{background:#d1fae5;color:#065f46;}
 .badge-partial{background:#fff7ed;color:#c2410c;}
 .badge-unpaid{background:#fee2e2;color:#991b1b;}
-@media print{.print-btn{display:none;}body{background:white;padding:0;}.invoice{box-shadow:none;border-radius:0;}}
+
+/* Footer */
+.inv-footer{background:#f8fafc;padding:10px 18px;text-align:center;color:#94a3b8;font-size:0.75rem;border-top:1px solid #e2e8f0;}
+.inv-footer strong{color:#64748b;}
+
+/* Terms */
+.terms{font-size:0.7rem;color:#94a3b8;margin-top:10px;padding-top:8px;border-top:1px dashed #e2e8f0;line-height:1.6;}
+
+/* Print controls */
+.print-btn{text-align:center;margin-bottom:16px;display:flex;gap:10px;justify-content:center;}
+.print-btn button{background:linear-gradient(135deg,var(--teal),#0097A7);color:white;border:none;padding:10px 24px;border-radius:10px;cursor:pointer;font-size:0.88rem;font-weight:600;font-family:inherit;}
+
+@media print{
+  .print-btn{display:none;}
+  body{background:white;padding:0;}
+  .page-wrap{box-shadow:none;border-radius:0;max-width:100%;}
+}
 </style>
 </head>
 <body>
@@ -47,92 +76,116 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;padding:30px;color:#1a2
   <button onclick="window.close()" style="background:#64748b;">✕ Close</button>
 </div>
 
-<div class="invoice">
+<div class="page-wrap">
+  <!-- Header -->
   <div class="inv-header">
     <div>
       <div class="inv-logo">Mobile<span>Fix</span> Pro</div>
-      <div style="color:rgba(255,255,255,0.6);font-size:0.82rem;margin-top:4px;">{{ user.shop_name }}</div>
+      <div class="inv-shop">{{ user.shop_name }}</div>
     </div>
     <div class="inv-number">
       <small>INVOICE</small>
       <strong>INV-{{ '%04d'|format(inv.id) }}</strong>
-      <div style="margin-top:4px;font-size:0.8rem;color:rgba(255,255,255,0.6);">{{ inv.created_at[:10] }}</div>
+      <div style="margin-top:2px;font-size:0.72rem;color:rgba(255,255,255,0.6);">{{ inv.created_at[:10] }}</div>
     </div>
   </div>
 
-  <div class="inv-body">
-    <!-- Parties -->
-    <div class="inv-parties">
-      <div>
-        <div class="party-label">From</div>
-        <div class="party-name">{{ user.shop_name or 'My Shop' }}</div>
-        <div class="party-detail">{{ user.address or '' }}<br>📞 {{ user.phone }}</div>
-      </div>
-      <div>
-        <div class="party-label">Bill To</div>
-        <div class="party-name">{{ inv.customer_name }}</div>
-        <div class="party-detail">📞 {{ inv.customer_phone }}</div>
-      </div>
+  <!-- 3-column info: From | Bill To | Job Info -->
+  <div class="inv-info">
+    <div class="inv-info-cell">
+      <div class="info-label">From</div>
+      <div class="info-name">{{ user.shop_name or 'My Shop' }}</div>
+      <div class="info-detail">{{ user.address or '' }}<br>📞 {{ user.phone }}</div>
     </div>
+    <div class="inv-info-cell">
+      <div class="info-label">Bill To</div>
+      <div class="info-name">{{ inv.customer_name }}</div>
+      <div class="info-detail">📞 {{ inv.customer_phone }}</div>
+    </div>
+    <div class="inv-info-cell">
+      <div class="info-label">Job Details</div>
+      {% if job %}
+      <div class="info-detail">
+        <strong>{{ job.device_model }}</strong><br>
+        {% if job.imei_billing or job.imei %}<span style="color:#94a3b8;font-size:0.72rem;">IMEI: {{ job.imei_billing or job.imei }}</span><br>{% endif %}
+        {% if job.aadhar_number %}<span style="color:#f59e0b;font-size:0.72rem;">Aadhar: {{ job.aadhar_number }}</span><br>{% endif %}
+        Date: {{ inv.created_at[:10] }}
+      </div>
+      {% else %}
+      <div class="info-detail">Date: {{ inv.created_at[:10] }}</div>
+      {% endif %}
+    </div>
+  </div>
 
-    <!-- Items Table — parsed from JSON -->
+  <!-- Items Table -->
+  <div class="inv-body">
     <table class="items-table">
       <thead>
         <tr>
-          <th style="width:50%;">Description</th>
-          <th class="num" style="width:15%;">Qty</th>
-          <th class="num" style="width:17%;">Unit Price</th>
-          <th class="num" style="width:18%;">Amount</th>
+          <th style="width:48%;">Description</th>
+          <th class="num" style="width:12%;">Qty</th>
+          <th class="num" style="width:20%;">Unit Price</th>
+          <th class="num" style="width:20%;">Amount</th>
         </tr>
       </thead>
-      <tbody id="invItemsBody">
-        <!-- Rendered by JS below -->
-      </tbody>
+      <tbody id="invItemsBody"></tbody>
     </table>
 
-    <!-- Totals -->
-    <table class="summary-table" style="max-width:320px;margin-left:auto;">
-      <tr id="rowSubtotal" style="display:none;">
-        <td style="color:#64748b;">Subtotal</td>
-        <td id="subtotalAmt">₹0.00</td>
-      </tr>
-      <tr id="rowDiscount" style="display:none;">
-        <td style="color:#64748b;">Discount</td>
-        <td id="discountAmt" style="color:#ef4444;">—</td>
-      </tr>
-      <tr id="rowAdvance" style="display:none;">
-        <td style="color:#64748b;">Advance Paid</td>
-        <td id="advanceAmt" style="color:#4CAF50;">—</td>
-      </tr>
-      <tr class="grand">
-        <td><strong>Total Amount</strong></td>
-        <td id="grandTotal" style="color:#00BCD4;font-size:1.1rem;">₹0.00</td>
-      </tr>
-      <tr id="rowBalance" style="display:none;">
-        <td style="color:#ef4444;font-weight:700;">Balance Due</td>
-        <td id="balanceAmt" style="color:#ef4444;font-weight:800;">—</td>
-      </tr>
-    </table>
+    <!-- Bottom: Payment Info + Summary side by side -->
+    <div class="inv-bottom">
+      <!-- Left: Payment + Status + Terms -->
+      <div>
+        <div class="payment-box">
+          <div class="payment-label">Payment Info</div>
+          {% set ps = inv.paid or 'Unpaid' %}
+          {% if ps == 'Paid' %}
+            <span class="badge badge-paid">✓ FULLY PAID</span>
+          {% elif ps == 'Partial' %}
+            <span class="badge badge-partial">PARTIAL PAYMENT</span>
+          {% else %}
+            <span class="badge badge-unpaid">PAYMENT PENDING</span>
+          {% endif %}
+          {% if inv.pay_method %}
+            <div class="pay-method">{{ inv.pay_method }}</div>
+          {% endif %}
+        </div>
+        <div class="terms">
+          • All repairs carry a 30-day warranty on parts & labour.<br>
+          • Uncollected devices after 90 days are not our responsibility.<br>
+          • Thank you for choosing <strong>{{ user.shop_name or 'MobileFix Pro' }}</strong>!
+        </div>
+      </div>
 
-    <!-- Status badge -->
-    <div style="margin-top:16px;text-align:right;">
-      {% set ps = inv.paid or 'Unpaid' %}
-      {% if ps == 'Paid' %}
-        <span class="badge badge-paid">✓ FULLY PAID</span>
-      {% elif ps == 'Partial' %}
-        <span class="badge badge-partial">PARTIAL PAYMENT</span>
-      {% else %}
-        <span class="badge badge-unpaid">PAYMENT PENDING</span>
-      {% endif %}
-      {% if inv.pay_method %}
-        <span style="font-size:0.8rem;color:#94a3b8;margin-left:8px;">via {{ inv.pay_method }}</span>
-      {% endif %}
+      <!-- Right: Summary -->
+      <div>
+        <table class="summary-table">
+          <tr id="rowSubtotal" style="display:none;">
+            <td style="color:#64748b;">Subtotal</td>
+            <td id="subtotalAmt">₹0.00</td>
+          </tr>
+          <tr id="rowDiscount" style="display:none;">
+            <td style="color:#64748b;">Discount</td>
+            <td id="discountAmt" style="color:#ef4444;">—</td>
+          </tr>
+          <tr id="rowAdvance" style="display:none;">
+            <td style="color:#64748b;">Advance Paid</td>
+            <td id="advanceAmt" style="color:#4CAF50;">—</td>
+          </tr>
+          <tr class="grand">
+            <td>Total Amount</td>
+            <td id="grandTotal">₹0.00</td>
+          </tr>
+          <tr class="balance" id="rowBalance" style="display:none;">
+            <td>Balance Due</td>
+            <td id="balanceAmt">—</td>
+          </tr>
+        </table>
+      </div>
     </div>
   </div>
 
   <div class="inv-footer">
-    Thank you for choosing {{ user.shop_name or 'MobileFix Pro' }}!
-    &nbsp;•&nbsp; Generated by MobileFix Pro
+    Generated by <strong>MobileFix Pro</strong> &nbsp;•&nbsp; INV-{{ '%04d'|format(inv.id) }} &nbsp;•&nbsp; {{ inv.created_at[:10] }}
   </div>
 </div>
 
@@ -146,16 +199,10 @@ function renderItems() {
   let items = [];
   try {
     const parsed = JSON.parse(RAW_ITEMS);
-    if (Array.isArray(parsed)) {
-      items = parsed;
-    } else {
-      items = [{ desc: String(RAW_ITEMS), qty: 1, price: TOTAL }];
-    }
+    items = Array.isArray(parsed) ? parsed : [{ desc: String(RAW_ITEMS), qty: 1, price: TOTAL }];
   } catch(e) {
-    // Not JSON — plain text fallback
     items = [{ desc: String(RAW_ITEMS), qty: 1, price: TOTAL }];
   }
-
   const tbody = document.getElementById('invItemsBody');
   let subtotal = 0;
   items.forEach(item => {
@@ -164,24 +211,19 @@ function renderItems() {
     const amt = qty * price;
     subtotal += amt;
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${item.desc || item.description || '—'}</td>
+    tr.innerHTML = `<td>${item.desc || item.description || '—'}</td>
       <td class="num">${qty}</td>
       <td class="num">₹${price.toFixed(2)}</td>
       <td class="num" style="font-weight:700;">₹${amt.toFixed(2)}</td>`;
     tbody.appendChild(tr);
   });
-
-  // Subtotal row (show only if discount exists)
   if (DISC > 0) {
     document.getElementById('rowSubtotal').style.display = '';
     document.getElementById('subtotalAmt').textContent = '₹' + subtotal.toFixed(2);
     document.getElementById('rowDiscount').style.display = '';
     document.getElementById('discountAmt').textContent = '-₹' + DISC.toFixed(2);
   }
-
   document.getElementById('grandTotal').textContent = '₹' + TOTAL.toFixed(2);
-
   if (ADV > 0) {
     document.getElementById('rowAdvance').style.display = '';
     document.getElementById('advanceAmt').textContent = '₹' + ADV.toFixed(2);
@@ -192,7 +234,6 @@ function renderItems() {
     }
   }
 }
-
 renderItems();
 </script>
 </body>
