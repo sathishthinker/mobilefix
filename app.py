@@ -370,24 +370,26 @@ def deliver_job(job_id):
     data = request.get_json(force=True)
     total = float(data.get('total', 0))
     advance = float(data.get('advance', 0))
+    amount_paid_now = float(data.get('amountPaidNow', 0))
     discount = float(data.get('discount', 0))
     pay_method = data.get('payMethod', 'Cash')
+    credit_due_date = data.get('creditDueDate') or None
     items_str = json.dumps(data.get('items', []))
-    balance = max(0, total - advance)
-    paid = 'Paid' if balance < 0.01 else ('Partial' if advance > 0 else 'Unpaid')
-    status = data.get('status', 'Delivered')
+    total_collected = advance + amount_paid_now
+    balance = max(0, total - total_collected)
+    paid = 'Paid' if balance < 0.01 else ('Partial' if total_collected > 0 else 'Unpaid')
     delivery_date = datetime.now(IST).strftime('%Y-%m-%d')
     db = get_db()
     imei = data.get('imei','').strip().upper()
     if imei:
         db.execute("UPDATE repair_jobs SET imei_billing=? WHERE id=? AND user_id=? AND (imei_billing IS NULL OR imei_billing='')",
                    (imei, job_id, session['user_id']))
-    db.execute('''UPDATE repair_jobs SET status=?,cost=?,delivery_date=?,paid_status=?,updated_at=datetime("now")
+    db.execute('''UPDATE repair_jobs SET status='Delivered',cost=?,delivery_date=?,paid_status=?,updated_at=datetime("now")
                   WHERE id=? AND user_id=?''',
-               (status, total, delivery_date, paid, job_id, session['user_id']))
-    db.execute('''INSERT INTO invoices (user_id,job_id,customer_name,customer_phone,items,total,advance_amount,discount,pay_method,paid)
-                  SELECT ?,id,customer_name,customer_phone,?,?,?,?,?,? FROM repair_jobs WHERE id=?''',
-               (session['user_id'], items_str, total, advance, discount, pay_method, paid, job_id))
+               (total, delivery_date, paid, job_id, session['user_id']))
+    db.execute('''INSERT INTO invoices (user_id,job_id,customer_name,customer_phone,items,total,advance_amount,discount,pay_method,paid,due_date)
+                  SELECT ?,id,customer_name,customer_phone,?,?,?,?,?,?,? FROM repair_jobs WHERE id=?''',
+               (session['user_id'], items_str, total, total_collected, discount, pay_method, paid, credit_due_date, job_id))
     db.commit()
     inv = db.execute("SELECT id FROM invoices WHERE job_id=? ORDER BY id DESC LIMIT 1", (job_id,)).fetchone()
     return jsonify({'ok': True, 'inv_id': inv['id'] if inv else None})

@@ -312,11 +312,23 @@
     <span style="font-weight:700;color:#006064;">Balance Due:</span>
     <span id="invBal" style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.25rem;color:#00BCD4;">₹0.00</span>
   </div>
+  <div id="amountPaidNowBox" style="margin-bottom:14px;">
+    <label class="form-label">Amount Collected Now (₹) <span style="color:#ef4444;">*</span></label>
+    <input type="number" id="deliverAmtPaid" class="form-control" min="0" step="0.01"
+           style="font-size:1.05rem;font-weight:700;border:2px solid #4CAF50;"
+           oninput="updDeliverCredit()">
+    <div id="deliverCreditBadge" style="display:none;margin-top:8px;background:#fff7ed;border:1.5px solid #fbbf24;border-radius:8px;padding:8px 12px;font-size:0.82rem;font-weight:700;color:#92400e;">
+      <i class="fas fa-clock"></i> Credit Balance: <span id="deliverCreditAmt">₹0.00</span> — set due date below
+    </div>
+    <div id="deliverFullBadge" style="display:none;margin-top:8px;background:#dcfce7;border:1.5px solid #86efac;border-radius:8px;padding:8px 12px;font-size:0.82rem;font-weight:700;color:#16a34a;">
+      <i class="fas fa-check-circle"></i> Full payment — Invoice will be marked Paid
+    </div>
+  </div>
   <label class="form-label">Payment Method</label>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
     {% for m in ['Cash','UPI','Card','Credit'] %}
     <label style="display:flex;align-items:center;gap:6px;background:#f8fafc;border:1.5px solid #e2e8f0;padding:8px 14px;border-radius:9px;cursor:pointer;font-size:0.85rem;">
-      <input type="radio" name="payMethod" value="{{ m }}" {% if m=='Cash' %}checked{% endif %} onchange="document.getElementById('creditSection').style.display=this.value=='Credit'?'block':'none'"> {{ m }}
+      <input type="radio" name="payMethod" value="{{ m }}" {% if m=='Cash' %}checked{% endif %} onchange="onPayMethodChange(this.value)"> {{ m }}
     </label>
     {% endfor %}
   </div>
@@ -866,6 +878,9 @@ function openDeliver(id) {
   document.getElementById('deliverAdvance').value=bookingAdv.toFixed(2);
   document.getElementById('creditDueDate').value=new Date().toISOString().split('T')[0];
   document.getElementById('creditSection').style.display='none';
+  document.getElementById('deliverCreditBadge').style.display='none';
+  document.getElementById('deliverFullBadge').style.display='none';
+  document.getElementById('deliverAmtPaid').value='0.00';
   document.querySelector('input[name="payMethod"][value="Cash"]').checked=true;
   // Use quote_items from diagnose stage if available, else fall back to even split
   const quoteItems=j.quote_items?JSON.parse(j.quote_items):[];
@@ -922,6 +937,38 @@ function updInvTotal() {
   document.getElementById('invBal').textContent='₹'+bal.toFixed(2);
   box.style.background=bal<0.01?'#d1fae5':'#e0f7fa';
   document.getElementById('invBal').style.color=bal<0.01?'#065f46':'#00BCD4';
+  // Sync amount paid field
+  const amtEl=document.getElementById('deliverAmtPaid');
+  const payMethod=document.querySelector('input[name="payMethod"]:checked')?.value||'Cash';
+  if(payMethod!=='Credit') { amtEl.value=bal.toFixed(2); }
+  updDeliverCredit();
+}
+function updDeliverCredit() {
+  const rows=document.querySelectorAll('#invItemsContainer > div');
+  let sub=0;
+  rows.forEach(r=>{sub+=parseFloat(r.querySelector('.inv-price').value||0)*parseFloat(r.querySelector('.inv-qty').value||1);});
+  const disc=parseFloat(document.getElementById('deliverDiscount').value||0);
+  const adv=parseFloat(document.getElementById('deliverAdvance').value||0);
+  const bal=Math.max(0,sub-disc-adv);
+  const amtEl=document.getElementById('deliverAmtPaid');
+  let amt=parseFloat(amtEl.value||0);
+  if(amt>bal+0.005){amtEl.value=bal.toFixed(2);amt=bal;}
+  const credit=Math.max(0,bal-amt);
+  document.getElementById('deliverCreditAmt').textContent='₹'+credit.toFixed(2);
+  document.getElementById('deliverCreditBadge').style.display=credit>0.01?'block':'none';
+  document.getElementById('deliverFullBadge').style.display=credit<0.01&&bal>0.005?'block':'none';
+  document.getElementById('creditSection').style.display=credit>0.01?'block':'none';
+}
+function onPayMethodChange(val) {
+  const rows=document.querySelectorAll('#invItemsContainer > div');
+  let sub=0;
+  rows.forEach(r=>{sub+=parseFloat(r.querySelector('.inv-price').value||0)*parseFloat(r.querySelector('.inv-qty').value||1);});
+  const disc=parseFloat(document.getElementById('deliverDiscount').value||0);
+  const adv=parseFloat(document.getElementById('deliverAdvance').value||0);
+  const bal=Math.max(0,sub-disc-adv);
+  const amtEl=document.getElementById('deliverAmtPaid');
+  if(val==='Credit'){amtEl.value='0.00';}else{amtEl.value=bal.toFixed(2);}
+  updDeliverCredit();
 }
 function checkDeliverHappy() {
   const j=JOBS.find(x=>x.id==curId); if(!j||!j.happy_code) return;
@@ -976,10 +1023,11 @@ async function confirmDeliver(doPrint) {
   const payMethod=document.querySelector('input[name="payMethod"]:checked')?.value||'Cash';
   const creditDueDate=document.getElementById('creditDueDate').value;
   const total=Math.max(0,sub-disc);
-  const status=payMethod==='Credit'?'Credit Delivery':'Delivered';
-  if(payMethod==='Credit'&&!creditDueDate){ alert('Please set credit due date.'); return; }
+  const amountPaidNow=parseFloat(document.getElementById('deliverAmtPaid').value||0);
+  const credit=Math.max(0,total-adv-amountPaidNow);
+  if(credit>0.01&&!creditDueDate){ alert('Please set a due date for the remaining credit balance.'); return; }
   const resp=await fetch(`/jobs/${curId}/deliver`,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({items,discount:disc,advance:adv,total,payMethod,creditDueDate,status,imei:imeiInput.value.trim()})});
+    body:JSON.stringify({items,discount:disc,advance:adv,amountPaidNow,total,payMethod,creditDueDate,status:'Delivered',imei:imeiInput.value.trim()})});
   if(resp.ok){
     const d=await resp.json();
     closeM('deliverModal'); toast('Delivered! Invoice saved ✓');
