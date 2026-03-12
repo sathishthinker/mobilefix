@@ -348,7 +348,7 @@
           <div class="form-group">
             <label class="form-label"><i class="fas fa-calendar-check" style="color:#9C27B0;"></i> Expected Return Date <span style="color:#ef4444;">*</span></label>
             <input type="date" name="expected_return" id="expectedReturnField" class="form-control" required>
-            <div class="field-note"><i class="fas fa-clock"></i> Auto shows On Time / Overdue</div>
+            <div class="field-note"><i class="fas fa-clock"></i> Max 15 days from today allowed</div>
           </div>
         </div>
 
@@ -415,11 +415,19 @@ function checkOtherAcc(cb) {
   }
 }
 
-// Set default expected return to today + 3 days
+// Set expected return: default today+3, min today, max today+15
 (function(){
-  const d = new Date(); d.setDate(d.getDate()+3);
+  const today = new Date();
+  const minDate = today.toISOString().split('T')[0];
+  const maxD = new Date(); maxD.setDate(maxD.getDate()+15);
+  const maxDate = maxD.toISOString().split('T')[0];
+  const defD = new Date(); defD.setDate(defD.getDate()+3);
   const el = document.getElementById('expectedReturnField');
-  if(el) el.value = d.toISOString().split('T')[0];
+  if(el){
+    el.min = minDate;
+    el.max = maxDate;
+    el.value = defD.toISOString().split('T')[0];
+  }
 })();
 
 function buildModel() {
