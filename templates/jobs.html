@@ -1,0 +1,977 @@
+{% extends 'base.html' %}
+{% block title %}Repair Jobs{% endblock %}
+{% block page_title %}Repair Jobs{% endblock %}
+
+{% block extra_head %}
+<style>
+.sp{display:inline-block;padding:4px 12px;border-radius:999px;font-size:0.74rem;font-weight:700;color:white;}
+.sp-Received{background:#00BCD4;} .sp-Diagnosing{background:#FFC107;color:#333;} .sp-Repairing{background:#FF9800;}
+.sp-Ready{background:#9C27B0;} .sp-Delivered{background:#4CAF50;} .sp-Cancelled{background:#795548;} .sp-Rework{background:#03A9F4;}
+.sp-CreditDelivery{background:#2196F3;}
+.ontime{background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;}
+.overdue{background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;}
+.filter-btn{padding:7px 14px;border-radius:8px;font-size:0.8rem;font-weight:600;border:none;cursor:pointer;color:white;transition:opacity 0.15s;}
+.filter-btn:hover{opacity:0.85;} .filter-btn.active{box-shadow:0 0 0 3px rgba(0,0,0,0.25) inset;}
+.act{padding:6px 12px;border-radius:7px;font-size:0.77rem;font-weight:600;border:none;cursor:pointer;color:white;transition:all 0.15s;white-space:nowrap;}
+.act:hover{transform:translateY(-1px);}
+.act-blue{background:#03A9F4;} .act-green{background:#4CAF50;} .act-orange{background:#FF5722;}
+.act-amber{background:#FF9800;} .act-purple{background:#9C27B0;} .act-grey{background:#9E9E9E;}
+.act-red{background:#E53935;} .act-wa{background:#25D366;} .act-teal{background:#00BCD4;}
+.act-dark{background:#1a2332;} .act-reminder{background:#FF6B35;}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1000;display:none;overflow-y:auto;backdrop-filter:blur(3px);}
+.mo.show{display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;}
+.mb{background:white;border-radius:18px;padding:28px;width:92%;max-width:560px;box-shadow:0 25px 60px rgba(0,0,0,0.2);margin:auto;animation:su 0.22s ease;}
+.mb.wide{max-width:760px;}
+@keyframes su{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.mt{font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.1rem;color:#1a2332;margin-bottom:14px;display:flex;align-items:center;gap:9px;}
+.alert-bar{background:#fff3cd;border:1.5px solid #ffc107;border-radius:12px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background 0.15s;}
+.alert-bar:hover{background:#ffeaa0;}
+.alert-bar-red{background:#fff5f5;border-color:#ef4444;}
+.alert-bar-red:hover{background:#fee2e2;}
+.action-menu{position:relative;display:inline-block;}
+.action-dropdown{position:fixed;background:white;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.2);min-width:210px;z-index:2000;overflow:hidden;display:none;border:1px solid #e2e8f0;}
+.action-dropdown.open{display:block;}
+.action-dropdown button{display:flex;align-items:center;gap:9px;width:100%;padding:10px 16px;border:none;background:white;cursor:pointer;font-size:0.83rem;font-family:inherit;font-weight:600;color:#1a2332;transition:background 0.12s;}
+.action-dropdown button:hover{background:#f1f5f9;}
+.action-dropdown .sep{height:1px;background:#f1f5f9;margin:2px 0;}
+.happy-badge{background:linear-gradient(135deg,#9C27B0,#673AB7);color:white;padding:3px 10px;border-radius:999px;font-size:0.7rem;font-weight:700;letter-spacing:1px;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div><div class="page-title">Repair Jobs</div><div class="page-subtitle">Manage customer device repairs</div></div>
+  <a href="{{ url_for('add_job') }}" class="btn btn-primary"><i class="fas fa-plus"></i> New Job</a>
+</div>
+
+<!-- Overdue Alert Bar -->
+{% if overdue_jobs %}
+<div class="alert-bar alert-bar-red" onclick="toggleOverdueList()">
+  <span><i class="fas fa-exclamation-triangle" style="color:#ef4444;margin-right:8px;"></i>
+  <strong style="color:#991b1b;">{{ overdue_jobs|length }} Overdue Job{{ 's' if overdue_jobs|length > 1 }}</strong>
+  <span style="color:#6b7280;font-size:0.84rem;margin-left:8px;">— past expected return date</span></span>
+  <i class="fas fa-chevron-down" id="overdueChevron" style="color:#ef4444;transition:transform 0.2s;"></i>
+</div>
+<div id="overdueList" style="display:none;background:#fff5f5;border:1.5px solid #ef4444;border-radius:12px;margin-bottom:16px;overflow:hidden;">
+  {% for j in overdue_jobs %}
+  <div style="padding:10px 18px;border-bottom:1px solid #fee2e2;display:flex;justify-content:space-between;align-items:center;{% if loop.last %}border-bottom:none;{% endif %}">
+    <div><strong>#{{ j.id }} — {{ j.customer_name }}</strong> <span style="color:#6b7280;font-size:0.82rem;">{{ j.device_model }}</span></div>
+    <div style="font-size:0.8rem;"><span class="sp sp-{{ j.status }}">{{ j.status }}</span> <span style="color:#ef4444;font-weight:700;margin-left:8px;">Due: {{ j.expected_return }}</span></div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Partial Payment Reminder Bar -->
+{% if partial_jobs %}
+<div class="alert-bar" onclick="togglePartialList()">
+  <span><i class="fas fa-clock" style="color:#FF9800;margin-right:8px;"></i>
+  <strong style="color:#c2410c;">{{ partial_jobs|length }} Partial Payment{{ 's' if partial_jobs|length > 1 }} Pending</strong>
+  <span style="color:#6b7280;font-size:0.84rem;margin-left:8px;">— balance due from customers</span></span>
+  <i class="fas fa-chevron-down" id="partialChevron" style="color:#FF9800;transition:transform 0.2s;"></i>
+</div>
+<div id="partialList" style="display:none;background:#fff7ed;border:1.5px solid #FF9800;border-radius:12px;margin-bottom:16px;overflow:hidden;">
+  {% for j in partial_jobs %}
+  <div style="padding:10px 18px;border-bottom:1px solid #fed7aa;display:flex;justify-content:space-between;align-items:center;{% if loop.last %}border-bottom:none;{% endif %}">
+    <div><strong>#{{ j.id }} — {{ j.customer_name }}</strong> <span style="color:#6b7280;font-size:0.82rem;">{{ j.customer_phone }}</span></div>
+    <div style="font-size:0.82rem;font-weight:700;color:#c2410c;">Balance: ₹{{ '%.2f'|format((j.cost or 0) - (j.advance_amount or 0)) }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Search + Filters -->
+<div class="card" style="margin-bottom:20px;"><div class="card-body" style="padding:16px 20px;">
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+    <input type="text" id="searchInput" placeholder="Search name, phone, device, IMEI..." class="form-control" style="max-width:340px;" oninput="applyFilters()">
+    <button class="btn" style="border:1.5px solid #e2e8f0;background:white;color:#6b7c93;padding:8px 16px;border-radius:9px;cursor:pointer;" onclick="resetFilters()">Reset</button>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="filter-btn active" style="background:#64748b;" onclick="setFilter(this,'')">All</button>
+    <button class="filter-btn" style="background:#00BCD4;" onclick="setFilter(this,'Received')">Received</button>
+    <button class="filter-btn" style="background:#FFC107;color:#333;" onclick="setFilter(this,'Diagnosing')">Diagnosing</button>
+    <button class="filter-btn" style="background:#FF9800;" onclick="setFilter(this,'Repairing')">Repairing</button>
+    <button class="filter-btn" style="background:#9C27B0;" onclick="setFilter(this,'Ready')">Ready</button>
+    <button class="filter-btn" style="background:#03A9F4;" onclick="setFilter(this,'Rework')">Rework</button>
+    <button class="filter-btn" style="background:#4CAF50;" onclick="setFilter(this,'Delivered')">Delivered</button>
+    <button class="filter-btn" style="background:#795548;" onclick="setFilter(this,'Cancelled')">Cancelled</button>
+  </div>
+</div></div>
+
+<!-- Table -->
+<div class="card"><div class="card-body">
+{% if jobs %}
+<div class="table-wrap">
+<table id="jobsTable">
+<thead><tr>
+  <th>ID</th><th>Customer</th><th>Device / IMEI</th><th>Issues</th>
+  <th>Status</th><th>Cost</th><th>Expected Return</th><th>Received</th><th>Actions</th>
+</tr></thead>
+<tbody>
+{% for job in jobs %}
+{% set today = now().strftime('%Y-%m-%d') if now is defined else '' %}
+{% set is_overdue = job.expected_return and job.expected_return < job.created_at[:10] %}
+<tr data-status="{{ job.status }}" id="row-{{ job.id }}">
+  <td style="color:#94a3b8;font-size:0.8rem;font-weight:700;">#{{ job.id }}</td>
+  <td>
+    <strong>{{ job.customer_name }}</strong>
+    {% set due = (job.cost or 0) - (job.advance_amount or 0) %}
+    {% if job.status not in ('Delivered', 'Cancelled') and job.cost and due > 0 %}
+      <span style="background:#fee2e2;color:#b91c1c;border-radius:999px;padding:1px 8px;font-size:0.68rem;font-weight:700;margin-left:6px;">Due ₹{{ '%.2f'|format(due) }}</span>
+    {% endif %}
+    <br>
+    <small style="color:#94a3b8;">{{ job.customer_phone }}</small>
+  </td>
+  <td>
+    {{ job.device_model }}
+    {% if job.imei_billing or job.imei %}
+    <br><small style="color:#94a3b8;font-size:0.72rem;"><i class="fas fa-barcode"></i> {{ job.imei_billing or job.imei }}</small>
+    {% endif %}
+    {% if job.happy_code %}
+    <br><span class="happy-badge" title="Happy Code">🔑 {{ job.happy_code }}</span>
+    {% endif %}
+  </td>
+  <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.82rem;" title="{{ job.issue }}">{{ job.issue }}</td>
+  <td>
+    <span class="sp sp-{{ job.status.replace(' ','').replace('/','') }}">{{ job.status }}</span>
+    {% if job.aadhar_number %}<br><small style="color:#f59e0b;font-size:0.7rem;"><i class="fas fa-id-card"></i> FRP</small>{% endif %}
+    {% if job.paid_status == 'Paid' %}
+      <br><span style="background:#4CAF50;color:white;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;">✓ PAID</span>
+    {% elif job.paid_status == 'Partial' %}
+      <br><span style="background:#FF9800;color:white;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;">PARTIAL</span>
+    {% elif job.paid_status == 'Unpaid' and job.cost %}
+      <br><span style="background:#ef4444;color:white;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;">UNPAID</span>
+    {% endif %}
+  </td>
+  <td style="font-weight:700;">
+    {% if job.cost %}₹{{ '%.2f'|format(job.cost) }}{% else %}—{% endif %}
+    {% if job.advance_amount and job.advance_amount > 0 %}
+      <br><small style="color:#64748b;font-weight:500;">Adv: ₹{{ '%.2f'|format(job.advance_amount) }}</small>
+    {% endif %}
+  </td>
+  <td style="font-size:0.8rem;">
+    {% if job.expected_return %}
+      <span id="dt-{{ job.id }}">{{ job.expected_return }}</span>
+      {% if job.status not in ['Delivered','Cancelled'] %}
+        <br><span id="dtbadge-{{ job.id }}" class="ontime">✓ On Time</span>
+      {% endif %}
+      {% if job.reminder_date %}
+        <br><small style="color:#FF6B35;font-size:0.7rem;"><i class="fas fa-bell"></i> {{ job.reminder_date }}</small>
+      {% endif %}
+    {% else %}
+      <span style="color:#94a3b8;">—</span>
+    {% endif %}
+  </td>
+  <td style="font-size:0.78rem;color:#64748b;">
+    {{ job.created_at[:16].replace('T',' ') if job.created_at else '—' }}
+  </td>
+  <td>
+    <!-- Actions dropdown menu -->
+    <div class="action-menu" id="menu-{{ job.id }}">
+      <button class="act act-dark" onclick="toggleMenu({{ job.id }})">
+        Actions <i class="fas fa-chevron-down" style="margin-left:4px;font-size:0.7rem;"></i>
+      </button>
+      <div class="action-dropdown" id="dropdown-{{ job.id }}">
+        <button onclick="closeMenu({{ job.id }});viewJob({{ job.id }})"><i class="fas fa-eye" style="color:#00BCD4;"></i> View Details</button>
+        <button onclick="closeMenu({{ job.id }});printJobCard({{ job.id }})"><i class="fas fa-print" style="color:#64748b;"></i> Print Job Card</button>
+        <div class="sep"></div>
+        <button onclick="closeMenu({{ job.id }});sendJobCard({{ job.id }})"><i class="fab fa-whatsapp" style="color:#25D366;"></i> WA: Job Card</button>
+        {% if job.status not in ['Delivered','Cancelled'] %}
+          {% if job.status == 'Received' %}
+            <button onclick="closeMenu({{ job.id }});openDiagnose({{ job.id }})"><i class="fas fa-wrench" style="color:#FF9800;"></i> Diagnose & Quote</button>
+          {% elif job.status in ['Diagnosing','Repairing','Rework'] %}
+            <button onclick="closeMenu({{ job.id }});openDiagnose({{ job.id }})"><i class="fas fa-edit" style="color:#FF9800;"></i> Update Diagnosis</button>
+            <button onclick="closeMenu({{ job.id }});markReady({{ job.id }})"><i class="fas fa-check-circle" style="color:#9C27B0;"></i> Mark Ready</button>
+          {% elif job.status == 'Ready' %}
+            <button onclick="closeMenu({{ job.id }});notifyWA({{ job.id }})"><i class="fab fa-whatsapp" style="color:#25D366;"></i> Notify Ready (WA)</button>
+            <button onclick="closeMenu({{ job.id }});openHappyVerify({{ job.id }})"><i class="fas fa-key" style="color:#9C27B0;"></i> Verify Happy Code</button>
+            <button onclick="closeMenu({{ job.id }});openDeliver({{ job.id }})"><i class="fas fa-truck" style="color:#FF5722;"></i> Deliver & Invoice</button>
+          {% endif %}
+          <button onclick="closeMenu({{ job.id }});openReminder({{ job.id }})"><i class="fas fa-bell" style="color:#FF6B35;"></i> Set Reminder</button>
+          <div class="sep"></div>
+          <button onclick="closeMenu({{ job.id }});cancelJob({{ job.id }},'{{ job.customer_name|replace("'","\\'")|upper }}')" style="color:#E53935;"><i class="fas fa-times-circle" style="color:#E53935;"></i> Cancel Job</button>
+        {% else %}
+          <button onclick="closeMenu({{ job.id }});sendInvoice({{ job.id }})"><i class="fab fa-whatsapp" style="color:#25D366;"></i> Send Invoice (WA)</button>
+          <button onclick="closeMenu({{ job.id }});markRework({{ job.id }})"><i class="fas fa-redo" style="color:#9C27B0;"></i> Rework</button>
+        {% endif %}
+      </div>
+    </div>
+  </td>
+</tr>
+{% endfor %}
+</tbody></table></div>
+{% else %}
+<div style="text-align:center;padding:60px 20px;color:#94a3b8;">
+  <i class="fas fa-tools" style="font-size:3rem;margin-bottom:16px;display:block;opacity:0.2;"></i>
+  <div style="font-weight:700;font-size:1rem;margin-bottom:8px;color:#cbd5e1;">No repair jobs yet</div>
+  <a href="{{ url_for('add_job') }}" class="btn btn-primary" style="margin-top:10px;text-decoration:none;"><i class="fas fa-plus"></i> Add First Job</a>
+</div>
+{% endif %}
+</div></div>
+
+<!-- ── MODALS ── -->
+<!-- View Details -->
+<div class="mo" id="viewModal"><div class="mb wide">
+  <div class="mt"><i class="fas fa-clipboard-list" style="color:#00BCD4;"></i> Job Details</div>
+  <div id="viewContent"></div>
+  <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;">
+    <button onclick="printFromDetails()" class="act act-grey" style="padding:9px 18px;font-size:0.875rem;"><i class="fas fa-print"></i> Print Card</button>
+    <button onclick="const j=JOBS.find(x=>x.id==curId);if(j)sendJobCard(curId)" class="act act-wa" style="padding:9px 18px;font-size:0.875rem;"><i class="fab fa-whatsapp"></i> Send WA</button>
+    <button onclick="closeM('viewModal')" style="padding:9px 18px;border-radius:9px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Close</button>
+  </div>
+</div></div>
+
+<!-- Diagnose -->
+<div class="mo" id="diagnoseModal"><div class="mb wide">
+  <div class="mt"><i class="fas fa-wrench" style="color:#FF9800;"></i> Diagnose & Quote</div>
+  <div id="diagnoseInfo" style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:14px;font-size:0.875rem;"></div>
+  <div id="diagnoseItems"></div>
+  <button type="button" class="act act-blue" style="margin-top:8px;padding:8px 16px;" onclick="addDiagnoseRow()">+ Add Service / Part</button>
+  <div style="background:#f8fafc;border-radius:10px;padding:14px;margin-top:14px;">
+    <div style="display:flex;justify-content:space-between;font-size:0.9rem;font-weight:600;margin-bottom:12px;">
+      <span>Total Quote:</span><span id="diagTotal" style="color:#00BCD4;font-size:1.05rem;">₹0.00</span>
+    </div>
+    <label class="form-label" style="font-size:0.82rem;">Update Status</label>
+    <select id="diagStatus" class="form-control" style="margin-bottom:10px;">
+      <option value="Diagnosing">Diagnosing</option><option value="Repairing">Repairing</option><option value="Ready">Ready</option>
+    </select>
+    <div style="background:#e0f7fa;border-radius:10px;padding:12px;margin-bottom:10px;border:1.5px solid #b2ebf2;">
+      <label class="form-label" style="font-size:0.82rem;color:#006064;"><i class="fas fa-money-bill-wave" style="color:#4CAF50;"></i> Advance Payments</label>
+      <div id="advHistoryList" style="margin-bottom:8px;"></div>
+      <div style="font-size:0.78rem;font-weight:600;color:#006064;margin-bottom:6px;">+ Add New Advance (₹)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <input type="number" id="diagAdvance" class="form-control" value="" min="0" step="0.01" placeholder="0.00">
+        <select id="diagAdvMethod" class="form-control">
+          <option>Cash</option><option>UPI</option><option>Card</option><option>Bank Transfer</option>
+        </select>
+      </div>
+    </div>
+    <label class="form-label" style="font-size:0.82rem;">Notes <span style="font-size:0.72rem;color:#94a3b8;font-weight:400;">(from job entry — read only)</span></label>
+    <textarea id="diagNotes" class="form-control" style="min-height:70px;background:#f1f5f9;color:#64748b;cursor:not-allowed;" readonly></textarea>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+    <button onclick="saveDiagnose()" class="btn btn-primary" style="flex:1;padding:11px;"><i class="fas fa-save"></i> Save</button>
+    <button onclick="closeM('diagnoseModal')" style="padding:11px 20px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Cancel</button>
+  </div>
+</div></div>
+
+<!-- Happy Code Verify -->
+<div class="mo" id="happyModal"><div class="mb">
+  <div class="mt"><i class="fas fa-key" style="color:#9C27B0;"></i> Verify Happy Code</div>
+  <div style="background:#f3e5f5;border-radius:10px;padding:14px;margin-bottom:16px;text-align:center;">
+    <div style="font-size:0.82rem;color:#6b7280;margin-bottom:6px;">Ask the customer to show their Happy Code</div>
+    <div style="font-size:0.9rem;font-weight:600;color:#1a2332;" id="happyJobInfo"></div>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Enter Customer's Happy Code</label>
+    <input type="text" id="happyCodeInput" class="form-control" maxlength="6"
+           placeholder="_ _ _ _ _ _" style="font-size:1.6rem;text-align:center;letter-spacing:8px;font-weight:800;font-family:'Exo 2',sans-serif;"
+           oninput="this.value=this.value.replace(/\D/g,'')">
+  </div>
+  <div id="happyResult" style="display:none;padding:10px;border-radius:9px;text-align:center;margin-bottom:12px;font-weight:700;"></div>
+  <div style="display:flex;gap:10px;margin-top:14px;">
+    <button onclick="verifyHappy()" class="btn btn-primary" style="flex:1;padding:11px;"><i class="fas fa-check-circle"></i> Verify Code</button>
+    <button onclick="proceedDeliver()" id="proceedDeliverBtn" class="act act-orange" style="display:none;flex:1;padding:11px;font-size:0.9rem;"><i class="fas fa-truck"></i> Proceed to Deliver</button>
+    <button onclick="closeM('happyModal')" style="padding:11px 20px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Cancel</button>
+  </div>
+</div></div>
+
+<!-- Reminder Modal -->
+<div class="mo" id="reminderModal"><div class="mb">
+  <div class="mt"><i class="fas fa-bell" style="color:#FF6B35;"></i> Set Payment Reminder</div>
+  <div id="reminderInfo" style="background:#fff7ed;border-radius:10px;padding:12px;margin-bottom:14px;font-size:0.875rem;"></div>
+  <div class="form-group">
+    <label class="form-label">Reminder Date</label>
+    <input type="date" id="reminderDate" class="form-control">
+  </div>
+  <div style="display:flex;gap:10px;margin-top:14px;">
+    <button onclick="saveReminder()" class="btn btn-primary" style="flex:1;padding:11px;"><i class="fas fa-bell"></i> Set Reminder</button>
+    <button onclick="closeM('reminderModal')" style="padding:11px 18px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Cancel</button>
+  </div>
+</div></div>
+
+<!-- Deliver -->
+<div class="mo" id="deliverModal"><div class="mb wide">
+  <div class="mt"><i class="fas fa-truck" style="color:#FF5722;"></i> Deliver & Invoice</div>
+  <div id="deliverInfo" style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:14px;font-size:0.875rem;"></div>
+  <div id="imeiDeliverBox" style="background:#fff3cd;border:1.5px solid #ffc107;border-radius:10px;padding:12px;margin-bottom:14px;display:none;">
+    <label class="form-label" style="color:#92400e;font-size:0.82rem;"><i class="fas fa-barcode"></i> IMEI / Serial Number <span style="color:#ef4444;">*</span></label>
+    <input type="text" id="deliverImei" class="form-control" placeholder="ENTER IMEI" maxlength="20" oninput="this.value=this.value.toUpperCase()">
+  </div>
+  <div id="aadharDeliverBox" style="background:#fef3c7;border:1.5px solid #f59e0b;border-radius:10px;padding:12px;margin-bottom:14px;display:none;">
+    <label class="form-label" style="color:#92400e;font-size:0.82rem;"><i class="fas fa-id-card"></i> Aadhar Card Number <span style="color:#ef4444;">*</span> <span style="font-weight:400;font-size:0.78rem;">— required for FRP/Flash invoice</span></label>
+    <input type="text" id="deliverAadhar" class="form-control" placeholder="XXXX XXXX XXXX" maxlength="14" inputmode="numeric" style="letter-spacing:2px;font-weight:600;" oninput="formatDeliverAadhar(this)">
+  </div>
+  <label class="form-label">Invoice Items</label>
+  <div id="invItemsContainer"></div>
+  <button type="button" class="act act-blue" style="margin-top:8px;padding:7px 14px;" onclick="addInvoiceRow()">+ Add Item</button>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;">
+    <div><label class="form-label">Discount (₹)</label><input type="number" id="deliverDiscount" class="form-control" value="0" min="0" oninput="updInvTotal()"></div>
+    <div><label class="form-label">Advance Paid (₹)</label><input type="number" id="deliverAdvance" class="form-control" value="0" readonly style="background:#f1f5f9;cursor:not-allowed;color:#64748b;"></div>
+  </div>
+  <div id="balanceBox" style="display:flex;justify-content:space-between;padding:14px;background:#e0f7fa;border-radius:10px;margin-top:12px;margin-bottom:14px;">
+    <span style="font-weight:700;color:#006064;">Balance Due:</span>
+    <span id="invBal" style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.25rem;color:#00BCD4;">₹0.00</span>
+  </div>
+  <label class="form-label">Payment Method</label>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+    {% for m in ['Cash','UPI','Card','Credit'] %}
+    <label style="display:flex;align-items:center;gap:6px;background:#f8fafc;border:1.5px solid #e2e8f0;padding:8px 14px;border-radius:9px;cursor:pointer;font-size:0.85rem;">
+      <input type="radio" name="payMethod" value="{{ m }}" {% if m=='Cash' %}checked{% endif %} onchange="document.getElementById('creditSection').style.display=this.value=='Credit'?'block':'none'"> {{ m }}
+    </label>
+    {% endfor %}
+  </div>
+  <div id="creditSection" style="display:none;background:#fff3cd;border-radius:10px;padding:12px;border:1.5px solid #ffc107;margin-bottom:12px;">
+    <label class="form-label" style="color:#92400e;">Credit Due Date *</label>
+    <input type="date" id="creditDueDate" class="form-control">
+  </div>
+  <div id="happyCodeDeliverBox" style="display:none;background:linear-gradient(135deg,#f3e5f5,#ede9fe);border:1.5px solid #BA68C8;border-radius:12px;padding:14px;margin-bottom:14px;">
+    <div style="font-size:0.85rem;font-weight:700;color:#6b21a8;margin-bottom:8px;"><i class="fas fa-key"></i> Verify Happy Code <span style="color:#ef4444;">*</span></div>
+    <div style="font-size:0.78rem;color:#7c3aed;margin-bottom:8px;">Ask the customer to show their Happy Code before releasing the device.</div>
+    <input type="text" id="deliverHappyInput" class="form-control" maxlength="6" placeholder="_ _ _ _ _ _"
+           style="font-size:1.4rem;text-align:center;letter-spacing:8px;font-weight:800;font-family:'Exo 2',sans-serif;border:2px solid #BA68C8;"
+           oninput="this.value=this.value.replace(/\D/g,'');checkDeliverHappy()">
+    <div id="deliverHappyResult" style="display:none;margin-top:8px;padding:8px 12px;border-radius:8px;font-weight:700;font-size:0.85rem;text-align:center;"></div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <button onclick="confirmDeliver(false)" class="btn btn-primary" style="flex:1;padding:11px;"><i class="fas fa-check"></i> Confirm Delivery</button>
+    <button onclick="confirmDeliver(true)" class="act act-grey" style="padding:11px 16px;font-size:0.875rem;"><i class="fas fa-print"></i> Deliver & Print</button>
+    <button onclick="closeM('deliverModal')" style="padding:11px 18px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Cancel</button>
+  </div>
+</div></div>
+
+<!-- Cancel -->
+<div class="mo" id="cancelModal"><div class="mb">
+  <div class="mt"><i class="fas fa-times-circle" style="color:#E53935;"></i> Cancel Job</div>
+  <div id="cancelInfo" style="margin-bottom:14px;font-size:0.875rem;padding:10px;background:#fff5f5;border-radius:9px;"></div>
+  <div id="cancelRefundBox" style="display:none;background:#fff7ed;border:1.5px solid #fbbf24;border-radius:10px;padding:12px;margin-bottom:14px;">
+    <div style="font-weight:700;color:#92400e;font-size:0.88rem;margin-bottom:6px;"><i class="fas fa-undo" style="color:#f59e0b;"></i> Advance Refund Required</div>
+    <div id="cancelRefundAmt" style="font-size:0.85rem;color:#78350f;"></div>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:0.85rem;font-weight:600;cursor:pointer;">
+      <input type="checkbox" id="refundConfirm" style="width:16px;height:16px;">
+      <span style="color:#92400e;">I confirm the advance has been / will be refunded to the customer</span>
+    </label>
+  </div>
+  <div class="form-group"><label class="form-label">Reason</label>
+    <select id="cancelReason" class="form-control" onchange="document.getElementById('cancelOtherBox').style.display=this.value=='Other'?'block':'none'">
+      <option>Customer Request</option><option>Repair Not Possible</option><option>Spare Not Available</option><option>Mobile Already Dead</option><option>Other</option>
+    </select>
+  </div>
+  <div id="cancelOtherBox" style="display:none;" class="form-group"><label class="form-label">Specify</label>
+    <textarea id="cancelOtherText" class="form-control" oninput="this.value=this.value.toUpperCase()"></textarea>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:14px;">
+    <button onclick="confirmCancel()" class="act act-red" style="flex:1;padding:11px;font-size:0.9rem;"><i class="fas fa-times"></i> Confirm Cancel</button>
+    <button onclick="closeM('cancelModal')" style="padding:11px 20px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Back</button>
+  </div>
+</div></div>
+
+<!-- Rework -->
+<div class="mo" id="reworkModal"><div class="mb">
+  <div class="mt"><i class="fas fa-redo" style="color:#9C27B0;"></i> Rework Entry</div>
+  <div id="reworkInfo" style="margin-bottom:14px;font-size:0.875rem;padding:10px;background:#f3e5f5;border-radius:9px;"></div>
+  <div class="form-group"><label class="form-label">Rework Details</label>
+    <textarea id="reworkDetails" class="form-control" placeholder="DESCRIBE THE REWORK ISSUE..." oninput="this.value=this.value.toUpperCase()" style="min-height:90px;"></textarea>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:14px;">
+    <button onclick="confirmRework()" class="act act-purple" style="flex:1;padding:11px;font-size:0.9rem;"><i class="fas fa-redo"></i> Create Rework Job</button>
+    <button onclick="closeM('reworkModal')" style="padding:11px 20px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Cancel</button>
+  </div>
+</div></div>
+
+<!-- WA Number Modal -->
+<div class="mo" id="waModal"><div class="mb">
+  <div class="mt"><i class="fab fa-whatsapp" style="color:#25D366;"></i> Send via WhatsApp</div>
+  <div class="form-group">
+    <label class="form-label">Customer Phone Number</label>
+    <div style="display:flex;gap:8px;">
+      <span style="padding:10px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px;font-weight:700;color:#64748b;">+91</span>
+      <input type="tel" id="waPhone" class="form-control" maxlength="10" placeholder="10-digit number" oninput="this.value=this.value.replace(/\D/g,'').substring(0,10)">
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:14px;">
+    <button onclick="confirmWA()" class="act act-wa" style="flex:1;padding:11px;font-size:0.9rem;"><i class="fab fa-whatsapp"></i> Open WhatsApp</button>
+    <button onclick="closeM('waModal')" style="padding:11px 18px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Cancel</button>
+  </div>
+</div></div>
+
+<div id="toast" style="position:fixed;bottom:22px;right:22px;background:#1a2332;color:white;padding:12px 20px;border-radius:12px;font-size:0.875rem;font-weight:500;z-index:9999;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.2);">
+  <i class="fas fa-check-circle" style="color:#00BCD4;margin-right:8px;"></i><span id="toastMsg"></span>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const JOBS = {{ jobs_json|safe }};
+const SHOP = { name:{{ user.shop_name|default('My Shop')|tojson }}, phone:{{ (user.phone or '')|tojson }}, address:{{ user.address|default('')|tojson }} };
+let curId = null, waPendingMsg = '', waPendingPhone = '';
+
+// ── Overdue & Partial toggle ──
+function toggleOverdueList() {
+  const el = document.getElementById('overdueList');
+  const ch = document.getElementById('overdueChevron');
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  ch.style.transform = open ? '' : 'rotate(180deg)';
+}
+function togglePartialList() {
+  const el = document.getElementById('partialList');
+  const ch = document.getElementById('partialChevron');
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  ch.style.transform = open ? '' : 'rotate(180deg)';
+}
+
+// ── Overdue badges ──
+(function() {
+  const today = new Date().toISOString().split('T')[0];
+  JOBS.forEach(j => {
+    const badge = document.getElementById('dtbadge-'+j.id);
+    if (!badge) return;
+    if (j.expected_return && j.expected_return < today && !['Delivered','Cancelled'].includes(j.status)) {
+      badge.textContent = '⚠ Overdue';
+      badge.className = 'overdue';
+    }
+  });
+})();
+
+// ── Action dropdown ──
+function toggleMenu(id) {
+  const allDropdowns = document.querySelectorAll('.action-dropdown.open');
+  allDropdowns.forEach(d => { if(d.id !== 'dropdown-'+id) d.classList.remove('open'); });
+  const dd = document.getElementById('dropdown-'+id);
+  const btn = document.querySelector('#menu-'+id+' button');
+  if (dd.classList.contains('open')) { dd.classList.remove('open'); return; }
+  // Smart position: avoid going off screen
+  const rect = btn.getBoundingClientRect();
+  const ddW = 210, ddH = 360;
+  let top = rect.bottom + window.scrollY + 4;
+  let left = rect.right - ddW;
+  if (left < 8) left = rect.left;
+  if (left + ddW > window.innerWidth - 8) left = window.innerWidth - ddW - 8;
+  if (rect.bottom + ddH > window.innerHeight) top = rect.top + window.scrollY - ddH - 4;
+  dd.style.top = top + 'px';
+  dd.style.left = left + 'px';
+  dd.classList.add('open');
+}
+function closeMenu(id) { document.getElementById('dropdown-'+id).classList.remove('open'); }
+document.addEventListener('click', e => {
+  if (!e.target.closest('.action-menu')) document.querySelectorAll('.action-dropdown.open').forEach(d=>d.classList.remove('open'));
+});
+window.addEventListener('scroll', () => {
+  document.querySelectorAll('.action-dropdown.open').forEach(d=>d.classList.remove('open'));
+});
+
+// ── Filters ──
+let activeStatus = '';
+function setFilter(btn, s) {
+  activeStatus = s;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+function applyFilters() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#jobsTable tbody tr').forEach(row => {
+    const mQ = !q || row.textContent.toLowerCase().includes(q);
+    const mS = !activeStatus || row.dataset.status === activeStatus;
+    row.style.display = (mQ && mS) ? '' : 'none';
+  });
+}
+function resetFilters() {
+  document.getElementById('searchInput').value='';
+  activeStatus='';
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.filter-btn')[0].classList.add('active');
+  applyFilters();
+}
+
+// ── Modal helpers ──
+function openM(id) { document.getElementById(id).classList.add('show'); }
+function closeM(id) { document.getElementById(id).classList.remove('show'); }
+
+// ── Toast ──
+function toast(msg, color='') {
+  const t=document.getElementById('toast'); const m=document.getElementById('toastMsg');
+  m.textContent=msg; t.style.display='block'; t.style.background=color||'#1a2332';
+  setTimeout(()=>t.style.display='none',2500);
+}
+
+// ── View Details ──
+function viewJob(id) {
+  curId=id; const j=JOBS.find(x=>x.id==id); if(!j) return;
+  const today=new Date().toISOString().split('T')[0];
+  const overdueHtml=j.expected_return&&j.expected_return<today&&!['Delivered','Cancelled'].includes(j.status)
+    ?`<span class="overdue" style="margin-left:8px;">⚠ Overdue</span>`:'';
+  let html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+    <div style="background:#f8fafc;border-radius:10px;padding:14px;">
+      <div style="font-size:0.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:8px;">Customer</div>
+      <div style="font-weight:700;font-size:1rem;">${j.customer_name}</div>
+      <div style="color:#64748b;">📞 ${j.customer_phone}</div>
+      ${j.aadhar_number?`<div style="color:#f59e0b;font-size:0.82rem;margin-top:4px;"><i class="fas fa-id-card"></i> Aadhar: ${j.aadhar_number}</div>`:''}
+    </div>
+    <div style="background:#f8fafc;border-radius:10px;padding:14px;">
+      <div style="font-size:0.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:8px;">Device</div>
+      <div style="font-weight:700;">${j.device_model}</div>
+      ${j.imei_billing||j.imei?`<div style="font-size:0.8rem;color:#64748b;"><i class="fas fa-barcode"></i> ${j.imei_billing||j.imei}</div>`:''}
+    </div>
+  </div>
+  <div style="background:#f8fafc;border-radius:10px;padding:14px;margin-bottom:12px;">
+    <div style="font-size:0.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:8px;">Issues Reported</div>
+    <div style="font-size:0.9rem;">${j.issue}</div>
+    ${j.received_without?`<div style="margin-top:8px;font-size:0.8rem;color:#FF9800;"><i class="fas fa-box-open"></i> Received Without: ${j.received_without}</div>`:''}
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
+    <div style="background:#e0f7fa;border-radius:10px;padding:12px;text-align:center;">
+      <div style="font-size:0.72rem;color:#006064;font-weight:700;">STATUS</div>
+      <div class="sp sp-${j.status.replace(/ /g,'').replace('/','')}" style="margin-top:6px;">${j.status}</div>
+    </div>
+    <div style="background:#f8fafc;border-radius:10px;padding:12px;text-align:center;">
+      <div style="font-size:0.72rem;color:#94a3b8;font-weight:700;">COST</div>
+      <div style="font-size:1rem;font-weight:800;color:#1a2332;margin-top:4px;">${j.cost?'₹'+parseFloat(j.cost).toFixed(2):'—'}</div>
+    </div>
+    <div style="background:#f8fafc;border-radius:10px;padding:12px;text-align:center;">
+      <div style="font-size:0.72rem;color:#94a3b8;font-weight:700;">EXPECTED</div>
+      <div style="font-size:0.85rem;font-weight:700;margin-top:4px;">${j.expected_return||'—'}${overdueHtml}</div>
+    </div>
+  </div>
+  ${j.happy_code?`<div style="background:linear-gradient(135deg,#f3e5f5,#e8d5f5);border-radius:10px;padding:14px;margin-bottom:12px;text-align:center;">
+    <div style="font-size:0.72rem;font-weight:700;color:#7b1fa2;text-transform:uppercase;margin-bottom:6px;">🔑 Happy Code (share with customer)</div>
+    <div style="font-family:'Exo 2',sans-serif;font-size:2rem;font-weight:900;color:#9C27B0;letter-spacing:10px;">${j.happy_code}</div>
+  </div>`:''}
+  ${(()=>{
+    const adv=parseFloat(j.advance_amount||0);
+    let advHtml='';
+    if(adv>0){
+      const hist=j.advance_history?JSON.parse(j.advance_history):[];
+      const rows=hist.length>0
+        ?hist.map(e=>`<div style="display:flex;justify-content:space-between;background:#b2dfdb;border-radius:7px;padding:5px 10px;margin-bottom:4px;font-size:0.82rem;">
+            <span style="font-weight:700;color:#004d40;">₹${parseFloat(e.amount).toFixed(2)}</span>
+            <span style="color:#00695c;">${e.method}</span>
+            <span style="color:#546e7a;font-size:0.72rem;">${e.date}</span>
+          </div>`).join('')
+        :`<div style="font-size:0.82rem;color:#00838f;">₹${adv.toFixed(2)} — ${j.advance_method||'Cash'}</div>`;
+      advHtml+=`<div style="background:#e0f7fa;border:1.5px solid #b2ebf2;border-radius:10px;padding:14px;margin-bottom:12px;">
+        <div style="font-size:0.72rem;font-weight:700;color:#006064;text-transform:uppercase;margin-bottom:8px;">💰 Advance Payments <span style="font-size:0.8rem;font-weight:800;color:#00838f;">Total: ₹${adv.toFixed(2)}</span></div>
+        ${rows}
+      </div>`;
+    }
+    if(j.status==='Cancelled'&&j.cancel_reason){
+      const parts=j.cancel_reason.split('|');
+      const reason=parts[0].trim();
+      const refundPart=parts.find(p=>p.includes('Advance Refunded'));
+      const refundAmt=refundPart?refundPart.replace('Advance Refunded:','').trim():'';
+      advHtml+=`<div style="background:#fff7ed;border:1.5px solid #fbbf24;border-radius:10px;padding:14px;margin-bottom:12px;">
+        <div style="font-size:0.72rem;font-weight:700;color:#92400e;text-transform:uppercase;margin-bottom:8px;">🚫 Cancellation Details</div>
+        <div style="margin-bottom:6px;"><span style="font-size:0.75rem;color:#64748b;">Reason: </span><span style="font-weight:600;color:#1a2332;">${reason}</span></div>
+        ${refundAmt?`<div style="background:#d1fae5;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;">
+          <span style="color:#065f46;font-size:1.1rem;">✓</span>
+          <div><div style="font-size:0.75rem;color:#065f46;font-weight:700;">ADVANCE REFUNDED</div><div style="font-weight:800;color:#065f46;font-size:1rem;">${refundAmt}</div></div>
+        </div>`:`<div style="color:#92400e;font-size:0.85rem;">No advance refund recorded.</div>`}
+      </div>`;
+    }
+    return advHtml;
+  })()}
+  ${(()=>{
+    const rawNotes=j.notes||'';
+    const lockMatch=rawNotes.match(/SCREEN LOCK:\s*([^|]+)/i);
+    const lockVal=lockMatch?lockMatch[1].trim():'';
+    const cleanNotes=rawNotes.replace(/\|?\s*SCREEN LOCK:[^|]*/i,'').replace(/^\s*\|\s*/,'').trim();
+    let extra='';
+    if(lockVal){
+      const lockIcon=lockVal.startsWith('NONE')?'fa-unlock':lockVal.startsWith('PATTERN')?'fa-th':lockVal.startsWith('PIN')?'fa-keyboard':'fa-font';
+      extra+=`<div style="background:linear-gradient(135deg,#ede9fe,#f3e5f5);border:1.5px solid #c4b5fd;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;">
+        <i class="fas ${lockIcon}" style="color:#7c3aed;font-size:1.1rem;"></i>
+        <div>
+          <div style="font-size:0.72rem;font-weight:700;color:#6d28d9;text-transform:uppercase;">Screen Lock</div>
+          <div style="font-weight:800;font-size:0.95rem;color:#4c1d95;letter-spacing:1px;">${lockVal}</div>
+        </div>
+      </div>`;
+    }
+    if(cleanNotes){
+      extra+=`<div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 14px;margin-bottom:12px;">
+        <div style="font-size:0.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;"><i class="fas fa-sticky-note" style="color:#fbbf24;"></i> Notes</div>
+        <div style="font-size:0.88rem;color:#334155;line-height:1.5;">${cleanNotes}</div>
+      </div>`;
+    }
+    return extra;
+  })()}
+  <div style="font-size:0.78rem;color:#94a3b8;text-align:right;">Received: ${(j.created_at||'').substring(0,16).replace('T',' ')}${j.diagnosed_at?' | Diagnosed: '+(j.diagnosed_at||'').substring(0,16).replace('T',' '):''} | Updated: ${(j.updated_at||'').substring(0,16).replace('T',' ')}</div>`;
+  document.getElementById('viewContent').innerHTML = html;
+  openM('viewModal');
+}
+function printFromDetails() { const j=JOBS.find(x=>x.id==curId); if(j) printJobCard(curId); closeM('viewModal'); }
+
+// ── WhatsApp with editable number ──
+function openWA(phone, msg) {
+  waPendingMsg = msg; waPendingPhone = phone;
+  document.getElementById('waPhone').value = phone.replace(/\D/g,'').substring(phone.length-10);
+  openM('waModal');
+}
+function confirmWA() {
+  const ph = document.getElementById('waPhone').value.trim();
+  if(ph.length !== 10){ alert('Please enter a valid 10-digit number.'); return; }
+  window.open(`whatsapp://send?phone=91${ph}&text=${encodeURIComponent(waPendingMsg)}`,'_blank');
+  closeM('waModal');
+}
+
+function sendJobCard(id) {
+  const j=JOBS.find(x=>x.id==id); if(!j) return;
+  let m=`*--- SERVICE JOB CARD ---*\n*${SHOP.name}*\n${SHOP.address}\n\nDear *${j.customer_name}*,\nYour device has been received.\n\n`;
+  m+=`*Job ID:* #${j.id}\n*Device:* ${j.device_model}\n`;
+  if(j.imei_billing||j.imei) m+=`*IMEI/SN:* ${j.imei_billing||j.imei}\n`;
+  m+=`*Issue(s):* ${j.issue}\n`;
+  m+=`*Expected Return:* ${j.expected_return||'Will inform'}\n*Status:* ${j.status}\n`;
+  if(j.happy_code) m+=`\n🔑 *Happy Code:* ${j.happy_code} _(show this when collecting device)_\n`;
+  m+=`\nThank you! — *${SHOP.name}* | ${SHOP.phone}`;
+  openWA(j.customer_phone, m);
+}
+function notifyWA(id) {
+  const j=JOBS.find(x=>x.id==id); if(!j) return;
+  let m=`Dear *${j.customer_name}*,\n\nYour *${j.device_model}* (Job #${j.id}) is *READY FOR PICKUP* 🎉\n\n`;
+  if(j.happy_code) m+=`🔑 *Happy Code:* ${j.happy_code}\nPlease show this code when collecting your device.\n\n`;
+  m+=`*${SHOP.name}* | ${SHOP.phone}`;
+  openWA(j.customer_phone, m);
+}
+function sendInvoice(id) {
+  const j=JOBS.find(x=>x.id==id); if(!j) return;
+  let m=`*--- INVOICE ---*\n*${SHOP.name}*\n${SHOP.address} | ${SHOP.phone}\n\nDear *${j.customer_name}*,\nThank you for choosing us!\n\n`;
+  m+=`*Job ID:* #${j.id}\n*Device:* ${j.device_model}\n`;
+  if(j.imei_billing||j.imei) m+=`*IMEI/SN:* ${j.imei_billing||j.imei}\n`;
+  if(j.cost) m+=`*Total:* ₹${parseFloat(j.cost).toFixed(2)}\n`;
+  if(j.advance_amount>0) m+=`*Advance Paid:* ₹${parseFloat(j.advance_amount).toFixed(2)}\n*Balance Due:* ₹${Math.max(0,j.cost-j.advance_amount).toFixed(2)}\n`;
+  m+=`*Status:* ${j.paid_status||'Unpaid'}`;
+  openWA(j.customer_phone, m);
+}
+
+// ── Happy Code ──
+function openHappyVerify(id) {
+  curId=id; const j=JOBS.find(x=>x.id==id); if(!j) return;
+  document.getElementById('happyJobInfo').textContent=`#${j.id} — ${j.customer_name} | ${j.device_model}`;
+  document.getElementById('happyCodeInput').value='';
+  document.getElementById('happyResult').style.display='none';
+  document.getElementById('proceedDeliverBtn').style.display='none';
+  openM('happyModal');
+}
+async function verifyHappy() {
+  const code = document.getElementById('happyCodeInput').value.trim();
+  if(code.length!==6){ alert('Happy Code must be 6 digits.'); return; }
+  const r = await fetch(`/jobs/${curId}/verify_happy`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+  const d = await r.json();
+  const res = document.getElementById('happyResult');
+  res.style.display='block';
+  if(d.ok){
+    res.style.background='#d1fae5'; res.style.color='#065f46';
+    res.innerHTML='<i class="fas fa-check-circle"></i> ✅ Happy Code Verified! Device can be delivered.';
+    document.getElementById('proceedDeliverBtn').style.display='inline-flex';
+  } else {
+    res.style.background='#fee2e2'; res.style.color='#991b1b';
+    res.innerHTML='<i class="fas fa-times-circle"></i> ❌ Invalid Code. Please check with customer.';
+  }
+}
+function proceedDeliver() { closeM('happyModal'); openDeliver(curId); }
+
+// ── Reminder ──
+function openReminder(id) {
+  curId=id; const j=JOBS.find(x=>x.id==id); if(!j) return;
+  document.getElementById('reminderInfo').innerHTML=`<strong>#${j.id}</strong> — ${j.customer_name} | <span style="color:#FF6B35;">${j.paid_status||'Unpaid'}</span>`;
+  const today=new Date(); today.setDate(today.getDate()+3);
+  document.getElementById('reminderDate').value=today.toISOString().split('T')[0];
+  openM('reminderModal');
+}
+async function saveReminder() {
+  const date=document.getElementById('reminderDate').value;
+  if(!date){ alert('Please select a date.'); return; }
+  const r=await fetch(`/jobs/${curId}/set_reminder`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({reminder_date:date})});
+  if(r.ok){ closeM('reminderModal'); toast('Reminder set for '+date+' ✓'); setTimeout(()=>location.reload(),1200); }
+}
+
+// ── Diagnose ──
+function openDiagnose(id) {
+  curId=id; const j=JOBS.find(x=>x.id==id); if(!j) return;
+  const lockMatch=j.notes&&j.notes.match(/SCREEN LOCK:\s*([^|]+)/i);
+  const lockInfo=lockMatch?lockMatch[1].trim():'';
+  const lockBadge=lockInfo?`<div style="margin-top:6px;background:#e9d5ff;border-radius:7px;padding:5px 10px;font-size:0.78rem;color:#6b21a8;display:inline-block;"><i class="fas fa-lock" style="font-size:0.72rem;"></i> Lock: <span style="color:#7e22ce;font-weight:700;">${lockInfo}</span> <span style="color:#94a3b8;font-style:italic;font-size:0.72rem;">(read-only)</span></div>`:'';
+  document.getElementById('diagnoseInfo').innerHTML=`<strong>#${j.id}</strong> — ${j.customer_name} | ${j.device_model}<br><small style="color:#94a3b8;">Issues: ${j.issue}</small>${lockBadge}`;
+  document.getElementById('diagnoseItems').innerHTML='';
+  document.getElementById('diagNotes').value=j.notes||'';
+  const ds=document.getElementById('diagStatus');
+  ds.value=['Diagnosing','Repairing','Rework'].includes(j.status)?j.status:'Diagnosing';
+  // Advance history — show existing entries as read-only
+  const history=j.advance_history?JSON.parse(j.advance_history):[];
+  const histDiv=document.getElementById('advHistoryList');
+  histDiv.innerHTML='';
+  if(history.length>0){
+    history.forEach((e,i)=>{
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;justify-content:space-between;align-items:center;background:#b2dfdb;border-radius:7px;padding:6px 10px;margin-bottom:5px;font-size:0.82rem;opacity:0.85;';
+      row.innerHTML=`<span style="font-weight:700;color:#004d40;">₹${parseFloat(e.amount).toFixed(2)}</span><span style="color:#00695c;">${e.method}</span><span style="color:#546e7a;font-size:0.72rem;">${e.date}</span><span style="background:#cfd8dc;border-radius:4px;padding:1px 7px;font-size:0.7rem;color:#455a64;">paid</span>`;
+      histDiv.appendChild(row);
+    });
+  } else {
+    histDiv.innerHTML='<div style="font-size:0.75rem;color:#94a3b8;margin-bottom:4px;">No advance collected yet.</div>';
+  }
+  // Always clear input for new entry
+  document.getElementById('diagAdvance').value='';
+  document.getElementById('diagAdvMethod').value='Cash';
+  const savedItems=j.quote_items?JSON.parse(j.quote_items):[];
+  if(savedItems.length>0){
+    savedItems.forEach(item=>addDiagnoseRow(item.desc,item.price));
+  } else {
+    const issues=j.issue.split(',').map(x=>x.trim()).filter(Boolean);
+    issues.forEach(iss=>addDiagnoseRow(iss,0));
+    if(!issues.length) addDiagnoseRow('',0);
+  }
+  updDiagTotal(); openM('diagnoseModal');
+}
+function addDiagnoseRow(desc='',price=0) {
+  const c=document.getElementById('diagnoseItems');
+  const d=document.createElement('div');
+  d.style.cssText='display:grid;grid-template-columns:2fr 1fr auto;gap:10px;margin-bottom:10px;align-items:end;';
+  d.innerHTML=`<div><label class="form-label" style="font-size:0.8rem;">Service / Issue</label>
+    <input type="text" class="form-control diag-desc" value="${desc}" oninput="this.value=this.value.toUpperCase()"></div>
+    <div><label class="form-label" style="font-size:0.8rem;">Price (₹)</label>
+    <input type="number" class="form-control diag-price" value="${price.toFixed(2)}" min="0" oninput="updDiagTotal()"></div>
+    <button onclick="this.parentElement.remove();updDiagTotal()" style="background:#E53935;color:white;border:none;border-radius:8px;width:34px;height:38px;margin-bottom:0;cursor:pointer;">✕</button>`;
+  c.appendChild(d);
+}
+function updDiagTotal() {
+  let t=[...document.querySelectorAll('.diag-price')].reduce((s,i)=>s+parseFloat(i.value||0),0);
+  document.getElementById('diagTotal').textContent='₹'+t.toFixed(2);
+}
+async function saveDiagnose() {
+  const items=[...document.querySelectorAll('#diagnoseItems > div')].map(r=>({desc:r.querySelector('.diag-desc').value.trim(),price:parseFloat(r.querySelector('.diag-price').value||0)})).filter(i=>i.desc);
+  const total=items.reduce((s,i)=>s+i.price,0);
+  if(total<=0){
+    alert('Please enter a price (quote amount) before saving.');
+    document.querySelector('.diag-price')&&document.querySelector('.diag-price').focus();
+    return;
+  }
+  const advVal=document.getElementById('diagAdvance').value;
+  const advMethod=document.getElementById('diagAdvMethod').value;
+  if(advVal!==''&&parseFloat(advVal)>total){
+    alert(`Advance amount (₹${parseFloat(advVal).toFixed(2)}) cannot exceed the quote total (₹${total.toFixed(2)}).`);
+    document.getElementById('diagAdvance').style.borderColor='#ef4444';
+    document.getElementById('diagAdvance').focus();
+    return;
+  }
+  document.getElementById('diagAdvance').style.borderColor='';
+  const params={status:document.getElementById('diagStatus').value,cost:total,notes:document.getElementById('diagNotes').value,quote_items:JSON.stringify(items)};
+  if(advVal!=='') { params.advance_amount=advVal; params.advance_method=advMethod; }
+  const r=await fetch(`/jobs/${curId}/update`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:new URLSearchParams(params)});
+  if(r.ok){ closeM('diagnoseModal'); toast('Quote saved! ✓'); setTimeout(()=>location.reload(),1200); }
+}
+
+async function markReady(id) {
+  if(!confirm('Mark as Ready for Pickup?')) return;
+  const r=await fetch(`/jobs/${id}/update`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({status:'Ready'})});
+  if(r.ok){ toast('Marked as Ready ✓'); setTimeout(()=>location.reload(),1200); }
+}
+
+// ── Deliver ──
+function openDeliver(id) {
+  curId=id; const j=JOBS.find(x=>x.id==id); if(!j) return;
+  const bookingAdv=parseFloat(j.advance_amount||0);
+  document.getElementById('deliverInfo').innerHTML=`<strong>#${j.id}</strong> — ${j.customer_name} | ${j.device_model}`+(bookingAdv>0?` <span style="margin-left:10px;background:#e0f7fa;color:#006064;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">Advance: ₹${bookingAdv.toFixed(2)}</span>`:'');
+  document.getElementById('invItemsContainer').innerHTML='';
+  document.getElementById('deliverDiscount').value='0';
+  document.getElementById('deliverAdvance').value=bookingAdv.toFixed(2);
+  document.getElementById('creditDueDate').value=new Date().toISOString().split('T')[0];
+  document.getElementById('creditSection').style.display='none';
+  document.querySelector('input[name="payMethod"][value="Cash"]').checked=true;
+  // Use quote_items from diagnose stage if available, else fall back to even split
+  const quoteItems=j.quote_items?JSON.parse(j.quote_items):[];
+  const cost=parseFloat(j.cost||0);
+  if(quoteItems.length>0){
+    quoteItems.forEach(item=>addInvoiceRow(item.desc,item.price));
+  } else {
+    const issues=j.issue.split(',').map(x=>x.trim()).filter(Boolean);
+    if(issues.length>0&&cost>0){
+      const perItem=parseFloat((cost/issues.length).toFixed(2));
+      issues.forEach((iss,idx)=>{ const amt=idx===issues.length-1?Math.max(0,cost-perItem*(issues.length-1)):perItem; addInvoiceRow(iss,amt); });
+    } else if(issues.length>0){ issues.forEach(iss=>addInvoiceRow(iss,0)); }
+    else { addInvoiceRow('Repair Service',cost); }
+  }
+  // Happy Code verification
+  const happyBox=document.getElementById('happyCodeDeliverBox');
+  document.getElementById('deliverHappyInput').value='';
+  document.getElementById('deliverHappyResult').style.display='none';
+  happyBox.style.display=j.happy_code?'block':'none';
+  const hasImei=j.imei_billing||j.imei;
+  document.getElementById('imeiDeliverBox').style.display=hasImei?'none':'block';
+  document.getElementById('deliverImei').value=hasImei?(j.imei_billing||j.imei):'';
+  const isFRP=j.issue&&j.issue.toLowerCase().includes('frp');
+  const aadharBox=document.getElementById('aadharDeliverBox');
+  document.getElementById('deliverAadhar').value='';
+  aadharBox.style.display=(isFRP&&!j.aadhar_number)?'block':'none';
+  updInvTotal(); openM('deliverModal');
+}
+function formatDeliverAadhar(inp) {
+  let v=inp.value.replace(/\D/g,'').slice(0,12);
+  inp.value=[v.slice(0,4),v.slice(4,8),v.slice(8,12)].filter(Boolean).join(' ');
+}
+function addInvoiceRow(desc='',price=0) {
+  const c=document.getElementById('invItemsContainer');
+  const d=document.createElement('div');
+  d.style.cssText='display:grid;grid-template-columns:2fr 0.5fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px;';
+  d.innerHTML=`<div><label class="form-label" style="font-size:0.78rem;">Description</label>
+    <input type="text" class="form-control inv-desc" value="${desc}" oninput="this.value=this.value.toUpperCase()"></div>
+    <div><label class="form-label" style="font-size:0.78rem;">Qty</label>
+    <input type="number" class="form-control inv-qty" value="1" min="1" oninput="updInvTotal()"></div>
+    <div><label class="form-label" style="font-size:0.78rem;">Unit Price (₹)</label>
+    <input type="number" class="form-control inv-price" value="${price.toFixed(2)}" min="0" oninput="updInvTotal()"></div>
+    <button onclick="this.parentElement.remove();updInvTotal()" style="background:#E53935;color:white;border:none;border-radius:8px;width:32px;height:38px;cursor:pointer;margin-bottom:0;">✕</button>`;
+  c.appendChild(d);
+}
+function updInvTotal() {
+  const rows=document.querySelectorAll('#invItemsContainer > div');
+  let sub=0;
+  rows.forEach(r=>{sub+=parseFloat(r.querySelector('.inv-price').value||0)*parseFloat(r.querySelector('.inv-qty').value||1);});
+  const disc=parseFloat(document.getElementById('deliverDiscount').value||0);
+  const adv=parseFloat(document.getElementById('deliverAdvance').value||0);
+  const bal=Math.max(0,sub-disc-adv);
+  const box=document.getElementById('balanceBox');
+  document.getElementById('invBal').textContent='₹'+bal.toFixed(2);
+  box.style.background=bal<0.01?'#d1fae5':'#e0f7fa';
+  document.getElementById('invBal').style.color=bal<0.01?'#065f46':'#00BCD4';
+}
+function checkDeliverHappy() {
+  const j=JOBS.find(x=>x.id==curId); if(!j||!j.happy_code) return;
+  const entered=document.getElementById('deliverHappyInput').value.trim();
+  const res=document.getElementById('deliverHappyResult');
+  if(entered.length<6){res.style.display='none';return;}
+  res.style.display='block';
+  if(entered===String(j.happy_code)){
+    res.style.background='#d1fae5';res.style.color='#065f46';
+    res.innerHTML='<i class="fas fa-check-circle"></i> Happy Code Verified!';
+  } else {
+    res.style.background='#fee2e2';res.style.color='#991b1b';
+    res.innerHTML='<i class="fas fa-times-circle"></i> Incorrect code — try again';
+  }
+}
+
+async function confirmDeliver(doPrint) {
+  const imeiBox=document.getElementById('imeiDeliverBox');
+  const imeiInput=document.getElementById('deliverImei');
+  if(imeiBox.style.display!=='none'&&!imeiInput.value.trim()){
+    imeiInput.style.borderColor='#ef4444'; imeiInput.focus();
+    alert('IMEI / Serial Number is required to generate invoice.'); return;
+  }
+  imeiInput.style.borderColor='';
+  // Happy code check
+  const j=JOBS.find(x=>x.id==curId);
+  const happyBox=document.getElementById('happyCodeDeliverBox');
+  if(happyBox.style.display!=='none'&&j&&j.happy_code){
+    const entered=document.getElementById('deliverHappyInput').value.trim();
+    if(entered!==String(j.happy_code)){
+      document.getElementById('deliverHappyInput').style.borderColor='#ef4444';
+      document.getElementById('deliverHappyInput').focus();
+      alert('Happy Code does not match. Please verify with the customer before releasing the device.');
+      return;
+    }
+    document.getElementById('deliverHappyInput').style.borderColor='#4ade80';
+  }
+  const aadharBox=document.getElementById('aadharDeliverBox');
+  const aadharInput=document.getElementById('deliverAadhar');
+  if(aadharBox.style.display!=='none'){
+    const aadharVal=aadharInput.value.replace(/\s/g,'');
+    if(!/^\d{12}$/.test(aadharVal)){
+      aadharInput.style.borderColor='#ef4444'; aadharInput.focus();
+      alert('Aadhar Card Number (12 digits) is mandatory for FRP Lock / Flash invoice.'); return;
+    }
+    aadharInput.style.borderColor='';
+  }
+  const items=[...document.querySelectorAll('#invItemsContainer > div')].map(r=>({desc:r.querySelector('.inv-desc').value,qty:parseFloat(r.querySelector('.inv-qty').value||1),price:parseFloat(r.querySelector('.inv-price').value||0)}));
+  const sub=items.reduce((s,i)=>s+i.qty*i.price,0);
+  const disc=parseFloat(document.getElementById('deliverDiscount').value||0);
+  const adv=parseFloat(document.getElementById('deliverAdvance').value||0);
+  const payMethod=document.querySelector('input[name="payMethod"]:checked')?.value||'Cash';
+  const creditDueDate=document.getElementById('creditDueDate').value;
+  const total=Math.max(0,sub-disc);
+  const status=payMethod==='Credit'?'Credit Delivery':'Delivered';
+  if(payMethod==='Credit'&&!creditDueDate){ alert('Please set credit due date.'); return; }
+  const resp=await fetch(`/jobs/${curId}/deliver`,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({items,discount:disc,advance:adv,total,payMethod,creditDueDate,status,imei:imeiInput.value.trim()})});
+  if(resp.ok){
+    const d=await resp.json();
+    closeM('deliverModal'); toast('Delivered! Invoice saved ✓');
+    if(doPrint&&d.inv_id) setTimeout(()=>window.open(`/invoices/${d.inv_id}/print`,'_blank'),400);
+    setTimeout(()=>location.reload(),1400);
+  } else toast('Error saving delivery.','#E53935');
+}
+
+// ── Print Job Card ──
+function printJobCard(id) {
+  const j=JOBS.find(x=>x.id==id); if(!j) return;
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>Job Card #${j.id}</title>
+  <style>body{font-family:Arial,sans-serif;font-size:10pt;margin:20px;}
+  .hdr{text-align:center;border-bottom:2px solid black;padding-bottom:8px;margin-bottom:12px;}
+  table{width:100%;border-collapse:collapse;} td{padding:5px 8px;border:1px solid #ccc;font-size:9pt;}
+  .happy{font-size:1.4rem;font-weight:900;letter-spacing:8px;color:#9C27B0;text-align:center;padding:10px;border:2px dashed #9C27B0;border-radius:8px;margin-top:10px;}
+  @media print{button{display:none!important}}</style></head><body>
+  <div class="hdr"><h3 style="margin:0;">${SHOP.name}</h3><p style="margin:2px;font-size:9pt;">${SHOP.address} | ${SHOP.phone}</p></div>
+  <h4 style="text-align:center;text-decoration:underline;margin:8px 0;">SERVICE JOB CARD</h4>
+  <table><tr><td><strong>Job ID</strong></td><td>#${j.id}</td><td><strong>Date</strong></td><td>${(j.created_at||'').substring(0,16).replace('T',' ')}</td></tr>
+  <tr><td><strong>Customer</strong></td><td>${j.customer_name}</td><td><strong>Phone</strong></td><td>${j.customer_phone}</td></tr>
+  <tr><td><strong>Device</strong></td><td>${j.device_model}</td><td><strong>IMEI</strong></td><td>${j.imei_billing||j.imei||'—'}</td></tr>
+  <tr><td><strong>Issue</strong></td><td colspan="3">${j.issue}</td></tr>
+  ${j.received_without?`<tr><td><strong>Received Without</strong></td><td colspan="3">${j.received_without}</td></tr>`:''}
+  <tr><td><strong>Expected Return</strong></td><td>${j.expected_return||'—'}</td><td><strong>Advance</strong></td><td>${j.advance_amount>0?'₹'+parseFloat(j.advance_amount).toFixed(2):'—'}</td></tr>
+  </table>
+  ${j.happy_code?`<div class="happy">🔑 Happy Code: ${j.happy_code}</div><p style="font-size:8pt;text-align:center;color:#666;">Show this code when collecting your device</p>`:''}
+  <div style="margin-top:30px;display:flex;justify-content:space-between;font-size:9pt;border-top:1px solid black;padding-top:8px;">
+    <span>Customer Signature: _________________</span><span>Tech Signature: _________________</span></div>
+  <button onclick="window.print()" style="margin-top:12px;padding:8px 20px;background:#00BCD4;color:white;border:none;border-radius:6px;cursor:pointer;">🖨 Print</button>
+  </body></html>`); w.document.close();
+}
+
+// ── Cancel ──
+function cancelJob(id,name) {
+  curId=id;
+  const j=JOBS.find(x=>x.id==id);
+  document.getElementById('cancelInfo').innerHTML=`Cancelling Job <strong>#${id}</strong> — ${name}`;
+  document.getElementById('cancelReason').value='Customer Request';
+  document.getElementById('cancelOtherBox').style.display='none';
+  const adv = j ? parseFloat(j.advance_amount||0) : 0;
+  const refundBox = document.getElementById('cancelRefundBox');
+  if (adv > 0) {
+    refundBox.style.display = 'block';
+    document.getElementById('cancelRefundAmt').innerHTML =
+      `Advance paid: <strong style="color:#d97706;">₹${adv.toFixed(2)}</strong> — Please refund this amount to the customer.`;
+    document.getElementById('refundConfirm').checked = false;
+  } else {
+    refundBox.style.display = 'none';
+  }
+  openM('cancelModal');
+}
+async function confirmCancel() {
+  const j=JOBS.find(x=>x.id==curId);
+  const adv = j ? parseFloat(j.advance_amount||0) : 0;
+  if (adv > 0 && !document.getElementById('refundConfirm').checked) {
+    alert('Please confirm the advance refund to the customer before cancelling.');
+    return;
+  }
+  let reason=document.getElementById('cancelReason').value;
+  if(reason==='Other'){ const t=document.getElementById('cancelOtherText').value.trim(); if(!t){ alert('Please specify.'); return; } reason='Other: '+t; }
+  if (adv > 0) reason += ` | Advance Refunded: ₹${adv.toFixed(2)}`;
+  const r=await fetch(`/jobs/${curId}/cancel`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({reason})});
+  if(r.ok){ closeM('cancelModal'); toast('Job cancelled.'); setTimeout(()=>location.reload(),1200); }
+}
+
+// ── Rework ──
+function markRework(id) {
+  curId=id; const j=JOBS.find(x=>x.id==id); if(!j) return;
+  document.getElementById('reworkInfo').innerHTML=`Job <strong>#${id}</strong> — ${j.customer_name} | ${j.device_model}`;
+  document.getElementById('reworkDetails').value='';
+  openM('reworkModal');
+}
+async function confirmRework() {
+  const details=document.getElementById('reworkDetails').value.trim();
+  if(!details){ alert('Please describe the rework issue.'); return; }
+  const r=await fetch(`/jobs/${curId}/rework`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({details})});
+  if(r.ok){ closeM('reworkModal'); toast('Rework job created!'); setTimeout(()=>location.reload(),1200); }
+}
+</script>
+{% endblock %}

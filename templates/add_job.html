@@ -1,0 +1,684 @@
+{% extends 'base.html' %}
+{% block title %}Add Repair Job{% endblock %}
+{% block page_title %}New Repair Job{% endblock %}
+
+{% block extra_head %}
+<style>
+.add-job-wrap { max-width: 740px; margin: 0 auto; }
+
+.section-title {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: #94a3b8; margin: 22px 0 12px;
+  padding-bottom: 6px; border-bottom: 1px solid #f1f5f9;
+  display: flex; align-items: center; gap: 6px;
+}
+.field-note { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; display: flex; align-items: center; gap: 5px; }
+
+/* ── Pure CSS pill selection — NO JS toggle needed ── */
+.pill-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+
+.pill-group input[type="checkbox"] { display: none; }
+
+.pill-group label {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #f1f5f9; border: 2px solid #e2e8f0;
+  border-radius: 999px; padding: 8px 18px;
+  cursor: pointer; user-select: none;
+  font-size: 0.84rem; font-weight: 600; color: #475569;
+  transition: all 0.18s ease; white-space: nowrap;
+}
+.pill-group label:hover {
+  border-color: #00BCD4; background: #e0f7fa; color: #006064;
+  transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,188,212,0.2);
+}
+
+/* ISSUE pills — teal when checked */
+#issueGroup input[type="checkbox"]:checked + label {
+  background: linear-gradient(135deg, #00BCD4, #26C6DA) !important;
+  border-color: #00ACC1 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(0,188,212,0.45);
+  transform: translateY(-2px) scale(1.04);
+}
+#issueGroup input[type="checkbox"]:checked + label::before {
+  content: '✓ ';
+  font-weight: 900;
+}
+
+/* RECEIVED WITHOUT pills — amber when checked */
+#receivedGroup input[type="checkbox"]:checked + label {
+  background: linear-gradient(135deg, #FF9800, #FFC107) !important;
+  border-color: #F57C00 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(255,152,0,0.4);
+  transform: translateY(-2px) scale(1.04);
+}
+#receivedGroup input[type="checkbox"]:checked + label::before {
+  content: '✓ ';
+  font-weight: 900;
+}
+
+/* Aadhar warning */
+#aadhar-required {
+  display: none; background: #fff3cd; border: 1.5px solid #ffc107;
+  border-radius: 12px; padding: 13px 16px; margin-top: 12px;
+}
+#aadhar-required.show { display: flex; align-items: center; gap: 12px; }
+
+/* Advance payment rows */
+.adv-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: end; margin-bottom: 10px; }
+.adv-row .form-group { margin-bottom: 0; }
+.adv-total { background: #e0f7fa; border-radius: 10px; padding: 12px 16px;
+  display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+
+/* ── Customer Autocomplete ── */
+.ac-wrap { position: relative; }
+.ac-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: #fff; border: 1.5px solid #00BCD4;
+  border-radius: 12px; box-shadow: 0 8px 28px rgba(0,188,212,0.18);
+  z-index: 9999; overflow: hidden; max-height: 240px; overflow-y: auto;
+  display: none;
+}
+.ac-dropdown.show { display: block; }
+.ac-item {
+  padding: 10px 16px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 2px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.12s;
+}
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover, .ac-item.active { background: #e0f7fa; }
+.ac-item .ac-name { font-weight: 700; font-size: 0.88rem; color: #0e7490; }
+.ac-item .ac-phone { font-size: 0.78rem; color: #64748b; }
+.ac-empty { padding: 12px 16px; color: #94a3b8; font-size: 0.83rem; }
+/* ── Screen Lock Type ── */
+.lock-pill-group { display:flex; flex-wrap:wrap; gap:10px; margin-top:6px; }
+.lock-pill-group input[type="radio"] { display:none; }
+.lock-pill-group label {
+  display:inline-flex; align-items:center; gap:6px;
+  background:#f1f5f9; border:2px solid #e2e8f0;
+  border-radius:999px; padding:8px 20px;
+  cursor:pointer; font-size:0.84rem; font-weight:600; color:#475569;
+  transition:all 0.18s ease;
+}
+.lock-pill-group label:hover { border-color:#9C27B0; background:#f3e8ff; color:#6b21a8; transform:translateY(-1px); }
+.lock-pill-group input[type="radio"]:checked + label {
+  background:linear-gradient(135deg,#9C27B0,#BA68C8);
+  border-color:#7B1FA2; color:#fff;
+  box-shadow:0 4px 14px rgba(156,39,176,0.4);
+  transform:translateY(-2px) scale(1.04);
+}
+.lock-pill-group input[type="radio"]:checked + label::before { content:'✓ '; font-weight:900; }
+
+/* Pattern grid */
+.pattern-grid {
+  display:grid; grid-template-columns:repeat(3,44px);
+  gap:18px; margin:14px auto; width:fit-content;
+}
+.pattern-dot {
+  width:44px; height:44px; border-radius:50%;
+  background:#e2e8f0; border:3px solid #cbd5e1;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:0.85rem; color:#94a3b8;
+  transition:all 0.15s; user-select:none;
+  position:relative;
+}
+.pattern-dot.selected {
+  background:linear-gradient(135deg,#9C27B0,#BA68C8);
+  border-color:#7B1FA2; color:#fff;
+  box-shadow:0 0 0 4px rgba(156,39,176,0.2);
+  transform:scale(1.12);
+}
+.pattern-dot span { font-size:0.7rem; }
+.pattern-preview {
+  font-family:'Exo 2',monospace; font-size:0.82rem; color:#7B1FA2;
+  font-weight:700; letter-spacing:2px; margin-top:6px; min-height:20px;
+  display:flex; align-items:center; gap:6px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="add-job-wrap">
+  <div class="page-header" style="margin-bottom:24px;align-items:flex-start;">
+    <div>
+      <div class="page-title">New Repair Job</div>
+      <div class="page-subtitle">Fill in the customer and device details</div>
+    </div>
+    <a href="{{ url_for('jobs') }}" class="btn btn-outline" style="border:1.5px solid #e2e8f0;color:#6b7c93;text-decoration:none;"><i class="fas fa-arrow-left"></i> Back</a>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <form method="POST" id="jobForm" onsubmit="return validateForm()">
+
+        <!-- CUSTOMER DETAILS -->
+        <div class="section-title"><i class="fas fa-user" style="color:#00BCD4;"></i> Customer Details</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+          <div class="form-group">
+            <label class="form-label">Customer Phone <span style="color:#ef4444;">*</span>
+              <span style="font-size:0.72rem;color:#94a3b8;font-weight:400;">(10 digits only)</span>
+            </label>
+            <div class="ac-wrap">
+              <input type="tel" name="customer_phone" id="customer_phone"
+                     class="form-control" placeholder="9876543210"
+                     maxlength="10" inputmode="numeric" autocomplete="off"
+                     oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10);onPhoneInput(this.value)"
+                     onkeypress="return /[0-9]/.test(event.key)" required>
+              <div class="ac-dropdown" id="ac-phone"></div>
+            </div>
+            <div class="field-note"><i class="fas fa-info-circle"></i> Numbers only · max 10 digits</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Customer Name <span style="color:#ef4444;">*</span>
+              <span id="nameLockBadge" style="display:none;font-size:0.72rem;background:#e0f7fa;color:#006064;border-radius:999px;padding:2px 10px;margin-left:6px;font-weight:600;"><i class="fas fa-lock" style="font-size:0.65rem;"></i> Auto-filled</span>
+            </label>
+            <div class="ac-wrap">
+              <input type="text" name="customer_name" id="customer_name" class="form-control"
+                     placeholder="FULL NAME" required autocomplete="off"
+                     oninput="this.value=this.value.toUpperCase()">
+              <div class="ac-dropdown" id="ac-name"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DEVICE DETAILS -->
+        <div class="section-title"><i class="fas fa-mobile-alt" style="color:#00BCD4;"></i> Device Details</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;">
+          <div class="form-group">
+            <label class="form-label">Brand <span style="color:#ef4444;">*</span></label>
+            <input type="hidden" name="device_brand" id="deviceBrand" required>
+            <div id="brandPickerBtn" onclick="openBrandPicker()"
+                 style="width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;cursor:pointer;font-size:0.88rem;font-weight:600;color:#94a3b8;display:flex;align-items:center;justify-content:space-between;">
+              <span id="brandPickerLabel">SELECT BRAND</span>
+              <i class="fas fa-chevron-down" style="font-size:0.75rem;"></i>
+            </div>
+            <!-- Brand Other text input (shown when Other selected) -->
+            <input type="text" id="brandOtherInput" style="display:none;margin-top:8px;" class="form-control"
+                   placeholder="TYPE BRAND NAME..." oninput="this.value=this.value.toUpperCase();setBrandOther(this.value)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Model <span style="color:#ef4444;">*</span></label>
+            <input type="text" name="device_model_only" id="deviceModelOnly" class="form-control"
+                   placeholder="E.G. A32 / IPHONE 14" required
+                   oninput="this.value=this.value.toUpperCase();buildModel()">
+            <input type="hidden" name="device_model" id="deviceModelHidden">
+          </div>
+          <div class="form-group">
+            <label class="form-label">IMEI / Serial Number
+              <span style="font-size:0.72rem;color:#94a3b8;font-weight:400;">(optional)</span>
+            </label>
+            <input type="text" name="imei" id="imeiEntry" class="form-control"
+                   placeholder="IMEI OR SERIAL NO." maxlength="20"
+                   oninput="this.value=this.value.toUpperCase()">
+            <div class="field-note"><i class="fas fa-info-circle"></i> Can fill during billing</div>
+          </div>
+        </div>
+
+        <!-- SCREEN LOCK TYPE -->
+        <div class="section-title"><i class="fas fa-lock" style="color:#9C27B0;"></i> Screen Lock Type</div>
+        <input type="hidden" name="screen_lock" id="screenLockVal" value="">
+        <div class="lock-pill-group">
+          <input type="radio" name="lock_type_ui" id="lock_pattern" value="Pattern" onchange="onLockChange('Pattern')">
+          <label for="lock_pattern"><i class="fas fa-th"></i> Pattern</label>
+
+          <input type="radio" name="lock_type_ui" id="lock_pin" value="PIN" onchange="onLockChange('PIN')">
+          <label for="lock_pin"><i class="fas fa-keyboard"></i> PIN</label>
+
+          <input type="radio" name="lock_type_ui" id="lock_password" value="Password" onchange="onLockChange('Password')">
+          <label for="lock_password"><i class="fas fa-font"></i> Password</label>
+
+          <input type="radio" name="lock_type_ui" id="lock_none" value="None" onchange="onLockChange('None')">
+          <label for="lock_none"><i class="fas fa-unlock"></i> None</label>
+        </div>
+        <button type="button" id="lockResetBtn" onclick="resetLockType()" style="display:none;margin-top:10px;background:#f1f5f9;color:#475569;border:1.5px solid #cbd5e1;border-radius:8px;padding:5px 14px;font-size:0.82rem;font-weight:600;cursor:pointer;"><i class="fas fa-undo"></i> Reset Lock Type</button>
+
+        <!-- Pattern drawer -->
+        <div id="patternBox" style="display:none;margin-top:14px;background:#f8fafc;border:1.5px solid #e0d4f5;border-radius:14px;padding:16px 20px;">
+          <div style="font-size:0.8rem;color:#7B1FA2;font-weight:600;margin-bottom:4px;"><i class="fas fa-hand-pointer"></i> Tap dots to draw the pattern (e.g. L-shape, Z-shape)</div>
+          <div class="pattern-grid" id="patternGrid">
+            <div class="pattern-dot" data-pos="1" onclick="toggleDot(this)"><span>1</span></div>
+            <div class="pattern-dot" data-pos="2" onclick="toggleDot(this)"><span>2</span></div>
+            <div class="pattern-dot" data-pos="3" onclick="toggleDot(this)"><span>3</span></div>
+            <div class="pattern-dot" data-pos="4" onclick="toggleDot(this)"><span>4</span></div>
+            <div class="pattern-dot" data-pos="5" onclick="toggleDot(this)"><span>5</span></div>
+            <div class="pattern-dot" data-pos="6" onclick="toggleDot(this)"><span>6</span></div>
+            <div class="pattern-dot" data-pos="7" onclick="toggleDot(this)"><span>7</span></div>
+            <div class="pattern-dot" data-pos="8" onclick="toggleDot(this)"><span>8</span></div>
+            <div class="pattern-dot" data-pos="9" onclick="toggleDot(this)"><span>9</span></div>
+          </div>
+          <div class="pattern-preview" id="patternPreview"><i class="fas fa-circle" style="font-size:0.5rem;color:#d8b4fe;"></i> Tap dots in order...</div>
+          <button type="button" onclick="clearPattern()" style="margin-top:8px;background:#fee2e2;color:#ef4444;border:none;border-radius:8px;padding:5px 14px;font-size:0.8rem;font-weight:600;cursor:pointer;"><i class="fas fa-undo"></i> Clear</button>
+          <div style="margin-top:10px;background:#ede9fe;border-radius:8px;padding:8px 12px;font-size:0.78rem;color:#5b21b6;">
+            <strong>Layout:</strong>
+            <span style="font-family:monospace;letter-spacing:3px;"> 1 2 3<br>&nbsp;4 5 6<br>&nbsp;7 8 9</span>
+            &nbsp;|&nbsp; Example: <em>1→2→3→6→9</em> = L-shape top row + right column
+          </div>
+        </div>
+
+        <!-- PIN / Password input -->
+        <div id="pinBox" style="display:none;margin-top:14px;">
+          <div class="form-group" style="max-width:260px;margin-bottom:0;">
+            <label class="form-label" id="pinLabel" style="font-size:0.82rem;"><i class="fas fa-keyboard" style="color:#9C27B0;"></i> Enter PIN / Password</label>
+            <input type="text" id="pinInput" class="form-control"
+                   placeholder="Enter value"
+                   style="border:2px solid #BA68C8;letter-spacing:2px;font-weight:600;"
+                   oninput="updatePinLock()">
+          </div>
+        </div>
+
+        <div class="section-title">
+          <i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i>
+          Reported Issue <span style="color:#ef4444;">*</span>
+          <span style="font-size:0.72rem;color:#94a3b8;font-weight:400;text-transform:none;"> — select all that apply</span>
+        </div>
+        <div class="pill-group" id="issueGroup">
+          {% for issue in ['Screen Damage','Battery Issue','Charging Problem','Speaker Issue',
+            'Mic Issue','Camera Problem','Water Damage','Software Issue',
+            'Network Problem','Button Issue','FRP Lock / Flash','Hanging / Slow',
+            'No Power','Touch Not Working','Dead Board','Other'] %}
+          <input type="checkbox" id="iss_{{ loop.index }}" name="reported_issues" value="{{ issue }}"
+                 onchange="checkFRP()">
+          <label for="iss_{{ loop.index }}">{{ issue }}</label>
+          {% endfor %}
+        </div>
+        <input type="hidden" name="issue" id="issueHidden">
+        <div id="otherIssueBox" style="display:none;margin-top:10px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" style="font-size:0.82rem;"><i class="fas fa-pencil-alt" style="color:#00BCD4;"></i> Please describe the issue <span style="color:#ef4444;">*</span></label>
+            <input type="text" id="otherIssueText" class="form-control"
+                   placeholder="DESCRIBE THE ISSUE..."
+                   oninput="this.value=this.value.toUpperCase()"
+                   style="border:2px solid #00BCD4;">
+          </div>
+        </div>
+
+        <!-- Aadhar for FRP -->
+        <div id="aadhar-required">
+          <i class="fas fa-id-card" style="color:#f59e0b;font-size:1.2rem;"></i>
+          <div>
+            <strong style="color:#92400e;font-size:0.88rem;">⚠️ Aadhar Card Recommended</strong>
+            <div style="font-size:0.8rem;color:#78350f;margin-top:2px;">FRP Lock / Flash — Aadhar is optional now but <strong>mandatory at invoice</strong>.</div>
+          </div>
+        </div>
+        <div id="aadhar-field" style="display:none;margin-top:12px;">
+          <div class="form-group">
+            <label class="form-label">Aadhar Card Number <span style="color:#94a3b8;font-size:0.8rem;">(optional)</span></label>
+            <input type="text" name="aadhar_number" id="aadhar_number"
+                   class="form-control" placeholder="XXXX XXXX XXXX"
+                   maxlength="14" inputmode="numeric"
+                   style="letter-spacing:2px;font-weight:600;"
+                   oninput="formatAadhar(this)">
+            <div class="field-note"><i class="fas fa-lock"></i> 12-digit Aadhar — mandatory for FRP/Flash jobs</div>
+          </div>
+        </div>
+
+        <!-- RECEIVED WITHOUT -->
+        <div class="section-title">
+          <i class="fas fa-box-open" style="color:#FF9800;"></i>
+          Received Without
+          <span style="font-size:0.72rem;color:#94a3b8;font-weight:400;text-transform:none;"> — select all that apply</span>
+        </div>
+        <div class="pill-group" id="receivedGroup">
+          {% for item in ['Back Cover','SIM Card','Memory Card','Charger','Earphone',
+            'Box','Battery','Stylus','Screen Guard','Other Accessories'] %}
+          <input type="checkbox" id="rec_{{ loop.index }}" name="received_without_chk" value="{{ item }}" onchange="checkOtherAcc(this)">
+          <label for="rec_{{ loop.index }}">{{ item }}</label>
+          {% endfor %}
+        </div>
+        <input type="hidden" name="received_without_val" id="receivedHidden">
+        <div id="otherAccBox" style="display:none;margin-top:10px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" style="font-size:0.82rem;"><i class="fas fa-box-open" style="color:#FF9800;"></i> Specify other accessories <span style="color:#94a3b8;">(optional)</span></label>
+            <input type="text" id="otherAccText" class="form-control"
+                   placeholder="E.G. STYLUS PEN, WIRELESS CHARGER..."
+                   oninput="this.value=this.value.toUpperCase()"
+                   style="border:2px solid #FF9800;">
+          </div>
+        </div>
+
+        <!-- BILLING -->
+        <div class="section-title"><i class="fas fa-rupee-sign" style="color:#00BCD4;"></i> Billing Details</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+          <div class="form-group">
+            <label class="form-label">Estimated Cost (₹)</label>
+            <input type="number" name="cost" id="costInput" class="form-control" step="0.01" min="0" placeholder="0.00" oninput="updateAdvTotal()">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fas fa-calendar-check" style="color:#9C27B0;"></i> Expected Return Date <span style="color:#ef4444;">*</span></label>
+            <input type="date" name="expected_return" id="expectedReturnField" class="form-control" required>
+            <div class="field-note"><i class="fas fa-clock"></i> Auto shows On Time / Overdue</div>
+          </div>
+        </div>
+
+        <input type="hidden" name="advance_amount" value="0">
+        <input type="hidden" name="advance_method" value="">
+        <input type="hidden" name="paid_status" value="Unpaid">
+
+        <!-- NOTES -->
+        <div class="section-title"><i class="fas fa-sticky-note" style="color:#94a3b8;"></i> Internal Notes</div>
+        <div class="form-group">
+          <textarea name="notes" class="form-control"
+                    placeholder="ANY INTERNAL NOTES..."
+                    style="min-height:80px;"
+                    oninput="this.value=this.value.toUpperCase()"></textarea>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:20px;">
+          <button type="submit" class="btn btn-primary" style="flex:1;padding:13px;font-size:0.95rem;">
+            <i class="fas fa-plus-circle"></i> Add Repair Job
+          </button>
+          <a href="{{ url_for('jobs') }}" class="btn btn-outline" style="border:1.5px solid #e2e8f0;color:#6b7c93;text-decoration:none;padding:13px 20px;">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Brand Picker Modal -->
+<div id="brandPickerModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;overflow-y:auto;align-items:flex-start;justify-content:center;padding:24px 16px;backdrop-filter:blur(3px);">
+  <div style="background:white;border-radius:18px;padding:24px;width:92%;max-width:480px;box-shadow:0 25px 60px rgba(0,0,0,0.2);margin:auto;animation:su 0.2s ease;">
+    <div style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1rem;color:#1a2332;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+      <span><i class="fas fa-mobile-alt" style="color:#00BCD4;margin-right:8px;"></i>Select Brand</span>
+      <button onclick="closeBrandPicker()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#94a3b8;">&times;</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+      {% for brand in ['Samsung','Apple','Xiaomi','Redmi','Realme','OnePlus','Vivo','OPPO','Poco','iQOO',
+                        'Nokia','Motorola','Sony','LG','Huawei','Honor','Infinix','Tecno','Lava','Micromax','Itel'] %}
+      <button type="button" onclick="selectBrand('{{ brand }}')"
+        style="padding:8px 16px;border-radius:999px;border:2px solid #e2e8f0;background:#f8fafc;font-size:0.83rem;font-weight:600;color:#475569;cursor:pointer;transition:all 0.15s;"
+        onmouseover="this.style.borderColor='#00BCD4';this.style.background='#e0f7fa';this.style.color='#006064';"
+        onmouseout="this.style.borderColor='#e2e8f0';this.style.background='#f8fafc';this.style.color='#475569';">
+        {{ brand }}
+      </button>
+      {% endfor %}
+      <button type="button" onclick="selectBrand('Other')"
+        style="padding:8px 16px;border-radius:999px;border:2px dashed #94a3b8;background:#f1f5f9;font-size:0.83rem;font-weight:600;color:#64748b;cursor:pointer;"
+        onmouseover="this.style.borderColor='#9C27B0';this.style.background='#f3e8ff';this.style.color='#6b21a8';"
+        onmouseout="this.style.borderColor='#94a3b8';this.style.background='#f1f5f9';this.style.color='#64748b';">
+        <i class="fas fa-plus"></i> Other
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── FRP check ─────────────────────────────────────────────────────
+function checkOtherAcc(cb) {
+  if (cb.value === 'Other Accessories') {
+    const box = document.getElementById('otherAccBox');
+    box.style.display = cb.checked ? 'block' : 'none';
+    if (!cb.checked) document.getElementById('otherAccText').value = '';
+  }
+}
+
+// Set default expected return to today + 3 days
+(function(){
+  const d = new Date(); d.setDate(d.getDate()+3);
+  const el = document.getElementById('expectedReturnField');
+  if(el) el.value = d.toISOString().split('T')[0];
+})();
+
+function buildModel() {
+  const brand = document.getElementById('deviceBrand').value.trim();
+  const model = document.getElementById('deviceModelOnly').value.trim();
+  document.getElementById('deviceModelHidden').value = (brand + ' ' + model).trim();
+}
+
+function checkFRP() {
+  const cbs = [...document.querySelectorAll('#issueGroup input[type="checkbox"]')];
+  const frp = cbs.some(cb => cb.checked && cb.value === 'FRP Lock / Flash');
+  const other = cbs.some(cb => cb.checked && cb.value === 'Other');
+  // FRP aadhar
+  document.getElementById('aadhar-required').classList.toggle('show', frp);
+  const field = document.getElementById('aadhar-field');
+  const input = document.getElementById('aadhar_number');
+  field.style.display = frp ? 'block' : 'none';
+  input.required = frp;
+  if (!frp) input.value = '';
+  // Other issue text
+  const otherBox = document.getElementById('otherIssueBox');
+  const otherInput = document.getElementById('otherIssueText');
+  otherBox.style.display = other ? 'block' : 'none';
+  otherInput.required = other;
+  if (!other) otherInput.value = '';
+}
+
+// ── Aadhar formatting ─────────────────────────────────────────────
+function formatAadhar(input) {
+  let d = input.value.replace(/[^0-9]/g,'').slice(0,12);
+  let p = d.match(/.{1,4}/g);
+  input.value = p ? p.join(' ') : d;
+}
+
+// ── Form validation ───────────────────────────────────────────────
+function validateForm() {
+  // Phone
+  const phone = document.getElementById('customer_phone').value;
+  if (!/^\d{10}$/.test(phone)) {
+    alert('Phone number must be exactly 10 digits.');
+    document.getElementById('customer_phone').focus();
+    return false;
+  }
+
+  // Issues
+  const issues = [...document.querySelectorAll('#issueGroup input[type="checkbox"]:checked')]
+    .map(cb => cb.value);
+  if (issues.length === 0) {
+    alert('Please select at least one Reported Issue.');
+    return false;
+  }
+  // Replace "Other" with the typed description
+  const otherText = document.getElementById('otherIssueText').value.trim();
+  const finalIssues = issues.map(i => i === 'Other' ? (otherText ? 'OTHER: ' + otherText : 'Other') : i);
+  document.getElementById('issueHidden').value = finalIssues.join(', ');
+
+  // Aadhar for FRP — optional at entry (mandatory at invoice stage)
+
+  // Received without
+  const without = [...document.querySelectorAll('#receivedGroup input[type="checkbox"]:checked')]
+    .map(cb => cb.value);
+  // Replace "Other Accessories" with the typed text if filled
+  const otherAccText = document.getElementById('otherAccText').value.trim();
+  const finalWithout = without.map(i => (i === 'Other Accessories' && otherAccText) ? 'OTHER ACCESSORIES: ' + otherAccText : i);
+  document.getElementById('receivedHidden').value = finalWithout.join(', ');
+
+  // Append screen lock info to notes
+  const lockVal = document.getElementById('screenLockVal').value.trim();
+  if (lockVal) {
+    const notesEl = document.querySelector('textarea[name="notes"]');
+    const existing = notesEl.value.trim();
+    const tag = 'SCREEN LOCK: ' + lockVal.toUpperCase();
+    if (!existing.includes('SCREEN LOCK:')) {
+      notesEl.value = existing ? existing + ' | ' + tag : tag;
+    }
+  }
+
+  return true;
+}
+
+
+
+// ── Screen Lock Type ────────────────────────────────────────
+function onLockChange(type) {
+  // Hide other lock pills, show only selected
+  document.querySelectorAll('.lock-pill-group label').forEach(l => {
+    const radio = document.getElementById(l.getAttribute('for'));
+    l.style.display = (radio && radio.value === type) ? '' : 'none';
+  });
+  document.getElementById('lockResetBtn').style.display = 'inline-block';
+
+  document.getElementById('patternBox').style.display = type === 'Pattern' ? 'block' : 'none';
+  document.getElementById('pinBox').style.display = (type === 'PIN' || type === 'Password') ? 'block' : 'none';
+  if (type === 'None') {
+    document.getElementById('screenLockVal').value = 'NONE';
+    clearPattern();
+    document.getElementById('pinInput').value = '';
+  } else if (type === 'Pattern') {
+    const seq = [...document.querySelectorAll('.pattern-dot.selected')].map(d => d.dataset.pos);
+    document.getElementById('screenLockVal').value = seq.length ? 'PATTERN: ' + seq.join('-') : '';
+  } else {
+    document.getElementById('screenLockVal').value = '';
+    document.getElementById('pinLabel').innerHTML = `<i class='fas fa-keyboard' style='color:#9C27B0;'></i> Enter ${type}`;
+    document.getElementById('pinInput').placeholder = type === 'PIN' ? 'e.g. 1234' : 'e.g. MyPass@1';
+    document.getElementById('pinInput').type = type === 'PIN' ? 'tel' : 'text';
+    setTimeout(() => document.getElementById('pinInput').focus(), 80);
+  }
+}
+
+function resetLockType() {
+  document.querySelectorAll('input[name="lock_type_ui"]').forEach(r => r.checked = false);
+  document.querySelectorAll('.lock-pill-group label').forEach(l => l.style.display = '');
+  document.getElementById('lockResetBtn').style.display = 'none';
+  document.getElementById('patternBox').style.display = 'none';
+  document.getElementById('pinBox').style.display = 'none';
+  document.getElementById('screenLockVal').value = '';
+  clearPattern();
+  document.getElementById('pinInput').value = '';
+}
+
+let patternSeq = [];
+function toggleDot(dot) {
+  const pos = dot.dataset.pos;
+  if (dot.classList.contains('selected')) {
+    // Remove from sequence
+    patternSeq = patternSeq.filter(p => p !== pos);
+    dot.classList.remove('selected');
+  } else {
+    patternSeq.push(pos);
+    dot.classList.add('selected');
+  }
+  const preview = document.getElementById('patternPreview');
+  if (patternSeq.length) {
+    preview.innerHTML = `<i class='fas fa-check-circle' style='color:#9C27B0;font-size:0.8rem;'></i> Pattern: <strong>${patternSeq.join(' → ')}</strong>`;
+    document.getElementById('screenLockVal').value = 'PATTERN: ' + patternSeq.join('-');
+  } else {
+    preview.innerHTML = `<i class='fas fa-circle' style='font-size:0.5rem;color:#d8b4fe;'></i> Tap dots in order...`;
+    document.getElementById('screenLockVal').value = '';
+  }
+}
+
+function clearPattern() {
+  patternSeq = [];
+  document.querySelectorAll('.pattern-dot').forEach(d => d.classList.remove('selected'));
+  document.getElementById('patternPreview').innerHTML = `<i class='fas fa-circle' style='font-size:0.5rem;color:#d8b4fe;'></i> Tap dots in order...`;
+  document.getElementById('screenLockVal').value = '';
+}
+
+function updatePinLock() {
+  const type = document.querySelector('input[name="lock_type_ui"]:checked')?.value || '';
+  const val = document.getElementById('pinInput').value.trim();
+  document.getElementById('screenLockVal').value = val ? type.toUpperCase() + ': ' + val : '';
+}
+
+// ── Brand Picker ──────────────────────────────────────────────────
+function openBrandPicker() {
+  document.getElementById('brandPickerModal').style.display = 'flex';
+}
+function closeBrandPicker() {
+  document.getElementById('brandPickerModal').style.display = 'none';
+}
+function selectBrand(brand) {
+  if (brand === 'Other') {
+    document.getElementById('brandOtherInput').style.display = 'block';
+    document.getElementById('brandOtherInput').focus();
+    document.getElementById('deviceBrand').value = '';
+    document.getElementById('brandPickerLabel').textContent = 'OTHER — TYPE BELOW';
+    document.getElementById('brandPickerLabel').style.color = '#9C27B0';
+  } else {
+    document.getElementById('deviceBrand').value = brand.toUpperCase();
+    document.getElementById('brandPickerLabel').textContent = brand.toUpperCase();
+    document.getElementById('brandPickerLabel').style.color = '#0e7490';
+    document.getElementById('brandOtherInput').style.display = 'none';
+    document.getElementById('brandOtherInput').value = '';
+    buildModel();
+  }
+  closeBrandPicker();
+}
+function setBrandOther(val) {
+  document.getElementById('deviceBrand').value = val;
+  buildModel();
+}
+
+// ── Customer Autocomplete (phone-primary) ─────────────────────────────────
+let acTimer = null;
+
+function onPhoneInput(val) {
+  // If cleared or short, unlock name and hide dropdown
+  if (val.length < 2) {
+    acHide(document.getElementById('ac-phone'));
+    acUnlockName();
+    return;
+  }
+  // Show suggestions as they type
+  acSearch(val);
+}
+
+function acSearch(q) {
+  clearTimeout(acTimer);
+  const drop = document.getElementById('ac-phone');
+  acTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`/api/customers/search?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      // If phone exactly matches one customer, auto-select silently
+      if (q.length === 10) {
+        const exact = data.find(c => c.phone === q);
+        if (exact) { acSelect(exact.name, exact.phone); return; }
+      }
+      acRender(drop, data);
+    } catch(e) { acHide(drop); }
+  }, 220);
+}
+
+function acRender(drop, items) {
+  if (!items.length) { acHide(drop); return; }
+  drop.innerHTML = items.map(c => `
+    <div class="ac-item" data-name="${c.name}" data-phone="${c.phone}"
+         onmousedown="acSelect('${c.name.replace(/'/g, "\\'")}', '${c.phone}')">
+      <span class="ac-name"><i class='fas fa-user' style='font-size:0.75rem;margin-right:5px;'></i>${c.name}</span>
+      <span class="ac-phone"><i class='fas fa-phone-alt' style='font-size:0.7rem;margin-right:5px;'></i>${c.phone}</span>
+    </div>`).join('');
+  drop.classList.add('show');
+}
+
+function acSelect(name, phone) {
+  const nameEl = document.getElementById('customer_name');
+  const phoneEl = document.getElementById('customer_phone');
+  nameEl.value = name;
+  phoneEl.value = phone;
+  acHide(document.getElementById('ac-phone'));
+  // Lock name — one phone = one customer name
+  nameEl.readOnly = true;
+  nameEl.style.background = '#f0fdf4';
+  nameEl.style.color = '#166534';
+  nameEl.style.fontWeight = '700';
+  nameEl.style.borderColor = '#86efac';
+  document.getElementById('nameLockBadge').style.display = 'inline-block';
+}
+
+function acUnlockName() {
+  const nameEl = document.getElementById('customer_name');
+  nameEl.readOnly = false;
+  nameEl.style.background = '';
+  nameEl.style.color = '';
+  nameEl.style.fontWeight = '';
+  nameEl.style.borderColor = '';
+  document.getElementById('nameLockBadge').style.display = 'none';
+}
+
+function acHide(drop) {
+  if (drop) { drop.innerHTML = ''; drop.classList.remove('show'); }
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.ac-wrap')) {
+    acHide(document.getElementById('ac-phone'));
+  }
+});
+</script>
+{% endblock %}

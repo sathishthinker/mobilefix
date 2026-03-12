@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% block title %}Customers{% endblock %}
+{% block page_title %}Customers{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><div class="page-title">Customers</div><div class="page-subtitle">{{ customers|length }} unique customers</div></div>
+</div>
+<div class="card" style="margin-bottom:18px;"><div class="card-body" style="padding:14px 20px;">
+  <input type="text" id="custSearch" class="form-control" style="max-width:340px;" placeholder="Search by name or phone..." oninput="filterCust()">
+</div></div>
+<div class="card"><div class="card-body">
+  {% if customers %}
+  <div class="table-wrap">
+  <table id="custTable">
+    <thead><tr><th>Customer</th><th>Phone</th><th>Total Jobs</th><th>Total Business</th><th>Last Device</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for c in customers %}
+    <tr>
+      <td>
+        <strong>{{ c.name }}</strong>
+        {% if c.total_due > 0 %}
+          <br><span style="background:#fee2e2;color:#b91c1c;border-radius:999px;padding:2px 9px;font-size:0.7rem;font-weight:700;display:inline-block;margin-top:3px;">Due ₹{{ '%.2f'|format(c.total_due) }}</span>
+        {% endif %}
+      </td>
+      <td><i class="fas fa-phone" style="color:#00BCD4;font-size:0.75rem;"></i> {{ c.phone }}</td>
+      <td><span style="font-family:'Exo 2',sans-serif;font-weight:700;color:#00BCD4;">{{ c.jobs|length }}</span></td>
+      <td style="font-weight:700;">₹{{ '%.2f'|format(c.total_business) }}</td>
+      <td style="font-size:0.82rem;color:#94a3b8;">{{ c.jobs[0].device_model if c.jobs else '—' }}</td>
+      <td>
+        <a href="{{ url_for('add_job') }}" class="act act-orange" style="text-decoration:none;padding:6px 12px;border-radius:7px;display:inline-block;font-size:0.78rem;font-weight:600;color:white;">New Job</a>
+        <button class="act act-blue" onclick="toggleHistory('{{ c.phone }}', this)" style="padding:6px 12px;">History</button>
+        {% if c.jobs and c.jobs[0].customer_phone %}
+        <a href="whatsapp://send?phone=91{{ c.phone }}&text={{ ('Hello '+c.name+', regarding your repair...')|urlencode }}" class="act act-wa" style="text-decoration:none;padding:6px 12px;border-radius:7px;display:inline-block;font-size:0.78rem;font-weight:600;color:white;"><i class="fab fa-whatsapp"></i></a>
+        {% endif %}
+      </td>
+    </tr>
+    <tr id="hist-{{ c.phone }}" style="display:none;">
+      <td colspan="6" style="padding:0;border:none;">
+        <div style="background:#f8fafc;border-top:3px solid #00BCD4;padding:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+            <strong style="font-family:'Exo 2',sans-serif;font-size:0.9rem;">Job History — {{ c.name }}</strong>
+            {% if c.total_due > 0 %}
+            <div style="background:#fee2e2;border:1.5px solid #fca5a5;border-radius:10px;padding:8px 16px;display:flex;align-items:center;gap:8px;">
+              <i class="fas fa-exclamation-circle" style="color:#ef4444;"></i>
+              <span style="font-size:0.82rem;color:#991b1b;font-weight:700;">Total Outstanding Credit: ₹{{ '%.2f'|format(c.total_due) }}</span>
+            </div>
+            {% endif %}
+          </div>
+          <div class="table-wrap" style="margin-top:0;">
+          <table style="margin:0;">
+            <thead><tr><th>Job ID</th><th>Device</th><th>Status</th><th>Amount</th><th>Booked On</th><th>Delivered On</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for job in c.jobs %}
+            {% set due = (job.cost or 0) - (job.advance_amount or 0) %}
+            {% set sc = {'Received':'#00BCD4','Diagnosing':'#FFC107','Repairing':'#FF9800','Ready':'#9C27B0','Delivered':'#4CAF50','Cancelled':'#795548','Rework':'#03A9F4','Credit Delivery':'#E91E63'} %}
+            <tr>
+              <td style="font-size:0.82rem;color:#94a3b8;">#{{ job.id }}</td>
+              <td>{{ job.device_model }}</td>
+              <td>
+                <span style="background:{{ sc.get(job.status,'#94a3b8') }};color:white;padding:3px 9px;border-radius:999px;font-size:0.72rem;font-weight:700;">{{ job.status }}</span>
+                {% if job.paid_status == 'Unpaid' and job.cost %}<br><span style="background:#ef4444;color:white;padding:1px 7px;border-radius:999px;font-size:0.68rem;font-weight:700;margin-top:3px;display:inline-block;">UNPAID</span>{% endif %}
+                {% if job.paid_status == 'Partial' %}<br><span style="background:#FF9800;color:white;padding:1px 7px;border-radius:999px;font-size:0.68rem;font-weight:700;margin-top:3px;display:inline-block;">PARTIAL</span>{% endif %}
+              </td>
+              <td style="font-weight:700;">
+                {% if job.cost %}₹{{ '%.2f'|format(job.cost) }}{% else %}—{% endif %}
+                {% if job.advance_amount and job.advance_amount > 0 %}<br><small style="color:#64748b;">Adv: ₹{{ '%.2f'|format(job.advance_amount) }}</small>{% endif %}
+                {% if due > 0 and job.status not in ('Delivered','Cancelled') %}<br><small style="color:#ef4444;font-weight:700;">Due: ₹{{ '%.2f'|format(due) }}</small>{% endif %}
+              </td>
+              <td style="font-size:0.8rem;color:#94a3b8;">{{ job.created_at[:10] }}</td>
+              <td style="font-size:0.8rem;color:#94a3b8;">{{ job.delivery_date or 'N/A' }}</td>
+              <td style="white-space:nowrap;">
+                <button onclick='viewCustJob({{ job | tojson }})' style="background:#00BCD4;color:white;border:none;border-radius:7px;padding:4px 10px;font-size:0.75rem;font-weight:600;cursor:pointer;margin:2px;">View Details</button>
+                {% if job.inv_id %}
+                <a href="whatsapp://send?phone=91{{ c.phone }}&text={{ ('Invoice for your repair: ' + request.host_url + 'invoices/' + job.inv_id|string + '/print')|urlencode }}" style="background:#25D366;color:white;border:none;border-radius:7px;padding:4px 10px;font-size:0.75rem;font-weight:600;text-decoration:none;display:inline-block;margin:2px;"><i class="fab fa-whatsapp"></i> Invoice</a>
+                {% endif %}
+                {% if job.status not in ('Delivered','Cancelled') and job.cost and due > 0 %}
+                <a href="whatsapp://send?phone=91{{ c.phone }}&text={{ ('Dear ' + c.name + ', your device ' + job.device_model + ' is ready. Balance due: Rs.' + '%.2f'|format(due) + '. Please collect at your earliest convenience.')|urlencode }}" style="background:#FF9800;color:white;border:none;border-radius:7px;padding:4px 10px;font-size:0.75rem;font-weight:600;text-decoration:none;display:inline-block;margin:2px;"><i class="fas fa-bell"></i> Reminder</a>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table></div>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <div style="text-align:center;padding:50px;color:#94a3b8;"><i class="fas fa-users" style="font-size:2.5rem;opacity:0.2;display:block;margin-bottom:14px;"></i>No customers yet.</div>
+  {% endif %}
+</div></div>
+
+<!-- View Details Modal -->
+<div id="custJobModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;overflow-y:auto;align-items:flex-start;justify-content:center;padding:24px 16px;">
+  <div style="background:white;border-radius:16px;padding:24px;max-width:520px;width:100%;position:relative;margin:auto;">
+    <button onclick="document.getElementById('custJobModal').style.display='none'" style="position:absolute;top:14px;right:14px;background:#f1f5f9;border:none;border-radius:50%;width:30px;height:30px;font-size:1rem;cursor:pointer;color:#64748b;">✕</button>
+    <div style="font-size:0.75rem;font-weight:700;color:#00BCD4;text-transform:uppercase;margin-bottom:14px;"><i class="fas fa-clipboard-list"></i> Job Details</div>
+    <div id="custJobContent"></div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+function viewCustJob(j) {
+  const sc={'Received':'#00BCD4','Diagnosing':'#FFC107','Repairing':'#FF9800','Ready':'#9C27B0','Delivered':'#4CAF50','Cancelled':'#795548','Rework':'#03A9F4','Credit Delivery':'#E91E63'};
+  const adv=parseFloat(j.advance_amount||0);
+  const due=Math.max(0,parseFloat(j.cost||0)-adv);
+  const lockMatch=j.notes&&j.notes.match(/SCREEN LOCK:\s*([^|]+)/i);
+  const lockVal=lockMatch?lockMatch[1].trim():'';
+  const cleanNotes=(j.notes||'').replace(/\|?\s*SCREEN LOCK:[^|]*/i,'').replace(/^\s*\|\s*/,'').trim();
+  let html=`
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+    <div style="background:#f8fafc;border-radius:10px;padding:12px;">
+      <div style="font-size:0.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;">Customer</div>
+      <div style="font-weight:700;">${j.customer_name}</div>
+      <div style="color:#64748b;font-size:0.85rem;">📞 ${j.customer_phone}</div>
+      ${j.aadhar_number?`<div style="color:#f59e0b;font-size:0.8rem;margin-top:3px;"><i class="fas fa-id-card"></i> ${j.aadhar_number}</div>`:''}
+    </div>
+    <div style="background:#f8fafc;border-radius:10px;padding:12px;">
+      <div style="font-size:0.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;">Device</div>
+      <div style="font-weight:700;">${j.device_model}</div>
+      ${j.imei_billing||j.imei?`<div style="font-size:0.78rem;color:#64748b;"><i class="fas fa-barcode"></i> ${j.imei_billing||j.imei}</div>`:''}
+    </div>
+  </div>
+  <div style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:10px;">
+    <div style="font-size:0.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:5px;">Issues Reported</div>
+    <div style="font-size:0.88rem;">${j.issue||'—'}</div>
+    ${j.received_without?`<div style="margin-top:6px;font-size:0.78rem;color:#FF9800;"><i class="fas fa-box-open"></i> Received Without: ${j.received_without}</div>`:''}
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+    <div style="background:#e0f7fa;border-radius:10px;padding:10px;text-align:center;">
+      <div style="font-size:0.68rem;color:#006064;font-weight:700;text-transform:uppercase;">Status</div>
+      <div style="margin-top:4px;"><span style="background:${sc[j.status]||'#94a3b8'};color:white;padding:3px 9px;border-radius:999px;font-size:0.72rem;font-weight:700;">${j.status}</span></div>
+    </div>
+    <div style="background:#f8fafc;border-radius:10px;padding:10px;text-align:center;">
+      <div style="font-size:0.68rem;color:#94a3b8;font-weight:700;text-transform:uppercase;">Cost</div>
+      <div style="font-weight:800;font-size:1rem;margin-top:4px;">${j.cost?'₹'+parseFloat(j.cost).toFixed(2):'—'}</div>
+    </div>
+    <div style="background:${due>0?'#fee2e2':'#f8fafc'};border-radius:10px;padding:10px;text-align:center;">
+      <div style="font-size:0.68rem;color:${due>0?'#991b1b':'#94a3b8'};font-weight:700;text-transform:uppercase;">Balance Due</div>
+      <div style="font-weight:800;font-size:1rem;margin-top:4px;color:${due>0?'#ef4444':'#4CAF50'};">${due>0?'₹'+due.toFixed(2):'Paid'}</div>
+    </div>
+  </div>
+  ${lockVal?`<div style="background:#ede9fe;border:1.5px solid #c4b5fd;border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;">
+    <i class="fas fa-lock" style="color:#7c3aed;"></i>
+    <div><div style="font-size:0.68rem;font-weight:700;color:#6d28d9;text-transform:uppercase;">Screen Lock</div><div style="font-weight:800;color:#4c1d95;">${lockVal}</div></div>
+  </div>`:''}
+  ${adv>0?`<div style="background:#e0f7fa;border:1.5px solid #b2ebf2;border-radius:10px;padding:10px 14px;margin-bottom:10px;">
+    <div style="font-size:0.68rem;font-weight:700;color:#006064;text-transform:uppercase;margin-bottom:8px;">💰 Advance Payments <span style="font-size:0.8rem;font-weight:800;color:#00838f;">Total: ₹${adv.toFixed(2)}</span></div>
+    ${(()=>{const hist=j.advance_history?(typeof j.advance_history==='string'?JSON.parse(j.advance_history):j.advance_history):[];return hist.length>0?hist.map(e=>`<div style="display:flex;justify-content:space-between;align-items:center;background:#b2dfdb;border-radius:7px;padding:5px 10px;margin-bottom:4px;font-size:0.82rem;"><span style="font-weight:700;color:#004d40;">₹${parseFloat(e.amount).toFixed(2)}</span><span style="color:#00695c;">${e.method}</span><span style="color:#546e7a;font-size:0.72rem;">${e.date}</span></div>`).join(''):`<div style="font-size:0.82rem;color:#00838f;">₹${adv.toFixed(2)} — ${j.advance_method||'Cash'}</div>`})()}
+  </div>`:''}
+  ${cleanNotes?`<div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 14px;margin-bottom:10px;">
+    <div style="font-size:0.68rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:5px;"><i class="fas fa-sticky-note" style="color:#fbbf24;"></i> Notes</div>
+    <div style="font-size:0.85rem;color:#334155;">${cleanNotes}</div>
+  </div>`:''}
+  <div style="font-size:0.75rem;color:#94a3b8;text-align:right;">Received: ${(j.created_at||'').substring(0,16).replace('T',' ')}${j.diagnosed_at?' | Diagnosed: '+(j.diagnosed_at||'').substring(0,16).replace('T',' '):''} | Updated: ${(j.updated_at||'').substring(0,16).replace('T',' ')}</div>`;
+  document.getElementById('custJobContent').innerHTML=html;
+  document.getElementById('custJobModal').style.display='flex';
+}
+function toggleHistory(phone, btn) {
+  const row = document.getElementById('hist-'+phone);
+  if(row.style.display==='none'){ row.style.display='table-row'; btn.textContent='Hide'; }
+  else { row.style.display='none'; btn.textContent='History'; }
+}
+function filterCust() {
+  const q = document.getElementById('custSearch').value.toLowerCase();
+  document.querySelectorAll('#custTable tbody tr:not([id^="hist-"])').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

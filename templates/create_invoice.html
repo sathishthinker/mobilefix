@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Create Invoice{% endblock %}
+{% block page_title %}Create Invoice{% endblock %}
+{% block content %}
+<div style="max-width:680px;margin:0 auto;">
+  <div class="page-header" style="margin-bottom:24px;">
+    <div>
+      <div class="page-title">New Invoice</div>
+      <div class="page-subtitle">Generate a customer billing invoice</div>
+    </div>
+    <a href="{{ url_for('invoices') }}" class="btn btn-outline" style="border:1.5px solid #e2e8f0;color:#6b7c93;text-decoration:none;"><i class="fas fa-arrow-left"></i> Back</a>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <form method="POST">
+        <div class="form-group">
+          <label class="form-label">Link to Repair Job (Optional)</label>
+          <select name="job_id" class="form-control" id="jobSelect" onchange="autoFill()">
+            <option value="">— Select a job (optional) —</option>
+            {% for job in jobs %}
+            <option value="{{ job.id }}" data-name="{{ job.customer_name }}" data-phone="{{ job.customer_phone }}" data-cost="{{ job.cost }}" data-device="{{ job.device_model }}" data-issue="{{ job.issue }}">
+              #{{ job.id }} — {{ job.customer_name }} | {{ job.device_model }} | ₹{{ '%.2f'|format(job.cost) }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+          <div class="form-group">
+            <label class="form-label">Customer Name <span style="color:#ef4444;">*</span></label>
+            <input type="text" name="customer_name" id="custName" class="form-control" placeholder="Full name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Customer Phone <span style="color:#ef4444;">*</span></label>
+            <input type="tel" name="customer_phone" id="custPhone" class="form-control" placeholder="Phone number" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Items / Description <span style="color:#ef4444;">*</span></label>
+          <textarea name="items" id="custItems" class="form-control" placeholder="List parts replaced, services rendered..." required style="min-height:120px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Total Amount (₹) <span style="color:#ef4444;">*</span></label>
+          <input type="number" name="total" id="custTotal" class="form-control" step="0.01" min="0" placeholder="0.00" required>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:8px;">
+          <button type="submit" class="btn btn-primary" style="flex:1;padding:12px;font-size:0.95rem;"><i class="fas fa-file-invoice"></i> Create Invoice</button>
+          <a href="{{ url_for('invoices') }}" class="btn btn-outline" style="border:1.5px solid #e2e8f0;color:#6b7c93;text-decoration:none;padding:12px 20px;">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function autoFill() {
+  const sel = document.getElementById('jobSelect');
+  const opt = sel.options[sel.selectedIndex];
+  if (opt.value) {
+    document.getElementById('custName').value = opt.dataset.name || '';
+    document.getElementById('custPhone').value = opt.dataset.phone || '';
+    document.getElementById('custItems').value = opt.dataset.device + ' — ' + opt.dataset.issue;
+    document.getElementById('custTotal').value = opt.dataset.cost || '';
+  }
+}
+</script>
+{% endblock %}

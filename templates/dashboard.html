@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — MobileFix Pro{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <div class="page-title">{{ user.shop_name or 'My Shop' }} 👋</div>
+    <div class="page-subtitle">Live repair shop overview</div>
+  </div>
+  <a href="{{ url_for('add_job') }}" class="btn btn-primary"><i class="fas fa-plus"></i> New Job</a>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon"><i class="fas fa-tools"></i></div>
+    <div><div class="stat-num">{{ job_count }}</div><div class="stat-label">Total Jobs</div></div>
+  </div>
+  <div class="stat-card warning">
+    <div class="stat-icon warning"><i class="fas fa-hourglass-half"></i></div>
+    <div><div class="stat-num">{{ pending }}</div><div class="stat-label">Pending</div></div>
+  </div>
+  <div class="stat-card success">
+    <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
+    <div><div class="stat-num">{{ delivered }}</div><div class="stat-label">Delivered</div></div>
+  </div>
+  <div class="stat-card {% if status in ('trial_expired','expired') %}danger{% elif days_left <= 7 %}warning{% endif %}">
+    <div class="stat-icon {% if status in ('trial_expired','expired') %}danger{% elif days_left <= 7 %}warning{% endif %}"><i class="fas fa-calendar-check"></i></div>
+    <div><div class="stat-num">{{ days_left }}</div><div class="stat-label">Days Left</div></div>
+  </div>
+</div>
+
+<!-- Quick Nav -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:16px;margin-bottom:28px;">
+  {% set nav = [
+    ('New Job',    'fa-screwdriver-wrench', "add_job",   '#FF5722','#FF8A65'),
+    ('View Jobs',  'fa-clipboard-list',     "jobs",      '#1E88E5','#4FC3F7'),
+    ('Invoices',   'fa-file-invoice',       "invoices",  '#8E24AA','#BA68C8'),
+    ('Customers',  'fa-users',              "customers", '#43A047','#81C784'),
+    ('Reports',    'fa-chart-line',         "reports",   '#00BCD4','#4DD0E1'),
+    ('Settings',   'fa-cog',               "settings",  '#FF9800','#FFC107'),
+  ] %}
+  {% for label, icon, endpoint, c1, c2 in nav %}
+  <a href="{{ url_for(endpoint) }}" style="text-decoration:none;">
+    <div style="background:white;border-radius:14px;padding:18px 10px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,0.07);transition:transform 0.18s,box-shadow 0.18s;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 20px rgba(0,0,0,0.13)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(0,0,0,0.07)'">
+      <div style="width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,{{ c1 }},{{ c2 }});display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:1.4rem;color:white;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+        <i class="fas {{ icon }}"></i>
+      </div>
+      <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:0.82rem;color:#1a2332;">{{ label }}</div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+<!-- Recent Jobs -->
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 14px;">
+    <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:1rem;">Recent Repair Jobs</div>
+    <a href="{{ url_for('jobs') }}" style="color:#00BCD4;font-size:0.85rem;font-weight:600;text-decoration:none;">View All →</a>
+  </div>
+  <div class="card-body" style="padding-top:0;">
+    {% if recent_jobs %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Customer</th><th>Device</th><th>Issue</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for job in recent_jobs %}
+          <tr>
+            <td style="color:#94a3b8;font-size:0.8rem;">#{{ job.id }}</td>
+            <td><strong>{{ job.customer_name }}</strong><br><small style="color:#94a3b8;">{{ job.customer_phone }}</small></td>
+            <td>{{ job.device_model }}</td>
+            <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ job.issue }}</td>
+            <td>
+              {% set sc = {'Received':'#00BCD4','Diagnosing':'#FFC107','Repairing':'#FF9800','Ready':'#9C27B0','Delivered':'#4CAF50','Cancelled':'#795548','Rework':'#03A9F4'} %}
+              <span style="background:{{ sc.get(job.status,'#94a3b8') }};color:{% if job.status=='Diagnosing' %}#333{% else %}white{% endif %};padding:4px 10px;border-radius:999px;font-size:0.74rem;font-weight:700;">{{ job.status }}</span>
+            </td>
+            <td style="color:#94a3b8;font-size:0.8rem;">{{ job.created_at[:10] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:40px;color:#94a3b8;">
+      <i class="fas fa-tools" style="font-size:2.5rem;margin-bottom:14px;display:block;opacity:0.25;"></i>
+      No jobs yet. <a href="{{ url_for('add_job') }}" style="color:#00BCD4;font-weight:600;">Add your first job</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% if status == 'trial' and days_left <= 7 or status == 'active' and days_left <= 7 %}
+<div id="expiry-popup" class="show">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+    <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:0.95rem;color:#92400e;">⚠️ {% if status=='trial' %}Trial{% else %}Subscription{% endif %} Ending Soon!</div>
+    <button onclick="this.parentElement.parentElement.style.display='none'" style="background:none;border:none;cursor:pointer;color:#94a3b8;padding:0;">✕</button>
+  </div>
+  <p style="font-size:0.83rem;color:#6b7c93;margin-bottom:10px;">Expires in <strong style="color:#f59e0b;">{{ days_left }} days</strong>. Contact admin.</p>
+  <a href="{{ url_for('subscription_page') }}" style="font-size:0.82rem;color:#00BCD4;font-weight:600;text-decoration:none;">View Plans →</a>
+</div>
+{% endif %}
+{% endblock %}

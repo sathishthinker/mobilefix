@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MobileFix Pro — Register</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--teal:#00BCD4;--teal-dark:#0097A7;--teal-glow:rgba(0,188,212,0.25);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#0d1b2a;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.bg-circles{position:fixed;inset:0;pointer-events:none;overflow:hidden;}
+.circle{position:absolute;border-radius:50%;opacity:0.05;background:var(--teal);}
+.circle:nth-child(1){width:500px;height:500px;top:-200px;right:-150px;}
+.circle:nth-child(2){width:350px;height:350px;bottom:-120px;left:-100px;}
+.auth-card{background:#fff;border-radius:24px;padding:40px;width:100%;max-width:500px;box-shadow:0 30px 80px rgba(0,0,0,0.3);position:relative;z-index:1;}
+.logo-row{display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+.logo-icon{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:white;box-shadow:0 5px 16px var(--teal-glow);}
+.logo-text{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.35rem;color:#1a2332;line-height:1.1;}
+.logo-text span{color:var(--teal);}
+h2{font-family:'Exo 2',sans-serif;font-weight:700;font-size:1.3rem;color:#1a2332;margin-bottom:5px;}
+p.sub{color:#6b7c93;font-size:0.85rem;margin-bottom:24px;}
+.trial-banner{background:linear-gradient(135deg,#e0f7fa,#b2ebf2);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:24px;border:1px solid #80deea;}
+.trial-banner i{color:var(--teal);font-size:1.2rem;}
+.trial-banner .trial-text{font-size:0.85rem;color:#00838f;font-weight:500;}
+.trial-banner strong{display:block;font-size:0.9rem;color:#006064;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;margin-bottom:6px;font-size:0.82rem;font-weight:600;color:#1a2332;}
+.input-wrap{position:relative;}
+.input-wrap i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:0.85rem;}
+.form-control{width:100%;padding:10px 13px 10px 38px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:0.875rem;font-family:inherit;color:#1a2332;transition:all 0.2s;}
+.form-control:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-glow);}
+textarea.form-control{padding-left:38px;resize:vertical;min-height:80px;}
+.btn-block{width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));color:white;font-size:1rem;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 6px 18px var(--teal-glow);transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;}
+.btn-block:hover{transform:translateY(-2px);}
+.link-row{text-align:center;font-size:0.875rem;color:#6b7c93;margin-top:18px;}
+.link-row a{color:var(--teal);font-weight:600;text-decoration:none;}
+.flash{padding:12px 16px;border-radius:10px;margin-bottom:14px;font-size:0.85rem;font-weight:500;display:flex;align-items:center;gap:8px;}
+.flash.error{background:#fee2e2;color:#991b1b;border:1px solid #fecaca;}
+.flash.success{background:#d1fae5;color:#065f46;}
+</style>
+</head>
+<body>
+<div class="bg-circles"><div class="circle"></div><div class="circle"></div></div>
+<div class="auth-card">
+  <div class="logo-row">
+    <div class="logo-icon"><i class="fas fa-mobile-alt"></i></div>
+    <div class="logo-text">Mobile<span>Fix</span> Pro</div>
+  </div>
+  <h2>Create your shop account</h2>
+  <p class="sub">Set up your repair shop in minutes</p>
+  <div class="trial-banner">
+    <i class="fas fa-gift"></i>
+    <div class="trial-text">
+      <strong>30-Day Free Trial Included!</strong>
+      No payment required to get started. Full access from day one.
+    </div>
+  </div>
+  {% with messages = get_flashed_messages(with_categories=True) %}
+    {% for cat, msg in messages %}
+      <div class="flash {{ cat }}"><i class="fas fa-exclamation-circle"></i> {{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+  <form method="POST">
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">Phone Number <span style="color:#ef4444;">*</span></label>
+        <div class="input-wrap">
+          <i class="fas fa-phone"></i>
+          <input type="tel" name="phone" class="form-control" placeholder="10-digit number" required maxlength="10">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address <span style="color:#ef4444;">*</span></label>
+        <div class="input-wrap">
+          <i class="fas fa-envelope"></i>
+          <input type="email" name="email" class="form-control" placeholder="you@email.com" required>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Shop Name <span style="color:#ef4444;">*</span></label>
+      <div class="input-wrap">
+        <i class="fas fa-store"></i>
+        <input type="text" name="shop_name" class="form-control" placeholder="e.g. Jeni Mobiles" required>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Shop Address</label>
+      <div class="input-wrap">
+        <i class="fas fa-map-marker-alt"></i>
+        <textarea name="address" class="form-control" placeholder="Full shop address..."></textarea>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password <span style="color:#ef4444;">*</span></label>
+      <div class="input-wrap">
+        <i class="fas fa-lock"></i>
+        <input type="password" name="password" class="form-control" placeholder="Min. 6 characters" required minlength="6">
+      </div>
+    </div>
+    <button type="submit" class="btn-block"><i class="fas fa-rocket"></i> Start Free Trial</button>
+  </form>
+  <p class="link-row">Already have an account? <a href="{{ url_for('login') }}">Sign In</a></p>
+</div>
+</body>
+</html>

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Subscription — MobileFix Pro{% endblock %}
+{% block page_title %}Subscription{% endblock %}
+{% block content %}
+<div style="max-width:560px;margin:0 auto;text-align:center;padding-top:20px;">
+  {% if reason == 'trial_expired' or reason == 'expired' %}
+  <div style="background:#fee2e2;border-radius:16px;padding:24px;margin-bottom:30px;border:1px solid #fecaca;">
+    <div style="font-size:3rem;margin-bottom:12px;">⏰</div>
+    <div style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.3rem;color:#991b1b;margin-bottom:6px;">
+      {% if reason == 'trial_expired' %}Your 30-Day Trial Has Ended{% else %}Your Subscription Has Expired{% endif %}
+    </div>
+    <p style="color:#7f1d1d;font-size:0.9rem;">Choose a plan below to continue using MobileFix Pro. Contact admin to activate your plan.</p>
+  </div>
+  {% elif reason == 'disabled' %}
+  <div style="background:#f1f5f9;border-radius:16px;padding:24px;margin-bottom:30px;">
+    <div style="font-size:3rem;margin-bottom:12px;">🚫</div>
+    <div style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.3rem;color:#64748b;margin-bottom:6px;">Account Disabled</div>
+    <p style="color:#94a3b8;font-size:0.9rem;">Your account has been disabled. Please contact support.</p>
+  </div>
+  {% else %}
+  <div style="margin-bottom:28px;">
+    <div style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.5rem;color:#1a2332;margin-bottom:8px;">Manage Your Subscription</div>
+    <p style="color:#6b7c93;font-size:0.9rem;">Your current plan status is shown below. Contact admin to upgrade.</p>
+  </div>
+  {% endif %}
+
+  <!-- Current Status -->
+  <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 8px 24px rgba(0,0,0,0.08);margin-bottom:28px;text-align:left;">
+    <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:12px;">Current Status</div>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="width:48px;height:48px;border-radius:12px;background:#e0f7fa;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">
+        {% if status=='trial' %}⏳{% elif status=='active' %}✅{% else %}⛔{% endif %}
+      </div>
+      <div>
+        <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:1.1rem;color:#1a2332;">
+          {% if status=='trial' %}Free Trial Active
+          {% elif status=='active' %}Subscription Active
+          {% elif status=='trial_expired' %}Trial Expired
+          {% elif status=='expired' %}Subscription Expired
+          {% else %}Account Disabled{% endif %}
+        </div>
+        {% if status in ('trial','active') %}
+        <div style="font-size:0.85rem;color:#6b7c93;margin-top:2px;"><strong style="color:#00BCD4;">{{ days_left }} days</strong> remaining</div>
+        {% elif user.subscription_end %}
+        <div style="font-size:0.85rem;color:#6b7c93;margin-top:2px;">Expired on {{ user.subscription_end[:10] }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Plans -->
+  <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 8px 24px rgba(0,0,0,0.08);">
+    <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:16px;text-align:left;">Available Plans</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      {% for plan in [('30 Days','30d','Short-term access'),('1 Year','1y','Best for most shops'),('2 Years','2y','Save more, worry less'),('3 Years','3y','Maximum savings')] %}
+      <div style="border:2px solid #e2e8f0;border-radius:14px;padding:20px;text-align:center;background:#fafcff;">
+        <div style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.05rem;color:#00BCD4;">{{ plan[0] }}</div>
+        <div style="font-size:0.78rem;color:#94a3b8;margin-top:4px;">{{ plan[2] }}</div>
+        <div style="margin-top:12px;font-size:0.78rem;color:#6b7c93;font-style:italic;">Contact admin to activate</div>
+      </div>
+      {% endfor %}
+    </div>
+    <div style="margin-top:20px;padding:14px;background:#f8fafc;border-radius:10px;font-size:0.83rem;color:#64748b;text-align:left;">
+      <i class="fas fa-info-circle" style="color:#00BCD4;"></i>
+      <strong>Manual Billing:</strong> Contact your administrator to activate or renew a plan. Once payment is confirmed, admin will enable your subscription from the admin panel.
+    </div>
+  </div>
+
+  <div style="margin-top:24px;">
+    {% if status in ('trial','active') %}
+    <a href="{{ url_for('dashboard') }}" class="btn btn-primary" style="display:inline-flex;padding:12px 28px;border-radius:12px;text-decoration:none;">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+    {% endif %}
+    <a href="{{ url_for('logout') }}" class="btn btn-outline" style="display:inline-flex;padding:12px 28px;border-radius:12px;margin-left:10px;text-decoration:none;border:1.5px solid #e2e8f0;color:#6b7c93;">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
+  </div>
+</div>
+{% endblock %}

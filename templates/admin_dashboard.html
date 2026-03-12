@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% block title %}Admin — MobileFix Pro{% endblock %}
+{% block page_title %}Admin Panel{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Shop Account Manager</div>
+    <div class="page-subtitle">Manage all registered repair shops</div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stat-grid" style="margin-bottom:28px;">
+  <div class="stat-card">
+    <div class="stat-icon"><i class="fas fa-store"></i></div>
+    <div><div class="stat-num">{{ total }}</div><div class="stat-label">Total Shops</div></div>
+  </div>
+  <div class="stat-card success">
+    <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
+    <div><div class="stat-num">{{ active_count }}</div><div class="stat-label">Active / Trial</div></div>
+  </div>
+  <div class="stat-card warning">
+    <div class="stat-icon warning"><i class="fas fa-clock"></i></div>
+    <div><div class="stat-num">{{ expired_count }}</div><div class="stat-label">Expired</div></div>
+  </div>
+  <div class="stat-card danger">
+    <div class="stat-icon danger"><i class="fas fa-ban"></i></div>
+    <div><div class="stat-num">{{ disabled_count }}</div><div class="stat-label">Disabled</div></div>
+  </div>
+</div>
+
+<!-- Shops Table -->
+<div class="card">
+  <div class="card-header" style="padding:20px 24px 16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:1rem;">All Registered Shops</div>
+      <input type="text" id="adminSearch" class="form-control" placeholder="🔍  Search shops..." style="max-width:240px;" onkeyup="filterShops()">
+    </div>
+  </div>
+  <div class="card-body" style="padding-top:0;">
+    {% if users %}
+    <div class="table-wrap">
+      <table id="shopsTable">
+        <thead>
+          <tr><th>Shop</th><th>Contact</th><th>Status</th><th>Subscription</th><th>Joined</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr id="row-{{ u.id }}">
+            <td>
+              <strong>{{ u.shop_name or '(No name)' }}</strong>
+              <div style="font-size:0.78rem;color:#94a3b8;margin-top:2px;">{{ u.address or 'No address set' }}</div>
+            </td>
+            <td>
+              <div style="font-size:0.85rem;">📞 {{ u.phone }}</div>
+              <div style="font-size:0.8rem;color:#94a3b8;">✉️ {{ u.email }}</div>
+            </td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;" id="status-cell-{{ u.id }}">
+                {% if u.enabled %}
+                  {% if u.status == 'trial' %}
+                    <span class="badge" style="background:#fef9c3;color:#a16207;">Trial</span>
+                    <span style="font-size:0.75rem;color:#94a3b8;">{{ u.days_left }}d left</span>
+                  {% elif u.status == 'active' %}
+                    <span class="badge" style="background:#d1fae5;color:#065f46;">Active</span>
+                    <span style="font-size:0.75rem;color:#94a3b8;">{{ u.days_left }}d left</span>
+                  {% elif u.status in ('trial_expired','expired') %}
+                    <span class="badge" style="background:#fee2e2;color:#991b1b;">Expired</span>
+                  {% endif %}
+                {% else %}
+                  <span class="badge" style="background:#f1f5f9;color:#64748b;">Disabled</span>
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              <div style="font-size:0.82rem;color:#64748b;">
+                {% if u.subscription_plan %}
+                  Plan: <strong>{{ u.subscription_plan }}</strong><br>
+                  Ends: {{ u.subscription_end[:10] if u.subscription_end else '—' }}
+                {% elif u.trial_start %}
+                  Trial started:<br>{{ u.trial_start[:10] }}
+                {% else %}
+                  —
+                {% endif %}
+              </div>
+            </td>
+            <td style="color:#94a3b8;font-size:0.82rem;">{{ u.created_at[:10] }}</td>
+            <td>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <!-- Enable/Disable Toggle -->
+                <button class="btn btn-sm {% if u.enabled %}btn-danger{% else %}btn-success{% endif %}"
+                        id="toggle-btn-{{ u.id }}"
+                        onclick="toggleAccount({{ u.id }})">
+                  <i class="fas fa-{% if u.enabled %}ban{% else %}check{% endif %}"></i>
+                  <span id="toggle-text-{{ u.id }}">{% if u.enabled %}Disable{% else %}Enable{% endif %}</span>
+                </button>
+                <!-- Set Subscription -->
+                <button class="btn btn-sm btn-primary" onclick="openSubModal({{ u.id }},'{{ u.shop_name }}')">
+                  <i class="fas fa-calendar-plus"></i> Set Plan
+                </button>
+                <!-- Delete -->
+                <button class="btn btn-sm btn-danger" onclick="deleteUser({{ u.id }}, '{{ u.shop_name }}')">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:60px;color:#94a3b8;">
+      <i class="fas fa-store" style="font-size:3rem;margin-bottom:16px;display:block;opacity:0.2;"></i>
+      <div style="font-family:'Exo 2',sans-serif;font-size:1.1rem;color:#cbd5e1;">No shops registered yet</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Subscription Modal -->
+<div class="modal-overlay" id="subModal">
+  <div class="modal-box">
+    <div class="modal-title"><i class="fas fa-calendar-plus" style="color:#00BCD4;"></i> Set Subscription Plan</div>
+    <p style="font-size:0.85rem;color:#94a3b8;margin-top:6px;">Shop: <strong id="subShopName"></strong></p>
+    <div class="modal-body">
+      <div style="font-size:0.82rem;color:#6b7c93;margin-bottom:16px;">Select a plan to activate. This will start counting from today.</div>
+      <div class="plan-grid">
+        <button class="plan-btn" onclick="selectPlan('30d',this)">
+          <div class="plan-name">30 Days</div>
+          <div class="plan-desc">Short-term access</div>
+        </button>
+        <button class="plan-btn" onclick="selectPlan('1y',this)">
+          <div class="plan-name">1 Year</div>
+          <div class="plan-desc">365 days access</div>
+        </button>
+        <button class="plan-btn" onclick="selectPlan('2y',this)">
+          <div class="plan-name">2 Years</div>
+          <div class="plan-desc">730 days access</div>
+        </button>
+        <button class="plan-btn" onclick="selectPlan('3y',this)">
+          <div class="plan-name">3 Years</div>
+          <div class="plan-desc">1095 days access</div>
+        </button>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button class="btn btn-primary" style="flex:1;" id="confirmPlanBtn" onclick="confirmPlan()" disabled>
+          <i class="fas fa-check"></i> Activate Plan
+        </button>
+        <button class="btn btn-ghost" onclick="closeSubModal()" style="padding:10px 20px;background:#f1f5f9;border-radius:10px;cursor:pointer;border:none;font-family:inherit;color:#64748b;">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" style="position:fixed;bottom:24px;right:24px;background:#1a2332;color:white;padding:14px 20px;border-radius:12px;font-size:0.875rem;font-weight:500;z-index:9999;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.2);">
+  <i class="fas fa-check-circle" style="color:#00BCD4;margin-right:8px;"></i>
+  <span id="toastMsg"></span>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentUid = null, selectedPlan = null;
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+async function toggleAccount(uid) {
+  const res = await fetch(`/admin/toggle/${uid}`, {method:'POST'});
+  const data = await res.json();
+  const btn = document.getElementById(`toggle-btn-${uid}`);
+  const txt = document.getElementById(`toggle-text-${uid}`);
+  const icon = btn.querySelector('i');
+  if (data.enabled) {
+    btn.className = 'btn btn-sm btn-danger';
+    txt.textContent = 'Disable';
+    icon.className = 'fas fa-ban';
+    showToast('Account enabled');
+  } else {
+    btn.className = 'btn btn-sm btn-success';
+    txt.textContent = 'Enable';
+    icon.className = 'fas fa-check';
+    showToast('Account disabled');
+  }
+}
+
+function openSubModal(uid, name) {
+  currentUid = uid;
+  selectedPlan = null;
+  document.getElementById('subShopName').textContent = name;
+  document.getElementById('confirmPlanBtn').disabled = true;
+  document.querySelectorAll('.plan-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('subModal').classList.add('show');
+}
+function closeSubModal() {
+  document.getElementById('subModal').classList.remove('show');
+  currentUid = null; selectedPlan = null;
+}
+function selectPlan(plan, btn) {
+  selectedPlan = plan;
+  document.querySelectorAll('.plan-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('confirmPlanBtn').disabled = false;
+}
+async function confirmPlan() {
+  if (!currentUid || !selectedPlan) return;
+  const fd = new FormData();
+  fd.append('plan', selectedPlan);
+  const res = await fetch(`/admin/set_subscription/${currentUid}`, {method:'POST', body:fd});
+  const data = await res.json();
+  if (data.success) {
+    showToast(`Plan activated! Expires: ${data.end_date}`);
+    closeSubModal();
+    setTimeout(() => location.reload(), 1500);
+  }
+}
+async function deleteUser(uid, name) {
+  if (!confirm(`Delete shop "${name}" and all their data? This cannot be undone.`)) return;
+  const res = await fetch(`/admin/delete/${uid}`, {method:'POST'});
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById(`row-${uid}`).remove();
+    showToast('Shop deleted successfully');
+  }
+}
+document.getElementById('subModal').addEventListener('click', function(e) {
+  if (e.target === this) closeSubModal();
+});
+function filterShops() {
+  const q = document.getElementById('adminSearch').value.toLowerCase();
+  document.querySelectorAll('#shopsTable tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

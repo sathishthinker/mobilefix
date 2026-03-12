@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% block title %}Invoices — MobileFix Pro{% endblock %}
+{% block page_title %}Invoices{% endblock %}
+
+{% block extra_head %}
+<style>
+.mo{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1000;display:none;overflow-y:auto;backdrop-filter:blur(3px);}
+.mo.show{display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;}
+.mb{background:white;border-radius:18px;padding:28px;width:92%;max-width:480px;box-shadow:0 25px 60px rgba(0,0,0,0.2);margin:auto;animation:su 0.2s ease;}
+@keyframes su{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.mt{font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.1rem;color:#1a2332;margin-bottom:16px;display:flex;align-items:center;gap:9px;}
+.pay-method-btn{flex:1;padding:10px;border-radius:10px;border:2px solid #e2e8f0;background:white;cursor:pointer;font-size:0.85rem;font-weight:600;color:#475569;transition:all 0.15s;}
+.pay-method-btn.active{border-color:#00BCD4;background:#e0f7fa;color:#006064;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Invoices</div>
+    <div class="page-subtitle">Manage all customer billing</div>
+  </div>
+  <a href="{{ url_for('create_invoice') }}" class="btn btn-primary"><i class="fas fa-plus"></i> New Invoice</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    {% if invoices %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Customer</th><th>Total (₹)</th><th>Advance</th><th>Balance Due</th><th>Method</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for inv in invoices %}
+          {% set adv = inv.advance_amount if inv.advance_amount else 0 %}
+          {% set bal = [0.0, inv.total - adv]|max %}
+          {% set pstatus = inv.paid or 'Unpaid' %}
+          <tr id="inv-row-{{ inv.id }}">
+            <td style="color:#94a3b8;font-size:0.82rem;font-weight:700;">INV-{{ '%04d'|format(inv.id) }}</td>
+            <td><strong>{{ inv.customer_name }}</strong><br><small style="color:#94a3b8;">{{ inv.customer_phone }}</small></td>
+            <td style="font-weight:700;font-size:1rem;color:#1a2332;">₹{{ '%.2f'|format(inv.total) }}</td>
+            <td style="color:#64748b;" id="inv-adv-{{ inv.id }}">{% if adv > 0 %}₹{{ '%.2f'|format(adv) }}{% else %}—{% endif %}</td>
+            <td style="font-weight:700;" id="inv-bal-{{ inv.id }}">
+              {% if bal > 0 %}<span style="color:#ef4444;">₹{{ '%.2f'|format(bal) }}</span>
+              {% else %}<span style="color:#16a34a;"><i class="fas fa-check"></i> Nil</span>{% endif %}
+            </td>
+            <td style="font-size:0.82rem;color:#64748b;">{{ inv.pay_method or '—' }}</td>
+            <td id="inv-status-{{ inv.id }}">
+              {% if pstatus == 'Paid' %}
+                <span style="background:#dcfce7;color:#16a34a;border:1.5px solid #86efac;padding:4px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;">✓ Paid</span>
+              {% elif pstatus == 'Partial' %}
+                <span style="background:#fff7ed;color:#c2410c;border:1.5px solid #fdba74;padding:4px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;">Partial</span>
+              {% else %}
+                <span style="background:#fef2f2;color:#ef4444;border:1.5px solid #fca5a5;padding:4px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;">Unpaid</span>
+              {% endif %}
+            </td>
+            <td style="color:#94a3b8;font-size:0.82rem;">{{ inv.created_at[:16].replace("T"," ") if inv.created_at else "—" }}</td>
+            <td>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <a href="{{ url_for('print_invoice', inv_id=inv.id) }}" target="_blank"
+                   style="background:#00BCD4;color:white;padding:6px 12px;border-radius:8px;font-size:0.8rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
+                  <i class="fas fa-print"></i> Print
+                </a>
+                {% if pstatus != 'Paid' %}
+                <button onclick="openPayModal({{ inv.id }}, {{ inv.total }}, {{ adv }})"
+                  style="background:linear-gradient(135deg,#4CAF50,#66BB6A);color:white;border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:5px;">
+                  <i class="fas fa-rupee-sign"></i> Collect
+                </button>
+                {% else %}
+                <span style="color:#16a34a;font-size:0.8rem;font-weight:600;padding:6px 4px;"><i class="fas fa-check-circle"></i> Settled</span>
+                {% endif %}
+                {% if inv.customer_phone %}
+                <button onclick="sendInvWA('{{ inv.customer_name }}','{{ inv.customer_phone }}','{{ inv.id }}','{{ inv.total }}','{{ inv.pay_method or 'Cash' }}')"
+                  style="background:#25D366;color:white;border:none;border-radius:8px;padding:6px 11px;cursor:pointer;font-size:0.85rem;">
+                  <i class="fab fa-whatsapp"></i>
+                </button>
+                {% endif %}
+                <button onclick="downloadInvoicePDF('{{ inv.id }}')"
+                  title="Download Invoice PDF"
+                  style="background:#7C3AED;color:white;border:none;border-radius:8px;padding:6px 11px;cursor:pointer;font-size:0.85rem;">
+                  <i class="fas fa-download"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:60px 20px;color:#94a3b8;">
+      <i class="fas fa-file-invoice" style="font-size:3rem;margin-bottom:16px;display:block;opacity:0.25;"></i>
+      <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:8px;color:#cbd5e1;">No invoices yet</div>
+      <a href="{{ url_for('create_invoice') }}" class="btn btn-primary" style="margin-top:10px;text-decoration:none;"><i class="fas fa-plus"></i> Create First Invoice</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ── Collect Payment Modal ── -->
+<div class="mo" id="payModal">
+  <div class="mb">
+    <div class="mt"><i class="fas fa-rupee-sign" style="color:#4CAF50;"></i> Collect Payment</div>
+    <div id="payModalInfo" style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:18px;font-size:0.875rem;"></div>
+
+    <div class="form-group">
+      <label class="form-label">Amount Received (₹) <span style="color:#ef4444;">*</span></label>
+      <input type="number" id="payAmount" class="form-control" min="0" step="0.01"
+             placeholder="0.00" oninput="updatePayBalance()"
+             style="font-size:1.1rem;font-weight:700;border:2px solid #00BCD4;">
+    </div>
+
+    <div style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:0.85rem;color:#64748b;font-weight:600;">Remaining After Payment:</span>
+      <span id="payRemaining" style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.2rem;color:#ef4444;">—</span>
+    </div>
+
+    <label class="form-label">Payment Method</label>
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      {% for m in ['Cash','UPI','Card','Bank'] %}
+      <button class="pay-method-btn {% if m=='Cash' %}active{% endif %}"
+              onclick="selectPayMethod(this,'{{ m }}')">{{ m }}</button>
+      {% endfor %}
+    </div>
+    <input type="hidden" id="selectedPayMethod" value="Cash">
+
+    <div id="payFullBadge" style="display:none;background:#dcfce7;border:1.5px solid #86efac;border-radius:10px;padding:10px;text-align:center;margin-bottom:14px;">
+      <strong style="color:#16a34a;font-size:0.9rem;">✓ This will fully settle the invoice!</strong>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:6px;">
+      <button onclick="confirmPayment()" class="btn btn-primary" style="flex:1;padding:12px;font-size:0.95rem;background:linear-gradient(135deg,#4CAF50,#66BB6A);border-color:#4CAF50;">
+        <i class="fas fa-check"></i> Confirm Payment
+      </button>
+      <button onclick="document.getElementById('payModal').classList.remove('show')"
+              style="padding:12px 20px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" style="position:fixed;bottom:22px;right:22px;background:#1a2332;color:white;padding:12px 20px;border-radius:12px;font-size:0.875rem;font-weight:500;z-index:9999;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.2);">
+  <i class="fas fa-check-circle" style="color:#4CAF50;margin-right:8px;"></i><span id="toastMsg"></span>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let curInvId = null, curInvTotal = 0, curInvAdv = 0;
+
+function openPayModal(invId, total, adv) {
+  curInvId = invId; curInvTotal = total; curInvAdv = adv;
+  const bal = Math.max(0, total - adv);
+  document.getElementById('payModalInfo').innerHTML =
+    `Invoice <strong>INV-${String(invId).padStart(4,'0')}</strong> &nbsp;|&nbsp; Total: <strong>₹${total.toFixed(2)}</strong>` +
+    (adv > 0 ? ` &nbsp;|&nbsp; Already Paid: <strong style="color:#4CAF50;">₹${adv.toFixed(2)}</strong>` : '') +
+    `<br><span style="color:#ef4444;font-weight:700;">Balance Due: ₹${bal.toFixed(2)}</span>`;
+  document.getElementById('payAmount').value = bal.toFixed(2);
+  document.getElementById('selectedPayMethod').value = 'Cash';
+  document.querySelectorAll('.pay-method-btn').forEach(b => b.classList.toggle('active', b.textContent==='Cash'));
+  updatePayBalance();
+  document.getElementById('payModal').classList.add('show');
+  setTimeout(() => document.getElementById('payAmount').select(), 100);
+}
+
+function selectPayMethod(btn, method) {
+  document.querySelectorAll('.pay-method-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('selectedPayMethod').value = method;
+}
+
+function updatePayBalance() {
+  const amt = parseFloat(document.getElementById('payAmount').value || 0);
+  const newAdv = curInvAdv + amt;
+  const remaining = Math.max(0, curInvTotal - newAdv);
+  const remEl = document.getElementById('payRemaining');
+  remEl.textContent = '₹' + remaining.toFixed(2);
+  remEl.style.color = remaining < 0.01 ? '#16a34a' : '#ef4444';
+  document.getElementById('payFullBadge').style.display = remaining < 0.01 ? 'block' : 'none';
+}
+
+async function confirmPayment() {
+  const amt = parseFloat(document.getElementById('payAmount').value || 0);
+  if (amt <= 0) { alert('Please enter an amount greater than 0.'); return; }
+  const method = document.getElementById('selectedPayMethod').value;
+  let data;
+  try {
+    const resp = await fetch(`/invoices/${curInvId}/mark_paid`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: new URLSearchParams({ amount_received: amt, pay_method: method })
+    });
+    data = await resp.json();
+    if (!resp.ok) {
+      toast('Error: ' + (data.error || 'Server error ' + resp.status));
+      return;
+    }
+  } catch(err) {
+    toast('Network error. Please try again.');
+    console.error(err);
+    return;
+  }
+  if (data.ok) {
+    document.getElementById('payModal').classList.remove('show');
+    // Update row in-place
+    const advEl = document.getElementById(`inv-adv-${curInvId}`);
+    const balEl = document.getElementById(`inv-bal-${curInvId}`);
+    const statusEl = document.getElementById(`inv-status-${curInvId}`);
+    if (advEl) advEl.textContent = '₹' + parseFloat(data.advance).toFixed(2);
+    if (balEl) {
+      if (data.balance < 0.01) {
+        balEl.innerHTML = '<span style="color:#16a34a;"><i class="fas fa-check"></i> Nil</span>';
+      } else {
+        balEl.innerHTML = `<span style="color:#ef4444;">₹${data.balance.toFixed(2)}</span>`;
+      }
+    }
+    if (statusEl) {
+      if (data.paid === 'Paid') {
+        statusEl.innerHTML = '<span style="background:#dcfce7;color:#16a34a;border:1.5px solid #86efac;padding:4px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;">✓ Paid</span>';
+        // Replace Collect button with Settled
+        const collectBtn = statusEl.parentElement.querySelector('button[onclick*="openPayModal"]');
+        if (collectBtn) collectBtn.outerHTML = '<span style="color:#16a34a;font-size:0.8rem;font-weight:600;padding:6px 4px;"><i class="fas fa-check-circle"></i> Settled</span>';
+      } else {
+        statusEl.innerHTML = '<span style="background:#fff7ed;color:#c2410c;border:1.5px solid #fdba74;padding:4px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;">Partial</span>';
+      }
+    }
+    toast(data.paid === 'Paid' ? 'Invoice fully settled! ✓' : `₹${amt.toFixed(2)} collected. Balance: ₹${data.balance.toFixed(2)}`);
+  } else {
+    toast('Error saving payment. Try again.');
+  }
+}
+
+function downloadInvoicePDF(invId) {
+  const url = window.location.origin + '/invoices/' + invId + '/print';
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'INV-' + String(invId).padStart(4,'0') + '.html';
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function sendInvWA(name, phone, invId, total, method) {
+  const msg = `*INVOICE — INV-${String(invId).padStart(4,'0')}*\n\nDear *${name}*,\nYour invoice has been generated.\n\n*Total: ₹${parseFloat(total).toFixed(2)}*\nPayment: ${method}\n\nThank you for choosing us!`;
+  window.open('whatsapp://send?phone=91'+phone.replace(/\D/g,'')+'&text='+encodeURIComponent(msg),'_blank');
+}
+
+function toast(msg) {
+  document.getElementById('toastMsg').textContent = msg;
+  const t = document.getElementById('toast'); t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3500);
+}
+
+document.getElementById('payModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('payModal'))
+    document.getElementById('payModal').classList.remove('show');
+});
+</script>
+{% endblock %}
