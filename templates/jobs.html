@@ -341,18 +341,29 @@
 </div></div>
 
 <!-- Cancel -->
-<div class="mo" id="cancelModal"><div class="mb">
-  <div class="mt"><i class="fas fa-times-circle" style="color:#E53935;"></i> Cancel Job</div>
-  <div id="cancelInfo" style="margin-bottom:14px;font-size:0.875rem;padding:10px;background:#fff5f5;border-radius:9px;"></div>
-  <div id="cancelRefundBox" style="display:none;background:#fff7ed;border:1.5px solid #fbbf24;border-radius:10px;padding:12px;margin-bottom:14px;">
-    <div style="font-weight:700;color:#92400e;font-size:0.88rem;margin-bottom:6px;"><i class="fas fa-undo" style="color:#f59e0b;"></i> Advance Refund Required</div>
-    <div id="cancelRefundAmt" style="font-size:0.85rem;color:#78350f;"></div>
-    <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:0.85rem;font-weight:600;cursor:pointer;">
-      <input type="checkbox" id="refundConfirm" style="width:16px;height:16px;">
-      <span style="color:#92400e;">I confirm the advance has been / will be refunded to the customer</span>
-    </label>
+<div class="mo" id="cancelModal"><div class="mb" style="max-width:440px;">
+  <div style="text-align:center;margin-bottom:16px;">
+    <div style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.15rem;color:#1a2332;">Return &amp; Refund</div>
   </div>
-  <div class="form-group"><label class="form-label">Reason</label>
+  <div id="cancelInfo" style="margin-bottom:14px;font-size:0.875rem;background:#f8fafc;border-radius:9px;padding:12px;"></div>
+  <div id="cancelRefundBox" style="display:none;">
+    <p style="color:#E53935;font-size:0.82rem;font-weight:600;margin-bottom:14px;text-align:center;">*This action will cancel the job and register a refund/return entry.*</p>
+    <div style="margin-bottom:12px;">
+      <div style="font-size:0.75rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Advance Paid:</div>
+      <div id="cancelRefundAmt" style="font-size:1.05rem;font-weight:800;color:#1a2332;"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Refund Amount (₹)</label>
+      <input type="number" id="cancelRefundAmtInput" class="form-control" min="0" step="0.01" style="font-size:1rem;font-weight:700;">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Refund Method</label>
+      <select id="cancelRefundMethod" class="form-control">
+        <option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Card</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group"><label class="form-label">Reason for Return/Refund</label>
     <select id="cancelReason" class="form-control" onchange="document.getElementById('cancelOtherBox').style.display=this.value=='Other'?'block':'none'">
       <option>Customer Request</option><option>Repair Not Possible</option><option>Spare Not Available</option><option>Mobile Already Dead</option><option>Other</option>
     </select>
@@ -361,8 +372,8 @@
     <textarea id="cancelOtherText" class="form-control" oninput="this.value=this.value.toUpperCase()"></textarea>
   </div>
   <div style="display:flex;gap:10px;margin-top:14px;">
-    <button onclick="confirmCancel()" class="act act-red" style="flex:1;padding:11px;font-size:0.9rem;"><i class="fas fa-times"></i> Confirm Cancel</button>
-    <button onclick="closeM('cancelModal')" style="padding:11px 20px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Back</button>
+    <button onclick="confirmCancel()" style="flex:1;padding:12px;background:#E53935;color:white;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:0.92rem;font-weight:700;"><i class="fas fa-undo"></i> Confirm Refund/Return</button>
+    <button onclick="closeM('cancelModal')" style="padding:12px 18px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">✕</button>
   </div>
 </div></div>
 
@@ -1031,16 +1042,18 @@ async function confirmRefund() {
 function cancelJob(id,name) {
   curId=id;
   const j=JOBS.find(x=>x.id==id);
-  document.getElementById('cancelInfo').innerHTML=`Cancelling Job <strong>#${id}</strong> — ${name}`;
+  document.getElementById('cancelInfo').innerHTML=
+    `<div><span style="font-size:0.72rem;color:#94a3b8;font-weight:700;text-transform:uppercase;">Job ID:</span> <strong>#${id}</strong></div>
+     <div style="margin-top:4px;"><span style="font-size:0.72rem;color:#94a3b8;font-weight:700;text-transform:uppercase;">Customer:</span> <strong>${name}</strong></div>`;
   document.getElementById('cancelReason').value='Customer Request';
   document.getElementById('cancelOtherBox').style.display='none';
   const adv = j ? parseFloat(j.advance_amount||0) : 0;
   const refundBox = document.getElementById('cancelRefundBox');
   if (adv > 0) {
     refundBox.style.display = 'block';
-    document.getElementById('cancelRefundAmt').innerHTML =
-      `Advance paid: <strong style="color:#d97706;">₹${adv.toFixed(2)}</strong> — Please refund this amount to the customer.`;
-    document.getElementById('refundConfirm').checked = false;
+    document.getElementById('cancelRefundAmt').innerHTML = `₹${adv.toFixed(2)}`;
+    document.getElementById('cancelRefundAmtInput').value = adv.toFixed(2);
+    document.getElementById('cancelRefundMethod').value = 'Cash';
   } else {
     refundBox.style.display = 'none';
   }
@@ -1049,15 +1062,21 @@ function cancelJob(id,name) {
 async function confirmCancel() {
   const j=JOBS.find(x=>x.id==curId);
   const adv = j ? parseFloat(j.advance_amount||0) : 0;
-  if (adv > 0 && !document.getElementById('refundConfirm').checked) {
-    alert('Please confirm the advance refund to the customer before cancelling.');
-    return;
-  }
   let reason=document.getElementById('cancelReason').value;
   if(reason==='Other'){ const t=document.getElementById('cancelOtherText').value.trim(); if(!t){ alert('Please specify.'); return; } reason='Other: '+t; }
-  if (adv > 0) reason += ` | Advance Refunded: ₹${adv.toFixed(2)}`;
+  const refundAmt = adv > 0 ? parseFloat(document.getElementById('cancelRefundAmtInput').value||0) : 0;
+  const refundMethod = adv > 0 ? document.getElementById('cancelRefundMethod').value : '';
+  // Cancel the job
   const r=await fetch(`/jobs/${curId}/cancel`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({reason})});
-  if(r.ok){ closeM('cancelModal'); toast('Job cancelled.'); setTimeout(()=>location.reload(),1200); }
+  if(!r.ok){ toast('Error cancelling job. Try again.'); return; }
+  // Record refund if advance was paid
+  if (refundAmt > 0) {
+    await fetch(`/jobs/${curId}/record_refund`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({amount:refundAmt, method:refundMethod, date:new Date().toISOString().split('T')[0]})});
+  }
+  closeM('cancelModal');
+  toast(adv>0 ? `Job cancelled. Refund of ₹${refundAmt.toFixed(2)} recorded.` : 'Job cancelled.');
+  setTimeout(()=>location.reload(),1200);
 }
 
 // ── Rework ──
