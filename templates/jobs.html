@@ -701,6 +701,8 @@ function openDiagnose(id) {
   const history=j.advance_history?JSON.parse(j.advance_history):[];
   const histDiv=document.getElementById('advHistoryList');
   histDiv.innerHTML='';
+  const alreadyPaid=parseFloat(j.advance_amount||0);
+  const quoteCost=parseFloat(j.cost||0);
   if(history.length>0){
     history.forEach((e,i)=>{
       const row=document.createElement('div');
@@ -708,8 +710,21 @@ function openDiagnose(id) {
       row.innerHTML=`<span style="font-weight:700;color:#004d40;">₹${parseFloat(e.amount).toFixed(2)}</span><span style="color:#00695c;">${e.method}</span><span style="color:#546e7a;font-size:0.72rem;">${e.date}</span><span style="background:#cfd8dc;border-radius:4px;padding:1px 7px;font-size:0.7rem;color:#455a64;">paid</span>`;
       histDiv.appendChild(row);
     });
+    const totalRow=document.createElement('div');
+    totalRow.style.cssText='display:flex;justify-content:space-between;align-items:center;background:#e0f2f1;border-radius:7px;padding:5px 10px;margin-bottom:5px;font-size:0.8rem;border-top:1.5px dashed #80cbc4;';
+    totalRow.innerHTML=`<span style="font-weight:700;color:#004d40;">Total Paid</span><span style="font-weight:800;color:#00695c;">₹${alreadyPaid.toFixed(2)}</span>`;
+    histDiv.appendChild(totalRow);
   } else {
     histDiv.innerHTML='<div style="font-size:0.75rem;color:#94a3b8;margin-bottom:4px;">No advance collected yet.</div>';
+  }
+  // Show max collectible hint
+  if(quoteCost>0){
+    const remaining=Math.max(0,quoteCost-alreadyPaid);
+    const hint=document.createElement('div');
+    hint.id='advRemainingHint';
+    hint.style.cssText=`font-size:0.75rem;margin-bottom:6px;font-weight:600;color:${remaining>0?'#00695c':'#ef4444'};`;
+    hint.textContent=remaining>0?`Max you can collect: ₹${remaining.toFixed(2)}`:'Fully paid — no more advance can be added.';
+    histDiv.after(hint);
   }
   // Always clear input for new entry
   document.getElementById('diagAdvance').value='';
@@ -762,11 +777,24 @@ async function saveDiagnose() {
   }
   const advVal=document.getElementById('diagAdvance').value;
   const advMethod=document.getElementById('diagAdvMethod').value;
-  if(advVal!==''&&parseFloat(advVal)>total){
-    alert(`Advance amount (₹${parseFloat(advVal).toFixed(2)}) cannot exceed the quote total (₹${total.toFixed(2)}).`);
-    document.getElementById('diagAdvance').style.borderColor='#ef4444';
-    document.getElementById('diagAdvance').focus();
-    return;
+  const newAdv=parseFloat(advVal||0);
+  // Sum all previously paid advances
+  const j=JOBS.find(x=>x.id==curId);
+  const alreadyPaid=j&&j.advance_amount?parseFloat(j.advance_amount):0;
+  if(advVal!==''&&newAdv>0){
+    if(newAdv<0){
+      alert('Advance amount cannot be negative.');
+      document.getElementById('diagAdvance').style.borderColor='#ef4444';
+      document.getElementById('diagAdvance').focus();
+      return;
+    }
+    if(alreadyPaid+newAdv>total){
+      const remaining=Math.max(0,total-alreadyPaid);
+      alert(`Cannot add ₹${newAdv.toFixed(2)} advance.\nAlready paid: ₹${alreadyPaid.toFixed(2)}\nQuote total: ₹${total.toFixed(2)}\nMax you can add: ₹${remaining.toFixed(2)}`);
+      document.getElementById('diagAdvance').style.borderColor='#ef4444';
+      document.getElementById('diagAdvance').focus();
+      return;
+    }
   }
   document.getElementById('diagAdvance').style.borderColor='';
   const params={status:document.getElementById('diagStatus').value,cost:total,notes:document.getElementById('diagNotes').value,quote_items:JSON.stringify(items)};
