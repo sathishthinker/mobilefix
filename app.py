@@ -13,6 +13,15 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
+@app.template_filter('to_ist')
+def to_ist_filter(dt_str):
+    if not dt_str: return '—'
+    try:
+        dt = datetime.fromisoformat(str(dt_str)[:19]) + timedelta(hours=5, minutes=30)
+        return dt.strftime('%Y-%m-%d %H:%M')
+    except:
+        return str(dt_str)[:16]
+
 def generate_happy_code():
     return ''.join(random.choices(string.digits, k=6))
 

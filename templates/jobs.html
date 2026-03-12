@@ -163,7 +163,7 @@
     {% endif %}
   </td>
   <td style="font-size:0.78rem;color:#64748b;">
-    {{ job.created_at[:16].replace('T',' ') if job.created_at else '—' }}
+    {{ job.created_at | to_ist }}
   </td>
   <td>
     <!-- Actions dropdown menu -->
@@ -470,6 +470,13 @@ function togglePartialList() {
   });
 })();
 
+// ── IST display helper (adds 5h30m to UTC stored timestamps) ──
+function toIST(s) {
+  if (!s) return '—';
+  const d = new Date(s.replace(' ', 'T') + (s.includes('+') ? '' : 'Z'));
+  return d.toLocaleString('en-IN', {timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).replace(',','');
+}
+
 // ── Action dropdown ──
 function toggleMenu(id) {
   const allDropdowns = document.querySelectorAll('.action-dropdown.open');
@@ -636,7 +643,7 @@ function viewJob(id) {
     }
     return extra;
   })()}
-  <div style="font-size:0.78rem;color:#94a3b8;text-align:right;">Received: ${(j.created_at||'').substring(0,16).replace('T',' ')}${j.diagnosed_at?' | Diagnosed: '+(j.diagnosed_at||'').substring(0,16).replace('T',' '):''} | Updated: ${(j.updated_at||'').substring(0,16).replace('T',' ')}</div>`;
+  <div style="font-size:0.78rem;color:#94a3b8;text-align:right;">Received: ${toIST(j.created_at)}${j.diagnosed_at?' | Diagnosed: '+toIST(j.diagnosed_at):''} | Updated: ${toIST(j.updated_at)}</div>`;
   document.getElementById('viewContent').innerHTML = html;
   openM('viewModal');
 }
@@ -994,7 +1001,7 @@ function printJobCard(id) {
   @media print{button{display:none!important}}</style></head><body>
   <div class="hdr"><h3 style="margin:0;">${SHOP.name}</h3><p style="margin:2px;font-size:9pt;">${SHOP.address} | ${SHOP.phone}</p></div>
   <h4 style="text-align:center;text-decoration:underline;margin:8px 0;">SERVICE JOB CARD</h4>
-  <table><tr><td><strong>Job ID</strong></td><td>#${j.id}</td><td><strong>Date</strong></td><td>${(j.created_at||'').substring(0,16).replace('T',' ')}</td></tr>
+  <table><tr><td><strong>Job ID</strong></td><td>#${j.id}</td><td><strong>Date</strong></td><td>${toIST(j.created_at)}</td></tr>
   <tr><td><strong>Customer</strong></td><td>${j.customer_name}</td><td><strong>Phone</strong></td><td>${j.customer_phone}</td></tr>
   <tr><td><strong>Device</strong></td><td>${j.device_model}</td><td><strong>IMEI</strong></td><td>${j.imei_billing||j.imei||'—'}</td></tr>
   <tr><td><strong>Issue</strong></td><td colspan="3">${j.issue}</td></tr>
