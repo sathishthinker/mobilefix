@@ -113,7 +113,10 @@
 function viewCustJob(j) {
   const sc={'Received':'#00BCD4','Diagnosing':'#FFC107','Repairing':'#FF9800','Ready':'#9C27B0','Delivered':'#4CAF50','Cancelled':'#795548','Rework':'#03A9F4','Credit Delivery':'#E91E63'};
   const adv=parseFloat(j.advance_amount||0);
-  const due=Math.max(0,parseFloat(j.cost||0)-adv);
+  // For delivered jobs use invoice balance (accounts for payment at delivery); fallback to cost-advance
+  const due=j.status==='Delivered'
+    ?(j.inv_balance!=null?parseFloat(j.inv_balance):Math.max(0,parseFloat(j.cost||0)-adv))
+    :Math.max(0,parseFloat(j.cost||0)-adv);
   const lockMatch=j.notes&&j.notes.match(/SCREEN LOCK:\s*([^|]+)/i);
   const lockVal=lockMatch?lockMatch[1].trim():'';
   const cleanNotes=(j.notes||'').replace(/\|?\s*SCREEN LOCK:[^|]*/i,'').replace(/^\s*\|\s*/,'').trim();
