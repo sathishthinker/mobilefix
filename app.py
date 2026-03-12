@@ -77,10 +77,12 @@ def init_db():
             FOREIGN KEY(job_id) REFERENCES repair_jobs(id)
         );
         ''')
-        admin_pw = hashlib.sha256("admin123".encode()).hexdigest()
+        admin_email = os.environ.get('ADMIN_EMAIL', 'admin@mobilefix.com')
+        admin_phone = os.environ.get('ADMIN_PHONE', '0000000000')
+        admin_pw = hashlib.sha256(os.environ.get('ADMIN_PASSWORD', 'admin123').encode()).hexdigest()
         try:
             db.execute('''INSERT INTO users (phone,email,password,shop_name,role,enabled,trial_start)
-                          VALUES ("0000000000","admin@mobilefix.com",?,"MobileFix Admin","admin",1,datetime("now"))''', (admin_pw,))
+                          VALUES (?,?,?,"MobileFix Admin","admin",1,datetime("now"))''', (admin_phone, admin_email, admin_pw))
             db.commit()
         except: pass
         # Safe migrations
