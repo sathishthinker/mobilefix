@@ -597,7 +597,8 @@ def admin_delete_user(uid):
     db.commit()
     return jsonify({'success': True})
 
+os.makedirs('instance', exist_ok=True)
+init_db()
+
 if __name__ == '__main__':
-    os.makedirs('instance', exist_ok=True)
-    init_db()
     app.run(debug=True, port=5000)
