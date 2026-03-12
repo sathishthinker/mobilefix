@@ -615,6 +615,11 @@ def admin_delete_user(uid):
     db.commit()
     return jsonify({'success': True})
 
+@app.route('/manual')
+@login_required
+def user_manual():
+    return render_template('user_manual.html')
+
 os.makedirs('instance', exist_ok=True)
 init_db()
 

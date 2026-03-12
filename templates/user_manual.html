@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MobileFix Pro — User Manual</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size:0.92rem;line-height:1.7;}
+.wrap{max-width:860px;margin:0 auto;padding:32px 20px;}
+h1{font-family:'Exo 2',sans-serif;font-weight:900;font-size:2rem;color:#0d1b2a;margin-bottom:6px;}
+h2{font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.15rem;color:#0d1b2a;margin:28px 0 10px;padding-bottom:6px;border-bottom:2px solid #e2e8f0;}
+h3{font-family:'Exo 2',sans-serif;font-weight:700;font-size:0.97rem;color:#1a3a5c;margin:16px 0 6px;}
+p{margin-bottom:10px;color:#374151;}
+ul,ol{padding-left:20px;margin-bottom:10px;}
+li{margin-bottom:5px;color:#374151;}
+.header{background:linear-gradient(135deg,#0d1b2a,#1a3a5c);color:white;border-radius:16px;padding:28px 32px;margin-bottom:28px;}
+.header h1{color:white;}
+.header p{color:rgba(255,255,255,0.7);margin:0;font-size:0.88rem;}
+.teal{color:#00BCD4;}
+.section{background:white;border-radius:14px;padding:22px 26px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:0.75rem;font-weight:700;margin:2px;}
+.b-teal{background:#e0f7fa;color:#006064;}
+.b-green{background:#dcfce7;color:#065f46;}
+.b-orange{background:#fff7ed;color:#c2410c;}
+.b-red{background:#fee2e2;color:#991b1b;}
+.b-purple{background:#f3e8ff;color:#7c3aed;}
+.b-grey{background:#f1f5f9;color:#475569;}
+.b-yellow{background:#fef9c3;color:#854d0e;}
+.step{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start;}
+.step-num{background:#00BCD4;color:white;border-radius:50%;width:24px;height:24px;font-size:0.78rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.tip{background:#e0f7fa;border-left:4px solid #00BCD4;border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:0.85rem;}
+.warn{background:#fff7ed;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:0.85rem;}
+.danger{background:#fee2e2;border-left:4px solid #ef4444;border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:0.85rem;}
+table{width:100%;border-collapse:collapse;margin:10px 0;}
+th{background:#f8fafc;padding:8px 12px;text-align:left;font-size:0.78rem;font-weight:700;text-transform:uppercase;color:#94a3b8;border-bottom:2px solid #e2e8f0;}
+td{padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:0.85rem;vertical-align:top;}
+.flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:10px 0;}
+.flow-step{background:#e0f7fa;color:#006064;padding:5px 12px;border-radius:8px;font-size:0.8rem;font-weight:700;}
+.flow-arrow{color:#94a3b8;font-size:1rem;}
+.toc a{color:#00BCD4;text-decoration:none;display:block;padding:4px 0;font-size:0.88rem;}
+.toc a:hover{text-decoration:underline;}
+@media print{body{background:white;}.section{box-shadow:none;page-break-inside:avoid;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <h1>Mobile<span class="teal">Fix</span> Pro</h1>
+    <p>User Manual — Repair Shop Management System &nbsp;|&nbsp; Version 4</p>
+  </div>
+
+  <!-- Table of Contents -->
+  <div class="section">
+    <h2 style="margin-top:0;">📋 Table of Contents</h2>
+    <div class="toc">
+      <a href="#getting-started">1. Getting Started</a>
+      <a href="#dashboard">2. Dashboard</a>
+      <a href="#new-job">3. Adding a New Repair Job</a>
+      <a href="#job-workflow">4. Job Workflow (Status Flow)</a>
+      <a href="#diagnose">5. Diagnose &amp; Quote</a>
+      <a href="#deliver">6. Deliver &amp; Invoice</a>
+      <a href="#invoices">7. Invoices &amp; Payment Collection</a>
+      <a href="#customers">8. Customer Management</a>
+      <a href="#cancel-refund">9. Cancellation &amp; Refund</a>
+      <a href="#reports">10. Reports</a>
+      <a href="#settings">11. Settings</a>
+      <a href="#whatsapp">12. WhatsApp Notifications</a>
+      <a href="#admin">13. Admin Panel</a>
+      <a href="#glossary">14. Glossary</a>
+    </div>
+  </div>
+
+  <!-- 1. Getting Started -->
+  <div class="section" id="getting-started">
+    <h2 style="margin-top:0;">1. Getting Started</h2>
+    <h3>Registration</h3>
+    <div class="step"><div class="step-num">1</div><div>Go to <strong>/register</strong> and fill in your shop details: mobile number, email, shop name, and address.</div></div>
+    <div class="step"><div class="step-num">2</div><div>A <strong>30-day free trial</strong> starts automatically after registration.</div></div>
+    <div class="step"><div class="step-num">3</div><div>Login using your registered phone number or email + password.</div></div>
+
+    <h3>Login</h3>
+    <p>Use your <strong>phone number</strong> or <strong>email</strong> as the identifier along with your password.</p>
+    <div class="tip">Default admin login: <strong>admin@mobilefix.com</strong> / <strong>admin123</strong></div>
+
+    <h3>Subscription Plans</h3>
+    <table>
+      <tr><th>Plan</th><th>Duration</th><th>Activated By</th></tr>
+      <tr><td>Free Trial</td><td>30 days</td><td>Auto on registration</td></tr>
+      <tr><td>30d</td><td>1 month</td><td>Admin</td></tr>
+      <tr><td>1y</td><td>1 year</td><td>Admin</td></tr>
+      <tr><td>2y</td><td>2 years</td><td>Admin</td></tr>
+      <tr><td>3y</td><td>3 years</td><td>Admin</td></tr>
+    </table>
+  </div>
+
+  <!-- 2. Dashboard -->
+  <div class="section" id="dashboard">
+    <h2 style="margin-top:0;">2. Dashboard</h2>
+    <p>The dashboard gives a quick overview of your shop's activity:</p>
+    <table>
+      <tr><th>Card</th><th>What it shows</th></tr>
+      <tr><td>Total Jobs</td><td>All repair jobs ever created</td></tr>
+      <tr><td>Pending</td><td>Jobs not yet delivered or cancelled</td></tr>
+      <tr><td>Delivered</td><td>Completed and handed-over jobs</td></tr>
+      <tr><td>Overdue</td><td>Jobs past their expected return date</td></tr>
+      <tr><td>Partial Payments</td><td>Delivered jobs with pending balance</td></tr>
+      <tr><td>Invoices</td><td>Total invoices generated</td></tr>
+    </table>
+    <p>Recent jobs are listed at the bottom for quick access.</p>
+  </div>
+
+  <!-- 3. New Job -->
+  <div class="section" id="new-job">
+    <h2 style="margin-top:0;">3. Adding a New Repair Job</h2>
+    <p>Go to <strong>Repair Jobs → + New Job</strong></p>
+
+    <h3>Required Fields</h3>
+    <table>
+      <tr><th>Field</th><th>Notes</th></tr>
+      <tr><td>Customer Mobile</td><td>10-digit number — entered first, auto-fills name if customer exists</td></tr>
+      <tr><td>Customer Name</td><td>Auto-converted to uppercase</td></tr>
+      <tr><td>Device Brand &amp; Model</td><td>Select brand from list or type manually</td></tr>
+      <tr><td>Reported Issues</td><td>Select one or more issues (Screen Damage, Battery, etc.)</td></tr>
+      <tr><td>Expected Return Date</td><td>Promised delivery date to customer</td></tr>
+    </table>
+
+    <h3>Optional Fields</h3>
+    <table>
+      <tr><th>Field</th><th>Notes</th></tr>
+      <tr><td>IMEI / Serial Number</td><td>Device identifier</td></tr>
+      <tr><td>Aadhar Card</td><td>Optional at entry — <strong>mandatory for FRP/Flash jobs at invoice</strong></td></tr>
+      <tr><td>Screen Lock Type</td><td>PIN / Pattern / Password / Fingerprint / None — select one, others hide</td></tr>
+      <tr><td>Lock Value</td><td>Enter PIN/pattern/password — shown as read-only in diagnose stage</td></tr>
+      <tr><td>Received Without</td><td>Note missing accessories (charger, back cover, etc.)</td></tr>
+      <tr><td>Notes</td><td>Any additional remarks about the device condition</td></tr>
+      <tr><td>Advance Amount</td><td>Initial advance payment collected at intake</td></tr>
+    </table>
+
+    <div class="warn"><strong>Note:</strong> Advance amount at job entry cannot exceed 0 since the quote hasn't been set yet. Advance is typically added during Diagnose &amp; Quote.</div>
+
+    <h3>Happy Code</h3>
+    <p>A 6-digit code is auto-generated for every job. The customer must show this code when collecting the device. Share it with the customer via WhatsApp job card.</p>
+  </div>
+
+  <!-- 4. Job Workflow -->
+  <div class="section" id="job-workflow">
+    <h2 style="margin-top:0;">4. Job Workflow (Status Flow)</h2>
+    <div class="flow">
+      <span class="flow-step">Received</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Diagnosing</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Repairing</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Ready</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">Delivered</span>
+    </div>
+    <p>Additional statuses:</p>
+    <ul>
+      <li><span class="badge b-red">Cancelled</span> — Job cancelled, refund processed if advance was paid</li>
+      <li><span class="badge b-teal">Rework</span> — Device returned for re-repair after delivery</li>
+    </ul>
+
+    <h3>Action Buttons per Status</h3>
+    <table>
+      <tr><th>Status</th><th>Available Actions</th></tr>
+      <tr><td><span class="badge b-teal">Received</span></td><td>Diagnose &amp; Quote, View Details, Print Job Card, WA: Job Card, Cancel</td></tr>
+      <tr><td><span class="badge b-yellow">Diagnosing</span></td><td>Diagnose &amp; Quote, View Details, Print Job Card, WA: Job Card, Cancel</td></tr>
+      <tr><td><span class="badge b-orange">Repairing</span></td><td>Diagnose &amp; Quote, View Details, Deliver &amp; Invoice, WA: Notify Ready, Cancel</td></tr>
+      <tr><td><span class="badge b-purple">Ready</span></td><td>Deliver &amp; Invoice, View Details, WA: Notify Ready, Cancel</td></tr>
+      <tr><td><span class="badge b-green">Delivered</span></td><td>View Details, Send Invoice (WA), Rework</td></tr>
+    </table>
+  </div>
+
+  <!-- 5. Diagnose -->
+  <div class="section" id="diagnose">
+    <h2 style="margin-top:0;">5. Diagnose &amp; Quote</h2>
+    <p>Access via <strong>Actions → Diagnose &amp; Quote</strong> on any active job.</p>
+
+    <h3>What you can do</h3>
+    <ul>
+      <li>View the screen lock type and value (read-only — set at job entry)</li>
+      <li>View customer notes (read-only)</li>
+      <li>Add service items with individual prices</li>
+      <li>Update job status (Diagnosing → Repairing → Ready)</li>
+      <li>Collect advance payments (multiple times)</li>
+    </ul>
+
+    <h3>Service / Quote Items</h3>
+    <div class="step"><div class="step-num">1</div><div>Click <strong>+ Add Service / Part</strong> to add line items.</div></div>
+    <div class="step"><div class="step-num">2</div><div>Type service name — a dropdown of common services appears.</div></div>
+    <div class="step"><div class="step-num">3</div><div>Enter the price for each item.</div></div>
+    <div class="step"><div class="step-num">4</div><div>Total Quote is calculated automatically.</div></div>
+    <div class="danger"><strong>Required:</strong> Total quote must be greater than ₹0 before saving.</div>
+
+    <h3>Advance Payments</h3>
+    <ul>
+      <li>Previous advance entries are shown as <strong>read-only rows</strong> with amount, method, and date.</li>
+      <li>Enter a new advance amount in the input field to add another payment.</li>
+      <li><strong>Advance cannot exceed the total quote amount.</strong></li>
+      <li>Each advance entry is timestamped and stored permanently.</li>
+    </ul>
+
+    <div class="tip">The diagnosed timestamp is recorded the first time you save a quote.</div>
+  </div>
+
+  <!-- 6. Deliver -->
+  <div class="section" id="deliver">
+    <h2 style="margin-top:0;">6. Deliver &amp; Invoice</h2>
+    <p>Access via <strong>Actions → Deliver &amp; Invoice</strong> when job is Ready or Repairing.</p>
+
+    <h3>Steps to deliver</h3>
+    <div class="step"><div class="step-num">1</div><div>Enter the <strong>IMEI / Serial Number</strong> for billing (mandatory).</div></div>
+    <div class="step"><div class="step-num">2</div><div>Review invoice items (auto-filled from Diagnose &amp; Quote).</div></div>
+    <div class="step"><div class="step-num">3</div><div>Add/edit items if needed. Apply discount if any.</div></div>
+    <div class="step"><div class="step-num">4</div><div>Advance Paid amount is shown (read-only — already collected).</div></div>
+    <div class="step"><div class="step-num">5</div><div>Select payment method: Cash / UPI / Card / Credit.</div></div>
+    <div class="step"><div class="step-num">6</div><div>Enter the <strong>Happy Code</strong> shown by the customer to verify identity.</div></div>
+    <div class="step"><div class="step-num">7</div><div>Click <strong>Confirm Delivery</strong> — invoice is created automatically.</div></div>
+    <div class="step"><div class="step-num">8</div><div>Or click <strong>Deliver &amp; Print</strong> to create invoice and open print page.</div></div>
+
+    <div class="warn"><strong>FRP / Flash jobs:</strong> Aadhar card number is mandatory before delivery can be confirmed.</div>
+    <div class="tip">The Happy Code must match exactly. This prevents wrong device handover.</div>
+  </div>
+
+  <!-- 7. Invoices -->
+  <div class="section" id="invoices">
+    <h2 style="margin-top:0;">7. Invoices &amp; Payment Collection</h2>
+    <p>Go to <strong>Invoices</strong> from the sidebar to see all generated invoices.</p>
+
+    <h3>Invoice Table Columns</h3>
+    <table>
+      <tr><th>Column</th><th>Meaning</th></tr>
+      <tr><td>INV-XXXX</td><td>Invoice number</td></tr>
+      <tr><td>Total (₹)</td><td>Full invoice amount</td></tr>
+      <tr><td>Advance</td><td>Amount already collected</td></tr>
+      <tr><td>Balance Due</td><td>Remaining amount to collect (with due date if partial)</td></tr>
+      <tr><td>Method</td><td>Payment method used</td></tr>
+      <tr><td>Status</td><td>Paid / Partial / Unpaid</td></tr>
+    </table>
+
+    <h3>Collecting Payment (Collect button)</h3>
+    <div class="step"><div class="step-num">1</div><div>Click <strong>Collect</strong> on any unpaid or partial invoice.</div></div>
+    <div class="step"><div class="step-num">2</div><div>Enter the amount received — <strong>cannot exceed the balance due</strong>.</div></div>
+    <div class="step"><div class="step-num">3</div><div>If paying partially, a <strong>Due Date</strong> field appears — set when the remaining balance is expected.</div></div>
+    <div class="step"><div class="step-num">4</div><div>Select payment method and click <strong>Confirm Payment</strong>.</div></div>
+
+    <h3>Invoice Actions</h3>
+    <table>
+      <tr><th>Button</th><th>Action</th></tr>
+      <tr><td>Print</td><td>Opens formatted invoice in new tab for printing</td></tr>
+      <tr><td>Collect</td><td>Record incoming payment against the invoice</td></tr>
+      <tr><td>WhatsApp</td><td>Send invoice summary to customer via WhatsApp</td></tr>
+      <tr><td>Download</td><td>Download invoice as HTML file</td></tr>
+    </table>
+  </div>
+
+  <!-- 8. Customers -->
+  <div class="section" id="customers">
+    <h2 style="margin-top:0;">8. Customer Management</h2>
+    <p>Go to <strong>Customers</strong> from the sidebar.</p>
+    <ul>
+      <li>All customers are grouped by phone number.</li>
+      <li>Shows <strong>total business</strong> (sum of all delivered job amounts).</li>
+      <li>Shows <strong>Due ₹X.XX</strong> badge in red if customer has an outstanding balance.</li>
+      <li>Total outstanding credit banner shown at top of job history.</li>
+    </ul>
+
+    <h3>Job History</h3>
+    <p>Click on a customer row to expand their job history. For each job:</p>
+    <ul>
+      <li><strong>View Details</strong> — opens a full details modal on the same page</li>
+      <li><strong>WhatsApp Invoice</strong> — sends invoice link to customer</li>
+      <li><strong>Reminder</strong> — sends a reminder that device is ready for pickup</li>
+    </ul>
+  </div>
+
+  <!-- 9. Cancel & Refund -->
+  <div class="section" id="cancel-refund">
+    <h2 style="margin-top:0;">9. Cancellation &amp; Refund</h2>
+    <p>Access via <strong>Actions → Cancel Job</strong> on any active job.</p>
+
+    <h3>Return &amp; Refund Modal</h3>
+    <table>
+      <tr><th>Field</th><th>Description</th></tr>
+      <tr><td>Job ID &amp; Customer</td><td>Auto-filled, read-only</td></tr>
+      <tr><td>Advance Paid</td><td>Total advance collected — displayed for reference</td></tr>
+      <tr><td>Refund Amount</td><td>Auto-filled with advance amount — read-only</td></tr>
+      <tr><td>Refund Method</td><td>Cash / UPI / Bank Transfer / Card</td></tr>
+      <tr><td>Reason</td><td>Customer Request / Repair Not Possible / Spare Not Available / Mobile Already Dead / Other</td></tr>
+    </table>
+
+    <div class="step"><div class="step-num">1</div><div>Select refund method and cancellation reason.</div></div>
+    <div class="step"><div class="step-num">2</div><div>Click <strong>Confirm Refund/Return</strong>.</div></div>
+    <div class="step"><div class="step-num">3</div><div>Job is cancelled and refund is recorded.</div></div>
+    <div class="step"><div class="step-num">4</div><div>WhatsApp opens automatically with a pre-filled refund notification message to the customer.</div></div>
+
+    <div class="tip">For UPI/Bank refunds, the WhatsApp message automatically includes a note asking the customer to allow 2-3 business days.</div>
+  </div>
+
+  <!-- 10. Reports -->
+  <div class="section" id="reports">
+    <h2 style="margin-top:0;">10. Reports</h2>
+    <p>Go to <strong>Reports</strong> from the sidebar for business analytics:</p>
+    <table>
+      <tr><th>Metric</th><th>Description</th></tr>
+      <tr><td>Total Jobs</td><td>All time job count</td></tr>
+      <tr><td>Pending</td><td>Active jobs in progress</td></tr>
+      <tr><td>Delivered</td><td>Completed jobs</td></tr>
+      <tr><td>Cancelled</td><td>Cancelled jobs</td></tr>
+      <tr><td>Rework</td><td>Jobs returned for re-repair</td></tr>
+      <tr><td>Today / Week / Month New</td><td>New jobs in each time period</td></tr>
+      <tr><td>Month Revenue</td><td>Revenue from delivered jobs this month</td></tr>
+      <tr><td>Total Revenue</td><td>All-time revenue from delivered jobs</td></tr>
+      <tr><td>Partial Pending</td><td>Delivered jobs with unpaid balance</td></tr>
+      <tr><td>Overdue</td><td>Jobs past expected return date</td></tr>
+    </table>
+    <p>Recent delivered jobs are listed at the bottom.</p>
+  </div>
+
+  <!-- 11. Settings -->
+  <div class="section" id="settings">
+    <h2 style="margin-top:0;">11. Settings</h2>
+    <p>Go to <strong>Settings</strong> from the sidebar to update your shop profile:</p>
+    <ul>
+      <li><strong>Shop Name</strong> — appears on all invoices and job cards</li>
+      <li><strong>Address</strong> — printed on invoices</li>
+      <li><strong>Change Password</strong> — minimum 6 characters</li>
+    </ul>
+    <div class="tip">Keep your shop name and address up to date — they appear on every printed invoice.</div>
+  </div>
+
+  <!-- 12. WhatsApp -->
+  <div class="section" id="whatsapp">
+    <h2 style="margin-top:0;">12. WhatsApp Notifications</h2>
+    <table>
+      <tr><th>Trigger</th><th>Message Content</th></tr>
+      <tr><td>WA: Job Card</td><td>Job ID, device, issues, expected return, Happy Code</td></tr>
+      <tr><td>Notify Ready (WA)</td><td>Device is ready, balance due amount, shop contact</td></tr>
+      <tr><td>Send Invoice (WA)</td><td>Invoice number, total amount, payment method</td></tr>
+      <tr><td>Refund Notification</td><td>Cancellation confirmation, advance paid, refund amount &amp; method</td></tr>
+      <tr><td>Customer Reminder</td><td>Device ready reminder with balance amount</td></tr>
+    </table>
+    <div class="tip">All WhatsApp buttons open a pre-filled message in WhatsApp Web or the WhatsApp app. You can edit the message before sending.</div>
+    <div class="warn">WhatsApp requires the customer's phone number to be registered on WhatsApp. Numbers without WhatsApp will not receive messages.</div>
+  </div>
+
+  <!-- 13. Admin -->
+  <div class="section" id="admin">
+    <h2 style="margin-top:0;">13. Admin Panel</h2>
+    <p>Login as admin to access <strong>/admin</strong>.</p>
+    <h3>Admin Can:</h3>
+    <ul>
+      <li>View all registered shop owners</li>
+      <li>Enable or disable any shop account</li>
+      <li>Set subscription plans (30d, 1y, 2y, 3y)</li>
+      <li>Delete shop accounts (removes all their data)</li>
+      <li>See subscription status and days remaining for each shop</li>
+    </ul>
+    <div class="danger"><strong>Caution:</strong> Deleting a shop account permanently removes all their jobs, invoices, and customer data.</div>
+  </div>
+
+  <!-- 14. Glossary -->
+  <div class="section" id="glossary">
+    <h2 style="margin-top:0;">14. Glossary</h2>
+    <table>
+      <tr><th>Term</th><th>Meaning</th></tr>
+      <tr><td>Happy Code</td><td>6-digit verification code given to customer at job intake. Must be shown when collecting the device.</td></tr>
+      <tr><td>Advance Amount</td><td>Partial payment collected before the repair is complete. Multiple advances can be recorded.</td></tr>
+      <tr><td>Quote Items</td><td>List of services and parts with individual prices, set during Diagnose stage.</td></tr>
+      <tr><td>Balance Due</td><td>Invoice total minus all advance payments collected.</td></tr>
+      <tr><td>FRP / Flash</td><td>Factory Reset Protection removal or firmware flash — requires Aadhar card for compliance.</td></tr>
+      <tr><td>Rework</td><td>A new job created when a repaired device is returned because the issue persists.</td></tr>
+      <tr><td>IMEI Billing</td><td>IMEI number entered at delivery time, used on the printed invoice.</td></tr>
+      <tr><td>Due Date</td><td>Deadline set for a customer to pay the remaining balance on a partial payment.</td></tr>
+      <tr><td>Subscription Status</td><td>Trial (30 days free) → Active (paid) → Expired (no access until renewed)</td></tr>
+    </table>
+  </div>
+
+  <div style="text-align:center;padding:20px;color:#94a3b8;font-size:0.8rem;">
+    MobileFix Pro v4 &nbsp;•&nbsp; User Manual &nbsp;•&nbsp; Generated automatically
+  </div>
+</div>
+</body>
+</html>
