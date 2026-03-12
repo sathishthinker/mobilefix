@@ -4,8 +4,8 @@ from datetime import datetime, timedelta, timezone
 import sqlite3, hashlib, os, re, json, random, string
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
-DATABASE = 'instance/mobilefix.db'
+app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
+DATABASE = os.environ.get('DATABASE_PATH', 'instance/mobilefix.db')
 
 def get_db():
     conn = sqlite3.connect(DATABASE)
