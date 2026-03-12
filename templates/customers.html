@@ -30,7 +30,7 @@
         <a href="{{ url_for('add_job') }}" class="act act-orange" style="text-decoration:none;padding:6px 12px;border-radius:7px;display:inline-block;font-size:0.78rem;font-weight:600;color:white;">New Job</a>
         <button class="act act-blue" onclick="toggleHistory('{{ c.phone }}', this)" style="padding:6px 12px;">History</button>
         {% if c.jobs and c.jobs[0].customer_phone %}
-        <a href="whatsapp://send?phone=91{{ c.phone }}&text={{ ('Hello '+c.name+', regarding your repair...')|urlencode }}" class="act act-wa" style="text-decoration:none;padding:6px 12px;border-radius:7px;display:inline-block;font-size:0.78rem;font-weight:600;color:white;"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://wa.me/91{{ c.phone }}?text={{ ('Hello '+c.name+', regarding your repair...')|urlencode }}" class="act act-wa" style="text-decoration:none;padding:6px 12px;border-radius:7px;display:inline-block;font-size:0.78rem;font-weight:600;color:white;"><i class="fab fa-whatsapp"></i></a>
         {% endif %}
       </td>
     </tr>
@@ -71,10 +71,10 @@
               <td style="white-space:nowrap;">
                 <button onclick='viewCustJob({{ job | tojson }})' style="background:#00BCD4;color:white;border:none;border-radius:7px;padding:4px 10px;font-size:0.75rem;font-weight:600;cursor:pointer;margin:2px;">View Details</button>
                 {% if job.inv_id %}
-                <a href="whatsapp://send?phone=91{{ c.phone }}&text={{ ('Invoice for your repair: ' + request.host_url + 'invoices/' + job.inv_id|string + '/print')|urlencode }}" style="background:#25D366;color:white;border:none;border-radius:7px;padding:4px 10px;font-size:0.75rem;font-weight:600;text-decoration:none;display:inline-block;margin:2px;"><i class="fab fa-whatsapp"></i> Invoice</a>
+                <a href="https://wa.me/91{{ c.phone }}?text={{ ('Invoice for your repair: ' + request.host_url + 'invoices/' + job.inv_id|string + '/print')|urlencode }}" style="background:#25D366;color:white;border:none;border-radius:7px;padding:4px 10px;font-size:0.75rem;font-weight:600;text-decoration:none;display:inline-block;margin:2px;"><i class="fab fa-whatsapp"></i> Invoice</a>
                 {% endif %}
                 {% if job.status not in ('Delivered','Cancelled') and job.cost and due > 0 %}
-                <a href="whatsapp://send?phone=91{{ c.phone }}&text={{ ('Dear ' + c.name + ', your device ' + job.device_model + ' is ready. Balance due: Rs.' + '%.2f'|format(due) + '. Please collect at your earliest convenience.')|urlencode }}" style="background:#FF9800;color:white;border:none;border-radius:7px;padding:4px 10px;font-size:0.75rem;font-weight:600;text-decoration:none;display:inline-block;margin:2px;"><i class="fas fa-bell"></i> Reminder</a>
+                <a href="https://wa.me/91{{ c.phone }}?text={{ ('Dear ' + c.name + ', your device ' + job.device_model + ' is ready. Balance due: Rs.' + '%.2f'|format(due) + '. Please collect at your earliest convenience.')|urlencode }}" style="background:#FF9800;color:white;border:none;border-radius:7px;padding:4px 10px;font-size:0.75rem;font-weight:600;text-decoration:none;display:inline-block;margin:2px;"><i class="fas fa-bell"></i> Reminder</a>
                 {% endif %}
               </td>
             </tr>

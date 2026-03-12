@@ -87,10 +87,11 @@ def init_db():
         for col in ['imei TEXT','imei_billing TEXT','aadhar_number TEXT','received_without TEXT',
                     'expected_return TEXT','delivery_date TEXT','cancel_reason TEXT','quote_items TEXT',
                     'advance_amount REAL DEFAULT 0','advance_method TEXT','paid_status TEXT DEFAULT "Unpaid"',
-                    'happy_code TEXT','reminder_date TEXT','rework_details TEXT','advance_history TEXT','diagnosed_at TEXT']:
+                    'happy_code TEXT','reminder_date TEXT','rework_details TEXT','advance_history TEXT','diagnosed_at TEXT',
+                    'refund_amount REAL DEFAULT 0','refund_method TEXT','refund_date TEXT']:
             try: db.execute(f"ALTER TABLE repair_jobs ADD COLUMN {col}"); db.commit()
             except: pass
-        for col in ['advance_amount REAL DEFAULT 0','discount REAL DEFAULT 0','pay_method TEXT','paid TEXT DEFAULT "Unpaid"']:
+        for col in ['advance_amount REAL DEFAULT 0','discount REAL DEFAULT 0','pay_method TEXT','paid TEXT DEFAULT "Unpaid"','due_date TEXT']:
             try: db.execute(f"ALTER TABLE invoices ADD COLUMN {col}"); db.commit()
             except: pass
 
@@ -376,6 +377,18 @@ def cancel_job_route(job_id):
     db.commit()
     return jsonify({'ok': True})
 
+@app.route('/jobs/<int:job_id>/record_refund', methods=['POST'])
+@active_required
+def record_refund(job_id):
+    amount = float(request.form.get('amount', 0))
+    method = request.form.get('method', 'Cash')
+    date = request.form.get('date', datetime.now(timezone.utc).strftime('%Y-%m-%d'))
+    db = get_db()
+    db.execute("UPDATE repair_jobs SET refund_amount=?,refund_method=?,refund_date=? WHERE id=? AND user_id=?",
+               (amount, method, date, job_id, session['user_id']))
+    db.commit()
+    return jsonify({'ok': True})
+
 @app.route('/jobs/<int:job_id>/rework', methods=['POST'])
 @active_required
 def rework_job(job_id):
@@ -446,6 +459,7 @@ def print_invoice(inv_id):
 def mark_invoice_paid(inv_id):
     amount_received = float(request.form.get('amount_received', 0))
     pay_method = request.form.get('pay_method', 'Cash')
+    due_date = request.form.get('due_date', '')
     db = get_db()
     inv = db.execute("SELECT * FROM invoices WHERE id=? AND user_id=?", (inv_id, session['user_id'])).fetchone()
     if not inv: return jsonify({'error': 'Not found'}), 404
@@ -453,7 +467,8 @@ def mark_invoice_paid(inv_id):
     total = float(inv['total'] or 0)
     balance = max(0, total - new_adv)
     paid = 'Paid' if balance < 0.01 else ('Partial' if new_adv > 0 else 'Unpaid')
-    db.execute("UPDATE invoices SET advance_amount=?,pay_method=?,paid=? WHERE id=?", (new_adv, pay_method, paid, inv_id))
+    db.execute("UPDATE invoices SET advance_amount=?,pay_method=?,paid=?,due_date=? WHERE id=?",
+               (new_adv, pay_method, paid, due_date or None, inv_id))
     if inv['job_id']:
         db.execute("UPDATE repair_jobs SET paid_status=? WHERE id=? AND user_id=?", (paid, inv['job_id'], session['user_id']))
     db.commit()

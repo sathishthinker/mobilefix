@@ -366,6 +366,30 @@
   </div>
 </div></div>
 
+<!-- Refund Modal -->
+<div class="mo" id="refundModal"><div class="mb">
+  <div class="mt"><i class="fas fa-undo" style="color:#4CAF50;"></i> Record Advance Refund</div>
+  <div id="refundInfo" style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:12px;margin-bottom:16px;font-size:0.875rem;"></div>
+  <div class="form-group">
+    <label class="form-label">Refund Amount (₹) <span style="color:#ef4444;">*</span></label>
+    <input type="number" id="refundAmount" class="form-control" min="0" step="0.01" style="font-size:1.1rem;font-weight:700;border:2px solid #4CAF50;">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Refund Method</label>
+    <select id="refundMethod" class="form-control">
+      <option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Card</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Refund Date</label>
+    <input type="date" id="refundDate" class="form-control">
+  </div>
+  <div style="display:flex;gap:10px;margin-top:6px;">
+    <button onclick="confirmRefund()" class="btn btn-primary" style="flex:1;background:#4CAF50;border-color:#4CAF50;padding:11px;font-size:0.9rem;"><i class="fas fa-check"></i> Record Refund</button>
+    <button onclick="closeM('refundModal')" style="padding:11px 20px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Cancel</button>
+  </div>
+</div></div>
+
 <!-- Rework -->
 <div class="mo" id="reworkModal"><div class="mb">
   <div class="mt"><i class="fas fa-redo" style="color:#9C27B0;"></i> Rework Entry</div>
@@ -556,18 +580,23 @@ function viewJob(id) {
         ${rows}
       </div>`;
     }
-    if(j.status==='Cancelled'&&j.cancel_reason){
-      const parts=j.cancel_reason.split('|');
-      const reason=parts[0].trim();
-      const refundPart=parts.find(p=>p.includes('Advance Refunded'));
-      const refundAmt=refundPart?refundPart.replace('Advance Refunded:','').trim():'';
+    if(j.status==='Cancelled'){
+      const reason = j.cancel_reason ? j.cancel_reason.split('|')[0].trim() : 'Cancelled';
+      const refundRecorded = parseFloat(j.refund_amount||0) > 0;
+      const refundDisplay = refundRecorded
+        ? `₹${parseFloat(j.refund_amount).toFixed(2)} via ${j.refund_method||'Cash'} on ${j.refund_date||'—'}`
+        : (() => { const p=j.cancel_reason?j.cancel_reason.split('|').find(p=>p.includes('Advance Refunded')):''; return p?p.replace('Advance Refunded:','').trim():''; })();
       advHtml+=`<div style="background:#fff7ed;border:1.5px solid #fbbf24;border-radius:10px;padding:14px;margin-bottom:12px;">
         <div style="font-size:0.72rem;font-weight:700;color:#92400e;text-transform:uppercase;margin-bottom:8px;">🚫 Cancellation Details</div>
-        <div style="margin-bottom:6px;"><span style="font-size:0.75rem;color:#64748b;">Reason: </span><span style="font-weight:600;color:#1a2332;">${reason}</span></div>
-        ${refundAmt?`<div style="background:#d1fae5;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;">
+        <div style="margin-bottom:8px;"><span style="font-size:0.75rem;color:#64748b;">Reason: </span><span style="font-weight:600;color:#1a2332;">${reason}</span></div>
+        ${adv>0?(refundDisplay?`<div style="background:#d1fae5;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;">
           <span style="color:#065f46;font-size:1.1rem;">✓</span>
-          <div><div style="font-size:0.75rem;color:#065f46;font-weight:700;">ADVANCE REFUNDED</div><div style="font-weight:800;color:#065f46;font-size:1rem;">${refundAmt}</div></div>
-        </div>`:`<div style="color:#92400e;font-size:0.85rem;">No advance refund recorded.</div>`}
+          <div><div style="font-size:0.75rem;color:#065f46;font-weight:700;">ADVANCE REFUNDED</div><div style="font-weight:800;color:#065f46;font-size:1rem;">${refundDisplay}</div></div>
+        </div>`
+        :`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <span style="color:#92400e;font-size:0.85rem;">⚠ Advance of ₹${adv.toFixed(2)} not yet refunded.</span>
+          <button onclick="openRefundModal(${j.id},${adv})" style="background:#4CAF50;color:white;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;white-space:nowrap;">+ Record Refund</button>
+        </div>`):'<div style="color:#64748b;font-size:0.82rem;">No advance paid — no refund needed.</div>'}
       </div>`;
     }
     return advHtml;
@@ -611,7 +640,7 @@ function openWA(phone, msg) {
 function confirmWA() {
   const ph = document.getElementById('waPhone').value.trim();
   if(ph.length !== 10){ alert('Please enter a valid 10-digit number.'); return; }
-  window.open(`whatsapp://send?phone=91${ph}&text=${encodeURIComponent(waPendingMsg)}`,'_blank');
+  window.open(`https://wa.me/91${ph}?text=${encodeURIComponent(waPendingMsg)}`,'_blank');
   closeM('waModal');
 }
 
@@ -966,6 +995,36 @@ function printJobCard(id) {
     <span>Customer Signature: _________________</span><span>Tech Signature: _________________</span></div>
   <button onclick="window.print()" style="margin-top:12px;padding:8px 20px;background:#00BCD4;color:white;border:none;border-radius:6px;cursor:pointer;">🖨 Print</button>
   </body></html>`); w.document.close();
+}
+
+// ── Refund Modal ──
+let refundJobId = null;
+function openRefundModal(id, advAmt) {
+  refundJobId = id;
+  document.getElementById('refundInfo').innerHTML =
+    `Job <strong>#${id}</strong> — Advance Paid: <strong style="color:#d97706;">₹${parseFloat(advAmt).toFixed(2)}</strong>`;
+  document.getElementById('refundAmount').value = parseFloat(advAmt).toFixed(2);
+  document.getElementById('refundMethod').value = 'Cash';
+  document.getElementById('refundDate').value = new Date().toISOString().split('T')[0];
+  openM('refundModal');
+}
+async function confirmRefund() {
+  const amt = parseFloat(document.getElementById('refundAmount').value || 0);
+  if (amt <= 0) { alert('Please enter refund amount.'); return; }
+  const method = document.getElementById('refundMethod').value;
+  const date = document.getElementById('refundDate').value;
+  const r = await fetch(`/jobs/${refundJobId}/record_refund`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/x-www-form-urlencoded'},
+    body: new URLSearchParams({amount: amt, method, date})
+  });
+  if (r.ok) {
+    closeM('refundModal');
+    toast('Refund recorded successfully! ✓');
+    setTimeout(() => location.reload(), 1200);
+  } else {
+    toast('Error recording refund. Try again.');
+  }
 }
 
 // ── Cancel ──

@@ -43,6 +43,7 @@
             <td style="color:#64748b;" id="inv-adv-{{ inv.id }}">{% if adv > 0 %}₹{{ '%.2f'|format(adv) }}{% else %}—{% endif %}</td>
             <td style="font-weight:700;" id="inv-bal-{{ inv.id }}">
               {% if bal > 0 %}<span style="color:#ef4444;">₹{{ '%.2f'|format(bal) }}</span>
+              {% if inv.due_date %}<br><small style="color:#f59e0b;font-size:0.72rem;"><i class="fas fa-calendar"></i> Due: {{ inv.due_date }}</small>{% endif %}
               {% else %}<span style="color:#16a34a;"><i class="fas fa-check"></i> Nil</span>{% endif %}
             </td>
             <td style="font-size:0.82rem;color:#64748b;">{{ inv.pay_method or '—' }}</td>
@@ -125,6 +126,11 @@
     </div>
     <input type="hidden" id="selectedPayMethod" value="Cash">
 
+    <div id="dueDateBox" style="display:none;background:#fff7ed;border:1.5px solid #fbbf24;border-radius:10px;padding:12px;margin-bottom:14px;">
+      <label style="font-size:0.82rem;font-weight:700;color:#92400e;display:block;margin-bottom:6px;"><i class="fas fa-calendar"></i> Due Date for remaining balance <span style="color:#ef4444;">*</span></label>
+      <input type="date" id="payDueDate" class="form-control" style="border:1.5px solid #fbbf24;">
+      <small style="color:#b45309;font-size:0.75rem;">Customer must pay remaining balance by this date</small>
+    </div>
     <div id="payFullBadge" style="display:none;background:#dcfce7;border:1.5px solid #86efac;border-radius:10px;padding:10px;text-align:center;margin-bottom:14px;">
       <strong style="color:#16a34a;font-size:0.9rem;">✓ This will fully settle the invoice!</strong>
     </div>
@@ -158,6 +164,8 @@ function openPayModal(invId, total, adv) {
     (adv > 0 ? ` &nbsp;|&nbsp; Already Paid: <strong style="color:#4CAF50;">₹${adv.toFixed(2)}</strong>` : '') +
     `<br><span style="color:#ef4444;font-weight:700;">Balance Due: ₹${bal.toFixed(2)}</span>`;
   document.getElementById('payAmount').value = bal.toFixed(2);
+  document.getElementById('payDueDate').value = '';
+  document.getElementById('dueDateBox').style.display = 'none';
   document.getElementById('selectedPayMethod').value = 'Cash';
   document.querySelectorAll('.pay-method-btn').forEach(b => b.classList.toggle('active', b.textContent==='Cash'));
   updatePayBalance();
@@ -172,18 +180,28 @@ function selectPayMethod(btn, method) {
 }
 
 function updatePayBalance() {
-  const amt = parseFloat(document.getElementById('payAmount').value || 0);
-  const newAdv = curInvAdv + amt;
-  const remaining = Math.max(0, curInvTotal - newAdv);
+  const bal = Math.max(0, curInvTotal - curInvAdv);
+  let amt = parseFloat(document.getElementById('payAmount').value || 0);
+  if (amt > bal + 0.005) {
+    document.getElementById('payAmount').value = bal.toFixed(2);
+    amt = bal;
+  }
+  const remaining = Math.max(0, curInvTotal - curInvAdv - amt);
   const remEl = document.getElementById('payRemaining');
   remEl.textContent = '₹' + remaining.toFixed(2);
   remEl.style.color = remaining < 0.01 ? '#16a34a' : '#ef4444';
   document.getElementById('payFullBadge').style.display = remaining < 0.01 ? 'block' : 'none';
+  document.getElementById('dueDateBox').style.display = (remaining > 0.01 && amt > 0) ? 'block' : 'none';
 }
 
 async function confirmPayment() {
   const amt = parseFloat(document.getElementById('payAmount').value || 0);
   if (amt <= 0) { alert('Please enter an amount greater than 0.'); return; }
+  const bal = Math.max(0, curInvTotal - curInvAdv);
+  if (amt > bal + 0.005) { alert(`Amount cannot exceed balance due ₹${bal.toFixed(2)}`); return; }
+  const remaining = Math.max(0, bal - amt);
+  const dueDate = document.getElementById('payDueDate').value;
+  if (remaining > 0.01 && !dueDate) { alert('Please set a due date for the remaining balance.'); return; }
   const method = document.getElementById('selectedPayMethod').value;
   let data;
   try {
@@ -193,7 +211,7 @@ async function confirmPayment() {
         'Content-Type': 'application/x-www-form-urlencoded',
         'X-Requested-With': 'XMLHttpRequest'
       },
-      body: new URLSearchParams({ amount_received: amt, pay_method: method })
+      body: new URLSearchParams({ amount_received: amt, pay_method: method, due_date: dueDate })
     });
     data = await resp.json();
     if (!resp.ok) {
@@ -229,7 +247,12 @@ async function confirmPayment() {
         statusEl.innerHTML = '<span style="background:#fff7ed;color:#c2410c;border:1.5px solid #fdba74;padding:4px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;">Partial</span>';
       }
     }
-    toast(data.paid === 'Paid' ? 'Invoice fully settled! ✓' : `₹${amt.toFixed(2)} collected. Balance: ₹${data.balance.toFixed(2)}`);
+    if (data.paid !== 'Paid') {
+      toast(`₹${amt.toFixed(2)} collected. Balance: ₹${data.balance.toFixed(2)} — Due: ${dueDate||'—'}`);
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      toast('Invoice fully settled! ✓');
+    }
   } else {
     toast('Error saving payment. Try again.');
   }
@@ -248,7 +271,7 @@ function downloadInvoicePDF(invId) {
 
 function sendInvWA(name, phone, invId, total, method) {
   const msg = `*INVOICE — INV-${String(invId).padStart(4,'0')}*\n\nDear *${name}*,\nYour invoice has been generated.\n\n*Total: ₹${parseFloat(total).toFixed(2)}*\nPayment: ${method}\n\nThank you for choosing us!`;
-  window.open('whatsapp://send?phone=91'+phone.replace(/\D/g,'')+'&text='+encodeURIComponent(msg),'_blank');
+  window.open('https://wa.me/91'+phone.replace(/\D/g,'')+'?text='+encodeURIComponent(msg),'_blank');
 }
 
 function toast(msg) {
