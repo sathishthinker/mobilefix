@@ -524,7 +524,10 @@ def customers():
     db = get_db()
     user = db.execute("SELECT * FROM users WHERE id=?", (session['user_id'],)).fetchone()
     all_jobs = db.execute("SELECT * FROM repair_jobs WHERE user_id=? ORDER BY created_at DESC", (session['user_id'],)).fetchall()
-    inv_map = {r['job_id']: r['id'] for r in db.execute("SELECT id, job_id FROM invoices WHERE user_id=?", (session['user_id'],)).fetchall()}
+    all_invs = db.execute("SELECT id, job_id, total, advance_amount, paid, due_date FROM invoices WHERE user_id=?", (session['user_id'],)).fetchall()
+    inv_map = {r['job_id']: r['id'] for r in all_invs}
+    inv_balance = {r['job_id']: {'balance': max(0, float(r['total'] or 0) - float(r['advance_amount'] or 0)),
+                                  'due_date': r['due_date'], 'paid': r['paid']} for r in all_invs}
     customer_map = {}
     for job in all_jobs:
         ph = job['customer_phone']
@@ -532,6 +535,9 @@ def customers():
             customer_map[ph] = {'name': job['customer_name'], 'phone': ph, 'jobs': [], 'total_business': 0, 'total_due': 0}
         job_dict = dict(job)
         job_dict['inv_id'] = inv_map.get(job['id'])
+        inv_info = inv_balance.get(job['id'])
+        job_dict['inv_balance'] = inv_info['balance'] if inv_info else 0
+        job_dict['inv_due_date'] = inv_info['due_date'] if inv_info else None
         customer_map[ph]['jobs'].append(job_dict)
         if job['status'] == 'Delivered' and job['cost']:
             customer_map[ph]['total_business'] += float(job['cost'])
@@ -539,6 +545,9 @@ def customers():
             due = float(job['cost']) - float(job['advance_amount'] or 0)
             if due > 0:
                 customer_map[ph]['total_due'] += due
+        # Add invoice balance for delivered jobs with partial/unpaid invoices
+        if job['status'] == 'Delivered' and inv_info and inv_info['balance'] > 0.01:
+            customer_map[ph]['total_due'] += inv_info['balance']
     return render_template('customers.html',
                            customers=sorted(customer_map.values(), key=lambda x: x['total_business'], reverse=True),
                            user=user, status=subscription_status(user), days_left=days_left(user))

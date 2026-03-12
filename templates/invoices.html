@@ -112,9 +112,12 @@
              style="font-size:1.1rem;font-weight:700;border:2px solid #00BCD4;">
     </div>
 
-    <div style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:0.85rem;color:#64748b;font-weight:600;">Remaining After Payment:</span>
-      <span id="payRemaining" style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.2rem;color:#ef4444;">—</span>
+    <div id="dueAmountCard" style="background:#fff7ed;border:1.5px solid #fbbf24;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:0.75rem;color:#92400e;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Due Amount (Credit)</div>
+        <div style="font-size:0.72rem;color:#b45309;margin-top:2px;">Remaining balance to be collected</div>
+      </div>
+      <span id="payRemaining" style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.3rem;color:#ef4444;">—</span>
     </div>
 
     <label class="form-label">Payment Method</label>
@@ -188,8 +191,14 @@ function updatePayBalance() {
   }
   const remaining = Math.max(0, curInvTotal - curInvAdv - amt);
   const remEl = document.getElementById('payRemaining');
-  remEl.textContent = '₹' + remaining.toFixed(2);
-  remEl.style.color = remaining < 0.01 ? '#16a34a' : '#ef4444';
+  const dueCard = document.getElementById('dueAmountCard');
+  if (remaining < 0.01) {
+    dueCard.style.display = 'none';
+  } else {
+    dueCard.style.display = 'flex';
+    remEl.textContent = '₹' + remaining.toFixed(2);
+    remEl.style.color = '#ef4444';
+  }
   document.getElementById('payFullBadge').style.display = remaining < 0.01 ? 'block' : 'none';
   document.getElementById('dueDateBox').style.display = (remaining > 0.01 && amt > 0) ? 'block' : 'none';
 }
@@ -234,7 +243,8 @@ async function confirmPayment() {
       if (data.balance < 0.01) {
         balEl.innerHTML = '<span style="color:#16a34a;"><i class="fas fa-check"></i> Nil</span>';
       } else {
-        balEl.innerHTML = `<span style="color:#ef4444;">₹${data.balance.toFixed(2)}</span>`;
+        const dueTxt = dueDate ? `<br><small style="color:#f59e0b;font-size:0.72rem;"><i class="fas fa-calendar"></i> Due: ${dueDate}</small>` : '';
+        balEl.innerHTML = `<span style="color:#ef4444;font-weight:700;">₹${data.balance.toFixed(2)}</span>${dueTxt}<br><small style="color:#7c3aed;font-size:0.7rem;font-weight:600;">Credit Balance</small>`;
       }
     }
     if (statusEl) {
