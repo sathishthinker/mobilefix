@@ -724,12 +724,25 @@ function openDiagnose(id) {
   }
   updDiagTotal(); openM('diagnoseModal');
 }
+const DIAG_SERVICES=[
+  'SCREEN REPLACEMENT','SCREEN DAMAGE','DISPLAY REPLACEMENT','TOUCH NOT WORKING',
+  'BATTERY REPLACEMENT','BATTERY DRAINING FAST','CHARGING PORT REPAIR','CHARGING NOT WORKING',
+  'BACK PANEL REPLACEMENT','BACK GLASS REPAIR','CAMERA REPAIR','FRONT CAMERA REPAIR','REAR CAMERA REPAIR',
+  'SPEAKER REPAIR','EARPIECE REPAIR','MIC REPAIR','MICROPHONE NOT WORKING',
+  'NETWORK ISSUE','NO SIGNAL','SIM NOT DETECTED','WIFI NOT WORKING','BLUETOOTH REPAIR',
+  'MOTHERBOARD REPAIR','SOFTWARE FLASHING','VIRUS REMOVAL','FRP UNLOCK','PATTERN UNLOCK','PASSWORD UNLOCK',
+  'WATER DAMAGE REPAIR','OVERHEATING ISSUE','VIBRATOR REPAIR','FINGERPRINT SENSOR REPAIR',
+  'FACE ID REPAIR','POWER BUTTON REPAIR','VOLUME BUTTON REPAIR','HEADPHONE JACK REPAIR',
+  'DATA RECOVERY','SCREEN PROTECTOR','REWORK','GENERAL SERVICE'
+];
 function addDiagnoseRow(desc='',price=0) {
   const c=document.getElementById('diagnoseItems');
+  const uid='dl-'+Math.random().toString(36).slice(2);
   const d=document.createElement('div');
   d.style.cssText='display:grid;grid-template-columns:2fr 1fr auto;gap:10px;margin-bottom:10px;align-items:end;';
   d.innerHTML=`<div><label class="form-label" style="font-size:0.8rem;">Service / Issue</label>
-    <input type="text" class="form-control diag-desc" value="${desc}" oninput="this.value=this.value.toUpperCase()"></div>
+    <input type="text" class="form-control diag-desc" list="${uid}" value="${desc}" oninput="this.value=this.value.toUpperCase()">
+    <datalist id="${uid}">${DIAG_SERVICES.map(s=>`<option value="${s}">`).join('')}</datalist></div>
     <div><label class="form-label" style="font-size:0.8rem;">Price (₹)</label>
     <input type="number" class="form-control diag-price" value="${price.toFixed(2)}" min="0" oninput="updDiagTotal()"></div>
     <button onclick="this.parentElement.remove();updDiagTotal()" style="background:#E53935;color:white;border:none;border-radius:8px;width:34px;height:38px;margin-bottom:0;cursor:pointer;">✕</button>`;
