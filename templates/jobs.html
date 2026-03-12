@@ -1066,9 +1066,19 @@ async function confirmCancel() {
   if(reason==='Other'){ const t=document.getElementById('cancelOtherText').value.trim(); if(!t){ alert('Please specify.'); return; } reason='Other: '+t; }
   const refundAmt = adv > 0 ? parseFloat(document.getElementById('cancelRefundAmtInput').value||0) : 0;
   const refundMethod = adv > 0 ? document.getElementById('cancelRefundMethod').value : '';
+
+  // Open WhatsApp BEFORE any async calls (browser allows popup only in sync click context)
+  let waWin = null;
+  if (adv > 0 && j && j.customer_phone) {
+    const upiNote = ['UPI','Bank Transfer'].includes(refundMethod)
+      ? '\n\nIf the payment method was UPI/Bank, please allow 2-3 business days for the credit to reflect in your account.' : '';
+    const msg = `Dear ${j.customer_name},\n\nYour service request for the ${j.device_model} (Job ID: ${j.id}) has been CANCELLED.\n\nNet Advance Paid: ₹${adv.toFixed(2)}\nRefund Processed: ₹${refundAmt.toFixed(2)} via ${refundMethod}.${upiNote}\n\nWe apologize for any inconvenience.\n\nRegards,\n${SHOP.name}`;
+    waWin = window.open(`https://wa.me/91${j.customer_phone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+
   // Cancel the job
   const r=await fetch(`/jobs/${curId}/cancel`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({reason})});
-  if(!r.ok){ toast('Error cancelling job. Try again.'); return; }
+  if(!r.ok){ if(waWin) waWin.close(); toast('Error cancelling job. Try again.'); return; }
   // Record refund if advance was paid
   if (refundAmt > 0) {
     await fetch(`/jobs/${curId}/record_refund`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
@@ -1076,13 +1086,6 @@ async function confirmCancel() {
   }
   closeM('cancelModal');
   toast(adv>0 ? `Job cancelled. Refund of ₹${refundAmt.toFixed(2)} recorded.` : 'Job cancelled.');
-  // Send WhatsApp notification if advance was refunded (open immediately to avoid popup block)
-  if (adv > 0 && j && j.customer_phone) {
-    const upiNote = ['UPI','Bank Transfer'].includes(refundMethod)
-      ? '\n\nIf the payment method was UPI/Bank, please allow 2-3 business days for the credit to reflect in your account.' : '';
-    const msg = `Dear ${j.customer_name},\n\nYour service request for the ${j.device_model} (Job ID: ${j.id}) has been CANCELLED.\n\nNet Advance Paid: ₹${adv.toFixed(2)}\nRefund Processed: ₹${refundAmt.toFixed(2)} via ${refundMethod}.${upiNote}\n\nWe apologize for any inconvenience.\n\nRegards,\n${SHOP.name}`;
-    window.open(`https://wa.me/91${j.customer_phone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
-  }
   setTimeout(()=>location.reload(), 1200);
 }
 
