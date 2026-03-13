@@ -633,10 +633,40 @@ def admin_dashboard():
     users = db.execute("SELECT * FROM users WHERE role='user' ORDER BY created_at DESC").fetchall()
     enriched = [{**dict(u), 'status': subscription_status(u), 'days_left': days_left(u)} for u in users]
     total = len(users)
+
+    # Platform-wide stats
+    platform = {}
+    platform['total_jobs']    = db.execute("SELECT COUNT(*) FROM repair_jobs").fetchone()[0]
+    platform['total_revenue'] = float(db.execute("SELECT COALESCE(SUM(total),0) FROM invoices").fetchone()[0])
+    platform['total_invoices']= db.execute("SELECT COUNT(*) FROM invoices").fetchone()[0]
+    platform['jobs_today']    = db.execute("SELECT COUNT(*) FROM repair_jobs WHERE date(created_at)=date('now')").fetchone()[0]
+
+    # Per-shop activity
+    shop_activity = db.execute("""
+        SELECT u.id, u.shop_name, u.phone,
+               COUNT(DISTINCT r.id) AS job_count,
+               COALESCE(SUM(CASE WHEN r.status='Delivered' THEN r.cost ELSE 0 END),0) AS revenue,
+               COUNT(DISTINCT CASE WHEN r.status NOT IN ('Delivered','Cancelled') THEN r.id END) AS pending
+        FROM users u
+        LEFT JOIN repair_jobs r ON r.user_id=u.id
+        WHERE u.role='user'
+        GROUP BY u.id ORDER BY job_count DESC
+    """).fetchall()
+
+    # Expiring within 7 days
+    expiring = [u for u in enriched if u['status'] in ('trial','active') and u['days_left'] <= 7]
+
+    # New registrations this month
+    from datetime import date
+    month_start = date.today().replace(day=1).isoformat()
+    new_this_month = db.execute("SELECT COUNT(*) FROM users WHERE role='user' AND date(created_at)>=?", (month_start,)).fetchone()[0]
+
     return render_template('admin_dashboard.html', users=enriched, total=total,
                            active_count=sum(1 for u in users if subscription_status(u) in ('trial','active')),
                            expired_count=sum(1 for u in users if subscription_status(u) in ('trial_expired','expired')),
-                           disabled_count=sum(1 for u in users if not u['enabled']))
+                           disabled_count=sum(1 for u in users if not u['enabled']),
+                           platform=platform, shop_activity=shop_activity,
+                           expiring=expiring, new_this_month=new_this_month)
 
 @app.route('/admin/toggle/<int:uid>', methods=['POST'])
 @admin_required
