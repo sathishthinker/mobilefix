@@ -109,6 +109,16 @@ def init_db():
         for col in ['logo TEXT']:
             try: db.execute(f"ALTER TABLE users ADD COLUMN {col}"); db.commit()
             except: pass
+        # Subscription history table
+        db.execute('''CREATE TABLE IF NOT EXISTS subscription_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            plan TEXT,
+            start_date TEXT,
+            end_date TEXT,
+            activated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )''')
+        db.commit()
         # Fix NULL trial_start for existing users
         try: db.execute("UPDATE users SET trial_start=datetime('now') WHERE trial_start IS NULL"); db.commit()
         except: pass
@@ -684,11 +694,21 @@ def admin_set_subscription(uid):
     plan = request.form.get('plan')
     days = {'30d':30,'1y':365,'2y':730,'3y':1095}.get(plan)
     if not days: return jsonify({'error': 'Invalid plan'}), 400
+    start_date = datetime.now(IST).strftime('%Y-%m-%d')
     end_date = (datetime.now(timezone.utc) + timedelta(days=days)).isoformat()
     db = get_db()
     db.execute("UPDATE users SET subscription_plan=?,subscription_end=?,enabled=1 WHERE id=?", (plan, end_date, uid))
+    db.execute("INSERT INTO subscription_history (user_id,plan,start_date,end_date) VALUES (?,?,?,?)",
+               (uid, plan, start_date, end_date[:10]))
     db.commit()
     return jsonify({'success': True, 'end_date': end_date[:10]})
+
+@app.route('/admin/subscription_history/<int:uid>')
+@admin_required
+def admin_sub_history(uid):
+    db = get_db()
+    rows = db.execute("SELECT * FROM subscription_history WHERE user_id=? ORDER BY activated_at DESC", (uid,)).fetchall()
+    return jsonify([dict(r) for r in rows])
 
 @app.route('/admin/delete/<int:uid>', methods=['POST'])
 @admin_required

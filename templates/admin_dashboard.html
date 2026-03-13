@@ -156,6 +156,10 @@
                 <button class="btn btn-sm btn-primary" onclick="openSubModal({{ u.id }},'{{ u.shop_name }}')">
                   <i class="fas fa-calendar-plus"></i> Set Plan
                 </button>
+                <!-- History -->
+                <button class="btn btn-sm" style="background:#e0f7fa;color:#006064;" onclick="openHistory({{ u.id }},'{{ u.shop_name|replace("'","\\'") }}')">
+                  <i class="fas fa-history"></i> History
+                </button>
                 <!-- Delete -->
                 <button class="btn btn-sm btn-danger" onclick="deleteUser({{ u.id }}, '{{ u.shop_name }}')">
                   <i class="fas fa-trash"></i> Delete
@@ -207,6 +211,20 @@
         </button>
         <button class="btn btn-ghost" onclick="closeSubModal()" style="padding:10px 20px;background:#f1f5f9;border-radius:10px;cursor:pointer;border:none;font-family:inherit;color:#64748b;">Cancel</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Subscription History Modal -->
+<div class="modal-overlay" id="historyModal">
+  <div class="modal-box" style="max-width:540px;">
+    <div class="modal-title"><i class="fas fa-history" style="color:#00BCD4;"></i> Subscription History</div>
+    <p style="font-size:0.85rem;color:#94a3b8;margin-top:4px;">Shop: <strong id="historyShopName"></strong></p>
+    <div class="modal-body" id="historyBody" style="margin-top:14px;max-height:360px;overflow-y:auto;">
+      <div style="text-align:center;padding:30px;color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+    </div>
+    <div style="margin-top:18px;text-align:right;">
+      <button class="btn btn-ghost" onclick="closeHistory()" style="background:#f1f5f9;border-radius:10px;cursor:pointer;border:none;font-family:inherit;color:#64748b;padding:10px 20px;">Close</button>
     </div>
   </div>
 </div>
@@ -290,6 +308,40 @@ async function deleteUser(uid, name) {
 document.getElementById('subModal').addEventListener('click', function(e) {
   if (e.target === this) closeSubModal();
 });
+document.getElementById('historyModal').addEventListener('click', function(e) {
+  if (e.target === this) closeHistory();
+});
+
+const PLAN_LABELS = {'30d':'30 Days','1y':'1 Year','2y':'2 Years','3y':'3 Years'};
+async function openHistory(uid, name) {
+  document.getElementById('historyShopName').textContent = name;
+  document.getElementById('historyBody').innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+  document.getElementById('historyModal').classList.add('show');
+  const res = await fetch(`/admin/subscription_history/${uid}`);
+  const data = await res.json();
+  if (!data.length) {
+    document.getElementById('historyBody').innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;"><i class="fas fa-inbox" style="font-size:1.5rem;display:block;margin-bottom:10px;opacity:0.3;"></i>No subscription history yet.</div>';
+    return;
+  }
+  const planColors = {'30d':'#00BCD4','1y':'#4CAF50','2y':'#9C27B0','3y':'#FF5722'};
+  let html = '<table style="width:100%;border-collapse:collapse;">';
+  html += '<thead><tr style="font-size:0.72rem;color:#94a3b8;text-transform:uppercase;"><th style="padding:6px 10px;text-align:left;">Plan</th><th style="padding:6px 10px;text-align:left;">Start</th><th style="padding:6px 10px;text-align:left;">Expiry</th><th style="padding:6px 10px;text-align:left;">Activated On</th></tr></thead><tbody>';
+  data.forEach((r, i) => {
+    const color = planColors[r.plan] || '#64748b';
+    const bg = i % 2 === 0 ? '#f8fafc' : 'white';
+    html += `<tr style="background:${bg};font-size:0.85rem;">
+      <td style="padding:10px;"><span style="background:${color}20;color:${color};padding:3px 10px;border-radius:999px;font-weight:700;font-size:0.78rem;">${PLAN_LABELS[r.plan]||r.plan}</span></td>
+      <td style="padding:10px;color:#475569;">${r.start_date||'—'}</td>
+      <td style="padding:10px;color:#475569;">${r.end_date||'—'}</td>
+      <td style="padding:10px;color:#94a3b8;font-size:0.78rem;">${(r.activated_at||'').substring(0,16)}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('historyBody').innerHTML = html;
+}
+function closeHistory() {
+  document.getElementById('historyModal').classList.remove('show');
+}
 function filterShops() {
   const q = document.getElementById('adminSearch').value.toLowerCase();
   document.querySelectorAll('#shopsTable tbody tr').forEach(row => {
