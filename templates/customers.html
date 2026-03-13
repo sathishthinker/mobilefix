@@ -77,7 +77,7 @@
               <td style="white-space:nowrap;">
                 <button onclick='viewCustJob({{ job | tojson }})' style="background:#00BCD4;color:white;border:none;border-radius:7px;padding:4px 10px;font-size:0.75rem;font-weight:600;cursor:pointer;margin:2px;">View Details</button>
                 {% if job.inv_balance and job.inv_balance > 0 %}
-                {% set wa_msg = 'Dear ' + c.name + ', this is a reminder that you have an outstanding credit balance of Rs.' + '%.2f'|format(job.inv_balance) + ' for your ' + job.device_model + ' repair (Job #' + job.id|string + ').' + (' Due date: ' + job.inv_due_date + '.' if job.inv_due_date else '') + ' Please settle the balance at your earliest convenience. Thank you!' %}
+                {% set wa_msg = 'Dear ' + c.name + ', this is a friendly reminder that you have an outstanding credit balance of Rs.' + '%.2f'|format(job.inv_balance) + ' for your ' + job.device_model + ' repair (Job #' + job.id|string + ').' + (' Due date: ' + job.inv_due_date + '.' if job.inv_due_date else '') + ' Please settle the balance at your earliest convenience.' + '\n\n' + (user.shop_name or 'Our Shop') + '\n📞 ' + (user.phone or '') + ('\n📍 ' + user.address if user.address else '') + '\n\nThank you!' %}
                 <a href="https://wa.me/91{{ c.phone }}?text={{ wa_msg|urlencode }}" target="_blank" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:7px;padding:4px 10px;font-size:0.75rem;font-weight:600;text-decoration:none;display:inline-block;margin:2px;"><i class="fab fa-whatsapp"></i> Remind</a>
                 {% endif %}
                 {% if job.inv_id %}
