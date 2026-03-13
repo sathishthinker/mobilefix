@@ -168,7 +168,7 @@
   <td>
     <!-- Actions dropdown menu -->
     <div class="action-menu" id="menu-{{ job.id }}">
-      <button class="act act-dark" onclick="toggleMenu({{ job.id }})">
+      <button id="toggle-btn-{{ job.id }}" class="act act-dark" onclick="toggleMenu({{ job.id }})">
         Actions <i class="fas fa-chevron-down" style="margin-left:4px;font-size:0.7rem;"></i>
       </button>
       <div class="action-dropdown" id="dropdown-{{ job.id }}">
@@ -489,31 +489,42 @@ function toIST(s) {
 }
 
 // ── Action dropdown ──
-function toggleMenu(id) {
-  const allDropdowns = document.querySelectorAll('.action-dropdown.open');
-  allDropdowns.forEach(d => { if(d.id !== 'dropdown-'+id) d.classList.remove('open'); });
+// Move all dropdowns to body on first call so they escape overflow:hidden parents
+function _ensureDropdownInBody(id) {
   const dd = document.getElementById('dropdown-'+id);
-  const btn = document.querySelector('#menu-'+id+' button');
+  if (dd && dd.parentElement !== document.body) document.body.appendChild(dd);
+  return dd;
+}
+function toggleMenu(id) {
+  document.querySelectorAll('.action-dropdown.open').forEach(d => {
+    if (d.id !== 'dropdown-'+id) d.classList.remove('open');
+  });
+  const dd = _ensureDropdownInBody(id);
+  const btn = document.getElementById('toggle-btn-'+id);
   if (dd.classList.contains('open')) { dd.classList.remove('open'); return; }
-  // Smart position: avoid going off screen
   const rect = btn.getBoundingClientRect();
-  const ddW = 210, ddH = 360;
+  const ddW = 210, ddH = dd.scrollHeight || 360;
   let top = rect.bottom + 4;
   let left = rect.right - ddW;
-  if (left < 8) left = rect.left;
+  if (left < 8) left = 8;
   if (left + ddW > window.innerWidth - 8) left = window.innerWidth - ddW - 8;
   if (rect.bottom + ddH > window.innerHeight) top = rect.top - ddH - 4;
+  if (top < 8) top = 8;
   dd.style.top = top + 'px';
   dd.style.left = left + 'px';
   dd.classList.add('open');
 }
-function closeMenu(id) { document.getElementById('dropdown-'+id).classList.remove('open'); }
+function closeMenu(id) {
+  const dd = document.getElementById('dropdown-'+id);
+  if (dd) dd.classList.remove('open');
+}
 document.addEventListener('click', e => {
-  if (!e.target.closest('.action-menu')) document.querySelectorAll('.action-dropdown.open').forEach(d=>d.classList.remove('open'));
+  if (!e.target.closest('.action-dropdown') && !e.target.closest('.action-menu'))
+    document.querySelectorAll('.action-dropdown.open').forEach(d=>d.classList.remove('open'));
 });
 window.addEventListener('scroll', () => {
   document.querySelectorAll('.action-dropdown.open').forEach(d=>d.classList.remove('open'));
-});
+}, true);
 
 // ── Filters ──
 let activeStatus = '';
