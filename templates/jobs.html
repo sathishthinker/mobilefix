@@ -489,27 +489,31 @@ function toIST(s) {
 }
 
 // ── Action dropdown ──
-// Move all dropdowns to body on first call so they escape overflow:hidden parents
-function _ensureDropdownInBody(id) {
-  const dd = document.getElementById('dropdown-'+id);
-  if (dd && dd.parentElement !== document.body) document.body.appendChild(dd);
-  return dd;
-}
 function toggleMenu(id) {
   document.querySelectorAll('.action-dropdown.open').forEach(d => {
     if (d.id !== 'dropdown-'+id) d.classList.remove('open');
   });
-  const dd = _ensureDropdownInBody(id);
+  const dd = document.getElementById('dropdown-'+id);
   const btn = document.getElementById('toggle-btn-'+id);
   if (dd.classList.contains('open')) { dd.classList.remove('open'); return; }
+
+  // Portal: move to body to escape overflow/stacking-context parents
+  if (dd.parentElement !== document.body) document.body.appendChild(dd);
+
+  // Measure actual height off-screen (so flip direction is exact)
+  dd.style.cssText = 'position:fixed;visibility:hidden;top:-9999px;left:-9999px;display:block;';
+  const ddH = dd.offsetHeight;
+  const ddW = dd.offsetWidth || 210;
+  dd.style.cssText = '';
+
   const rect = btn.getBoundingClientRect();
-  const ddW = 210, ddH = dd.scrollHeight || 360;
   let top = rect.bottom + 4;
   let left = rect.right - ddW;
   if (left < 8) left = 8;
   if (left + ddW > window.innerWidth - 8) left = window.innerWidth - ddW - 8;
-  if (rect.bottom + ddH > window.innerHeight) top = rect.top - ddH - 4;
+  if (top + ddH > window.innerHeight - 8) top = rect.top - ddH - 4;
   if (top < 8) top = 8;
+
   dd.style.top = top + 'px';
   dd.style.left = left + 'px';
   dd.classList.add('open');
@@ -520,10 +524,10 @@ function closeMenu(id) {
 }
 document.addEventListener('click', e => {
   if (!e.target.closest('.action-dropdown') && !e.target.closest('.action-menu'))
-    document.querySelectorAll('.action-dropdown.open').forEach(d=>d.classList.remove('open'));
+    document.querySelectorAll('.action-dropdown.open').forEach(d => d.classList.remove('open'));
 });
 window.addEventListener('scroll', () => {
-  document.querySelectorAll('.action-dropdown.open').forEach(d=>d.classList.remove('open'));
+  document.querySelectorAll('.action-dropdown.open').forEach(d => d.classList.remove('open'));
 }, true);
 
 // ── Filters ──
