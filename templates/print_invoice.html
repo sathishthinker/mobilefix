@@ -4,93 +4,100 @@
 <meta charset="UTF-8">
 <title>Invoice INV-{{ '%04d'|format(inv.id) }}</title>
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 :root{--teal:#00BCD4;--dark:#0d1b2a;}
 *{box-sizing:border-box;margin:0;padding:0;}
-@page{size:A4;margin:10mm;}
-body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size:0.82rem;}
-.page-wrap{max-width:780px;margin:0 auto;background:white;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.1);overflow:hidden;}
+@page{size:A5 landscape;margin:5mm;}
+body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size:0.75rem;}
+.page-wrap{max-width:190mm;margin:0 auto;background:white;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.1);overflow:hidden;}
 
 /* Header */
-.inv-header{background:linear-gradient(135deg,var(--dark),#1a3a5c);padding:18px 28px;display:flex;justify-content:space-between;align-items:center;}
-.inv-logo{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.3rem;color:white;}
+.inv-header{background:linear-gradient(135deg,var(--dark),#1a3a5c);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;}
+.header-left{display:flex;align-items:center;gap:12px;}
+.logo-img{width:44px;height:44px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,0.15);padding:3px;}
+.inv-logo{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.2rem;color:white;}
 .inv-logo span{color:var(--teal);}
-.inv-shop{color:rgba(255,255,255,0.6);font-size:0.75rem;margin-top:2px;}
-.inv-number{text-align:right;color:rgba(255,255,255,0.7);font-size:0.75rem;}
-.inv-number strong{display:block;font-size:1.2rem;color:white;font-family:'Exo 2',sans-serif;}
+.inv-shop{color:rgba(255,255,255,0.6);font-size:0.7rem;margin-top:2px;}
+.inv-number{text-align:right;color:rgba(255,255,255,0.7);font-size:0.7rem;}
+.inv-number strong{display:block;font-size:1.1rem;color:white;font-family:'Exo 2',sans-serif;}
 
-/* Two-column info row */
+/* Info row */
 .inv-info{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border-bottom:1px solid #e2e8f0;}
-.inv-info-cell{padding:12px 18px;border-right:1px solid #e2e8f0;}
+.inv-info-cell{padding:8px 16px;border-right:1px solid #e2e8f0;}
 .inv-info-cell:last-child{border-right:none;}
-.info-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:4px;}
-.info-name{font-family:'Exo 2',sans-serif;font-weight:700;font-size:0.92rem;color:#1a2332;}
-.info-detail{font-size:0.78rem;color:#64748b;line-height:1.5;margin-top:2px;}
+.info-label{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:2px;}
+.info-name{font-family:'Exo 2',sans-serif;font-weight:700;font-size:0.85rem;color:#1a2332;}
+.info-detail{font-size:0.72rem;color:#64748b;line-height:1.4;margin-top:2px;}
 
 /* Items table */
-.inv-body{padding:14px 18px;}
-.items-table{width:100%;border-collapse:collapse;margin-bottom:12px;}
-.items-table th{padding:7px 10px;background:#f8fafc;text-align:left;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;border-bottom:2px solid #e2e8f0;}
-.items-table td{padding:8px 10px;border-bottom:1px solid #f1f5f9;font-size:0.82rem;vertical-align:middle;}
+.inv-body{padding:10px 16px;}
+.items-table{width:100%;border-collapse:collapse;margin-bottom:8px;}
+.items-table th{padding:6px 8px;background:#f8fafc;text-align:left;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;border-bottom:2px solid #e2e8f0;}
+.items-table td{padding:6px 8px;border-bottom:1px solid #f1f5f9;font-size:0.75rem;vertical-align:middle;}
 .items-table tr:last-child td{border-bottom:none;}
 .num{text-align:right;font-weight:600;}
 
-/* Bottom two columns: summary + payment */
-.inv-bottom{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px;align-items:start;}
-.payment-box{background:#f8fafc;border-radius:10px;padding:12px 14px;}
-.payment-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:8px;}
-.pay-method{display:inline-block;background:#e0f7fa;color:#006064;padding:4px 12px;border-radius:999px;font-size:0.75rem;font-weight:700;margin-top:4px;}
-
+/* Bottom */
+.inv-bottom{display:grid;grid-template-columns:1.2fr 0.8fr;gap:16px;margin-top:6px;align-items:start;}
+.payment-box{background:#f8fafc;border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.payment-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;}
+.pay-method{display:inline-block;background:#e0f7fa;color:#006064;padding:3px 10px;border-radius:999px;font-size:0.7rem;font-weight:700;}
 .summary-table{width:100%;border-collapse:collapse;}
-.summary-table td{padding:5px 10px;font-size:0.82rem;}
+.summary-table td{padding:4px 8px;font-size:0.75rem;}
 .summary-table td:last-child{text-align:right;font-weight:600;}
-.summary-table .grand td{font-family:'Exo 2',sans-serif;font-size:0.95rem;font-weight:800;border-top:2px solid #e2e8f0;padding-top:8px;color:var(--teal);}
+.summary-table .grand td{font-family:'Exo 2',sans-serif;font-size:0.9rem;font-weight:800;border-top:2px solid #e2e8f0;padding-top:6px;color:var(--teal);}
 .summary-table .balance td{color:#ef4444;font-weight:800;}
-
-.badge{display:inline-block;padding:3px 12px;border-radius:999px;font-size:0.72rem;font-weight:700;}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:0.7rem;font-weight:700;}
 .badge-paid{background:#d1fae5;color:#065f46;}
 .badge-partial{background:#fff7ed;color:#c2410c;}
 .badge-unpaid{background:#fee2e2;color:#991b1b;}
+.terms{font-size:0.65rem;color:#94a3b8;margin-top:8px;padding-top:6px;border-top:1px dashed #e2e8f0;line-height:1.5;}
 
 /* Footer */
-.inv-footer{background:#f8fafc;padding:10px 18px;text-align:center;color:#94a3b8;font-size:0.75rem;border-top:1px solid #e2e8f0;}
+.inv-footer{background:#f8fafc;padding:8px 16px;text-align:center;color:#94a3b8;font-size:0.7rem;border-top:1px solid #e2e8f0;}
 .inv-footer strong{color:#64748b;}
 
-/* Terms */
-.terms{font-size:0.7rem;color:#94a3b8;margin-top:10px;padding-top:8px;border-top:1px dashed #e2e8f0;line-height:1.6;}
-
 /* Print controls */
-.print-btn{text-align:center;margin-bottom:16px;display:flex;gap:10px;justify-content:center;}
-.print-btn button{background:linear-gradient(135deg,var(--teal),#0097A7);color:white;border:none;padding:10px 24px;border-radius:10px;cursor:pointer;font-size:0.88rem;font-weight:600;font-family:inherit;}
+.print-btn{text-align:center;margin:12px auto;display:flex;gap:10px;justify-content:center;}
+.print-btn button{padding:8px 20px;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;font-family:inherit;color:white;transition:opacity .2s;}
+.print-btn button:hover{opacity:.9;}
 
 @media print{
   .print-btn{display:none;}
-  body{background:white;padding:0;}
-  .page-wrap{box-shadow:none;border-radius:0;max-width:100%;}
+  body{background:white;}
+  .page-wrap{box-shadow:none;border-radius:0;max-width:100%;margin:0;}
 }
 </style>
 </head>
 <body>
+
 <div class="print-btn">
-  <button onclick="window.print()">🖨️ Print Invoice</button>
+  <button onclick="window.print()" style="background:linear-gradient(135deg,var(--teal),#0097A7);">🖨️ Print Invoice</button>
+  <button onclick="downloadPDF()" style="background:linear-gradient(135deg,#ef4444,#b91c1c);">📥 Download PDF</button>
   <button onclick="window.close()" style="background:#64748b;">✕ Close</button>
 </div>
 
-<div class="page-wrap">
+<div class="page-wrap" id="invoice-content">
   <!-- Header -->
   <div class="inv-header">
-    <div>
-      <div class="inv-logo">Mobile<span>Fix</span> Pro</div>
-      <div class="inv-shop">{{ user.shop_name }}</div>
+    <div class="header-left">
+      {% if user.logo %}
+      <img src="{{ user.logo }}" alt="Logo" class="logo-img">
+      {% endif %}
+      <div>
+        <div class="inv-logo">Mobile<span>Fix</span> Pro</div>
+        <div class="inv-shop">{{ user.shop_name or 'My Shop' }}</div>
+      </div>
     </div>
     <div class="inv-number">
       <small>INVOICE</small>
       <strong>INV-{{ '%04d'|format(inv.id) }}</strong>
-      <div style="margin-top:2px;font-size:0.72rem;color:rgba(255,255,255,0.6);">{{ inv.created_at[:10] }}</div>
+      <div style="margin-top:2px;font-size:0.65rem;color:rgba(255,255,255,0.6);">{{ inv.created_at[:10] }}</div>
     </div>
   </div>
 
-  <!-- 3-column info: From | Bill To | Job Info -->
+  <!-- 3-column info -->
   <div class="inv-info">
     <div class="inv-info-cell">
       <div class="info-label">From</div>
@@ -107,8 +114,8 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size
       {% if job %}
       <div class="info-detail">
         <strong>{{ job.device_model }}</strong><br>
-        {% if job.imei_billing or job.imei %}<span style="color:#94a3b8;font-size:0.72rem;">IMEI: {{ job.imei_billing or job.imei }}</span><br>{% endif %}
-        {% if job.aadhar_number %}<span style="color:#f59e0b;font-size:0.72rem;">Aadhar: {{ job.aadhar_number }}</span><br>{% endif %}
+        {% if job.imei_billing or job.imei %}<span style="color:#94a3b8;font-size:0.65rem;">IMEI: {{ job.imei_billing or job.imei }}</span><br>{% endif %}
+        {% if job.aadhar_number %}<span style="color:#f59e0b;font-size:0.65rem;">Aadhar: {{ job.aadhar_number }}</span><br>{% endif %}
         Date: {{ inv.created_at[:10] }}
       </div>
       {% else %}
@@ -117,7 +124,7 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size
     </div>
   </div>
 
-  <!-- Items Table -->
+  <!-- Items -->
   <div class="inv-body">
     <table class="items-table">
       <thead>
@@ -131,32 +138,25 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size
       <tbody id="invItemsBody"></tbody>
     </table>
 
-    <!-- Bottom: Payment Info + Summary side by side -->
     <div class="inv-bottom">
-      <!-- Left: Payment + Status + Terms -->
+      <!-- Left: payment + terms -->
       <div>
         <div class="payment-box">
-          <div class="payment-label">Payment Info</div>
+          <div class="payment-label">Payment</div>
           {% set ps = inv.paid or 'Unpaid' %}
-          {% if ps == 'Paid' %}
-            <span class="badge badge-paid">✓ FULLY PAID</span>
-          {% elif ps == 'Partial' %}
-            <span class="badge badge-partial">PARTIAL PAYMENT</span>
-          {% else %}
-            <span class="badge badge-unpaid">PAYMENT PENDING</span>
-          {% endif %}
-          {% if inv.pay_method %}
-            <div class="pay-method">{{ inv.pay_method }}</div>
-          {% endif %}
+          {% if ps == 'Paid' %}<span class="badge badge-paid">✓ FULLY PAID</span>
+          {% elif ps == 'Partial' %}<span class="badge badge-partial">PARTIAL PAYMENT</span>
+          {% else %}<span class="badge badge-unpaid">PAYMENT PENDING</span>{% endif %}
+          {% if inv.pay_method %}<div class="pay-method">{{ inv.pay_method }}</div>{% endif %}
         </div>
         <div class="terms">
-          • All repairs carry a 30-day warranty on parts & labour.<br>
+          • All repairs carry a 30-day warranty on parts &amp; labour.<br>
           • Uncollected devices after 90 days are not our responsibility.<br>
           • Thank you for choosing <strong>{{ user.shop_name or 'MobileFix Pro' }}</strong>!
         </div>
       </div>
 
-      <!-- Right: Summary -->
+      <!-- Right: summary -->
       <div>
         <table class="summary-table">
           <tr id="rowSubtotal" style="display:none;">
@@ -235,6 +235,18 @@ function renderItems() {
   }
 }
 renderItems();
+
+function downloadPDF() {
+  const el = document.getElementById('invoice-content');
+  const invNum = 'INV-{{ "%04d"|format(inv.id) }}';
+  html2pdf().set({
+    margin: 0.15,
+    filename: 'Invoice_' + invNum + '.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'in', format: 'a5', orientation: 'landscape' }
+  }).from(el).save();
+}
 </script>
 </body>
 </html>
