@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from functools import wraps
 from datetime import datetime, timedelta, timezone
-import sqlite3, hashlib, os, re, json, random, string
+import sqlite3, hashlib, os, re, json, random, string, base64
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
@@ -106,6 +106,12 @@ def init_db():
         for col in ['advance_amount REAL DEFAULT 0','discount REAL DEFAULT 0','pay_method TEXT','paid TEXT DEFAULT "Unpaid"','due_date TEXT']:
             try: db.execute(f"ALTER TABLE invoices ADD COLUMN {col}"); db.commit()
             except: pass
+        for col in ['logo TEXT']:
+            try: db.execute(f"ALTER TABLE users ADD COLUMN {col}"); db.commit()
+            except: pass
+        # Fix NULL trial_start for existing users
+        try: db.execute("UPDATE users SET trial_start=datetime('now') WHERE trial_start IS NULL"); db.commit()
+        except: pass
 
 def hash_pw(p): return hashlib.sha256(p.encode()).hexdigest()
 
@@ -354,15 +360,22 @@ def verify_happy_code(job_id):
         return jsonify({'ok': True})
     return jsonify({'ok': False, 'error': 'Invalid Happy Code'})
 
-@app.route('/jobs/<int:job_id>/set_reminder', methods=['POST'])
+@app.route('/jobs/<int:job_id>/set_reminder', methods=['GET','POST'])
 @active_required
 def set_reminder(job_id):
-    reminder_date = request.form.get('reminder_date','')
     db = get_db()
-    db.execute("UPDATE repair_jobs SET reminder_date=? WHERE id=? AND user_id=?",
-               (reminder_date, job_id, session['user_id']))
-    db.commit()
-    return jsonify({'ok': True})
+    if request.method == 'POST':
+        reminder_date = request.form.get('reminder_date','')
+        db.execute("UPDATE repair_jobs SET reminder_date=? WHERE id=? AND user_id=?",
+                   (reminder_date, job_id, session['user_id']))
+        db.commit()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'ok': True})
+        flash('Reminder set!', 'success')
+        return redirect(url_for('jobs'))
+    job = db.execute("SELECT * FROM repair_jobs WHERE id=? AND user_id=?", (job_id, session['user_id'])).fetchone()
+    if not job: return redirect(url_for('jobs'))
+    return render_template('set_reminder.html', job=job)
 
 @app.route('/jobs/<int:job_id>/deliver', methods=['POST'])
 @active_required
@@ -596,9 +609,17 @@ def settings():
         shop_name = request.form.get('shop_name','').strip()
         address = request.form.get('address','').strip()
         new_pw = request.form.get('new_password','')
+        logo_data = None
+        if 'logo' in request.files:
+            f = request.files['logo']
+            if f and f.filename:
+                mime = f.content_type or 'image/png'
+                logo_data = 'data:' + mime + ';base64,' + base64.b64encode(f.read()).decode()
         db.execute("UPDATE users SET shop_name=?,address=? WHERE id=?", (shop_name, address, session['user_id']))
         if new_pw and len(new_pw) >= 6:
             db.execute("UPDATE users SET password=? WHERE id=?", (hash_pw(new_pw), session['user_id']))
+        if logo_data:
+            db.execute("UPDATE users SET logo=? WHERE id=?", (logo_data, session['user_id']))
         db.commit()
         session['shop_name'] = shop_name
         flash('Settings saved!', 'success')

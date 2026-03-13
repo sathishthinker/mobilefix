@@ -35,7 +35,22 @@
   <div class="card" style="margin-bottom:20px;">
     <div class="card-body">
       <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:18px;">Shop Information</div>
-      <form method="POST">
+      <form method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+          <label class="form-label">Shop Logo</label>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:6px;">
+            {% if user.logo %}
+            <img id="logoPreview" src="{{ user.logo }}" alt="Logo" style="width:64px;height:64px;object-fit:contain;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;padding:4px;">
+            {% else %}
+            <div id="logoPreview" style="width:64px;height:64px;border-radius:10px;border:1.5px dashed #e2e8f0;background:#f8fafc;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:1.4rem;"><i class="fas fa-store"></i></div>
+            {% endif %}
+            <div>
+              <input type="file" name="logo" id="logoFile" accept="image/*" style="display:none;" onchange="previewLogo(this)">
+              <button type="button" onclick="document.getElementById('logoFile').click()" style="padding:8px 16px;border:1.5px solid #e2e8f0;border-radius:8px;background:white;cursor:pointer;font-size:0.82rem;font-weight:600;color:#475569;font-family:inherit;"><i class="fas fa-upload"></i> Upload Logo</button>
+              <div style="font-size:0.75rem;color:#94a3b8;margin-top:4px;">PNG, JPG — shown on invoices</div>
+            </div>
+          </div>
+        </div>
         <div class="form-group">
           <label class="form-label">Shop Name</label>
           <input type="text" name="shop_name" class="form-control" value="{{ user.shop_name or '' }}" placeholder="Your shop name">
@@ -58,4 +73,17 @@
     </div>
   </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+function previewLogo(input) {
+  if (!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const prev = document.getElementById('logoPreview');
+    prev.outerHTML = '<img id="logoPreview" src="'+e.target.result+'" alt="Logo" style="width:64px;height:64px;object-fit:contain;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;padding:4px;">';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+</script>
 {% endblock %}

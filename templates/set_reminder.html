@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set Reminder — Job #{{ job.id }}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#f0f4ff 0%,#e8f5e9 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.card{background:white;border-radius:20px;box-shadow:0 8px 40px rgba(0,0,0,0.12);padding:36px;max-width:420px;width:100%;}
+.icon-wrap{width:56px;height:56px;background:#fff3e0;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;}
+.icon-wrap i{font-size:1.5rem;color:#FF6B35;}
+h2{font-size:1.3rem;font-weight:800;color:#1a2332;margin-bottom:4px;}
+.sub{font-size:0.85rem;color:#94a3b8;margin-bottom:24px;}
+.info-box{background:#f8fafc;border-radius:12px;padding:14px 16px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.info-box .label{font-size:0.68rem;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:2px;}
+.info-box .val{font-size:0.9rem;font-weight:700;color:#1a2332;}
+.status{display:inline-block;padding:3px 10px;border-radius:999px;font-size:0.72rem;font-weight:700;color:white;}
+label{display:block;font-size:0.8rem;font-weight:700;color:#475569;margin-bottom:6px;}
+input[type=date]{width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:0.95rem;font-family:inherit;outline:none;transition:border-color .2s;}
+input[type=date]:focus{border-color:#FF6B35;}
+.note{font-size:0.78rem;color:#94a3b8;margin-top:6px;}
+.btn-row{display:flex;gap:10px;margin-top:24px;}
+.btn-primary{flex:1;padding:13px;background:linear-gradient(135deg,#FF6B35,#ff8c00);color:white;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s;}
+.btn-primary:hover{opacity:.9;}
+.btn-sec{padding:13px 20px;background:white;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.9rem;font-weight:600;color:#64748b;cursor:pointer;font-family:inherit;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a2332;color:white;padding:12px 24px;border-radius:10px;font-size:0.875rem;font-weight:600;display:none;z-index:999;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon-wrap"><i class="fas fa-bell"></i></div>
+  <h2>Set Payment Reminder</h2>
+  <p class="sub">Schedule a follow-up reminder for this job</p>
+
+  <div class="info-box">
+    <div>
+      <div class="label">Job ID</div>
+      <div class="val">#{{ job.id }}</div>
+    </div>
+    <div>
+      <div class="label">Status</div>
+      <div class="val">
+        <span class="status" style="background:{{'#9C27B0' if job.status=='Ready' else '#00BCD4' if job.status=='Received' else '#FF9800' if job.status=='Repairing' else '#4CAF50' if job.status=='Delivered' else '#795548'}};">{{ job.status }}</span>
+      </div>
+    </div>
+    <div>
+      <div class="label">Customer</div>
+      <div class="val">{{ job.customer_name }}</div>
+    </div>
+    <div>
+      <div class="label">Payment</div>
+      <div class="val" style="color:{{'#ef4444' if job.paid_status=='Unpaid' else '#f59e0b' if job.paid_status=='Partial' else '#4CAF50'}};">{{ job.paid_status or 'Unpaid' }}</div>
+    </div>
+    {% if job.cost %}
+    <div>
+      <div class="label">Cost</div>
+      <div class="val">₹{{ '%.2f'|format(job.cost|float) }}</div>
+    </div>
+    {% endif %}
+    {% if job.reminder_date %}
+    <div>
+      <div class="label">Current Reminder</div>
+      <div class="val" style="color:#FF6B35;">{{ job.reminder_date }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <form id="reminderForm">
+    <label><i class="fas fa-calendar-alt" style="color:#FF6B35;margin-right:5px;"></i> Reminder Date</label>
+    <input type="date" id="reminderDate" name="reminder_date" required>
+    <div class="note">You will see this reminder on your dashboard on the selected date.</div>
+    <div class="btn-row">
+      <button type="submit" class="btn-primary"><i class="fas fa-bell"></i> Save Reminder</button>
+      <button type="button" class="btn-sec" onclick="window.close()">Close</button>
+    </div>
+  </form>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// Default to 3 days from today
+const d = new Date(); d.setDate(d.getDate()+3);
+document.getElementById('reminderDate').value = d.toISOString().split('T')[0];
+
+document.getElementById('reminderForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const date = document.getElementById('reminderDate').value;
+  const res = await fetch('/jobs/{{ job.id }}/set_reminder', {
+    method: 'POST',
+    headers: {'Content-Type':'application/x-www-form-urlencoded'},
+    body: 'reminder_date=' + encodeURIComponent(date)
+  });
+  if (res.ok) {
+    const t = document.getElementById('toast');
+    t.textContent = 'Reminder set for ' + date + ' ✓';
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display='none'; window.close(); }, 1500);
+  }
+});
+</script>
+</body>
+</html>

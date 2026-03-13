@@ -186,7 +186,7 @@
             <button onclick="closeMenu({{ job.id }});notifyWA({{ job.id }})"><i class="fab fa-whatsapp" style="color:#25D366;"></i> Notify Ready (WA)</button>
             <button onclick="closeMenu({{ job.id }});openDeliver({{ job.id }})"><i class="fas fa-truck" style="color:#FF5722;"></i> Deliver & Invoice</button>
           {% endif %}
-          <button onclick="closeMenu({{ job.id }});openReminder({{ job.id }})"><i class="fas fa-bell" style="color:#FF6B35;"></i> Set Reminder</button>
+          <button onclick="closeMenu({{ job.id }});window.open('/jobs/{{ job.id }}/set_reminder','_blank')"><i class="fas fa-bell" style="color:#FF6B35;"></i> Set Reminder</button>
           <div class="sep"></div>
           <button onclick="closeMenu({{ job.id }});cancelJob({{ job.id }},'{{ job.customer_name|replace("'","\\'")|upper }}')" style="color:#E53935;"><i class="fas fa-times-circle" style="color:#E53935;"></i> Cancel Job</button>
         {% else %}
@@ -498,7 +498,7 @@ function toggleMenu(id) {
   // Smart position: avoid going off screen
   const rect = btn.getBoundingClientRect();
   const ddW = 210, ddH = 360;
-  let top = rect.bottom + window.scrollY + 4;
+  let top = rect.bottom + 4;
   let left = rect.right - ddW;
   if (left < 8) left = rect.left;
   if (left + ddW > window.innerWidth - 8) left = window.innerWidth - ddW - 8;
