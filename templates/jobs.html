@@ -891,7 +891,11 @@ function openDeliver(id) {
   document.getElementById('invItemsContainer').innerHTML='';
   document.getElementById('deliverDiscount').value='0';
   document.getElementById('deliverAdvance').value=bookingAdv.toFixed(2);
-  document.getElementById('creditDueDate').value=new Date().toISOString().split('T')[0];
+  const _today=new Date();
+  const _max=new Date(_today); _max.setDate(_max.getDate()+15);
+  const _fmt=d=>d.toISOString().split('T')[0];
+  const _cdEl=document.getElementById('creditDueDate');
+  _cdEl.min=_fmt(_today); _cdEl.max=_fmt(_max); _cdEl.value=_fmt(_today);
   document.getElementById('creditSection').style.display='none';
   document.getElementById('deliverCreditBadge').style.display='none';
   document.getElementById('deliverFullBadge').style.display='none';
