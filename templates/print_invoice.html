@@ -236,6 +236,11 @@ function renderItems() {
 }
 renderItems();
 
+// Auto-download PDF if ?download=1
+if (new URLSearchParams(window.location.search).get('download') === '1') {
+  window.addEventListener('load', () => setTimeout(downloadPDF, 600));
+}
+
 function downloadPDF() {
   const el = document.getElementById('invoice-content');
   const invNum = 'INV-{{ "%04d"|format(inv.id) }}';

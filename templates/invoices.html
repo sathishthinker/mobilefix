@@ -269,14 +269,7 @@ async function confirmPayment() {
 }
 
 function downloadInvoicePDF(invId) {
-  const url = window.location.origin + '/invoices/' + invId + '/print';
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'INV-' + String(invId).padStart(4,'0') + '.html';
-  a.target = '_blank';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  window.open(window.location.origin + '/invoices/' + invId + '/print?download=1', '_blank');
 }
 
 function sendInvWA(name, phone, invId, total, method) {
