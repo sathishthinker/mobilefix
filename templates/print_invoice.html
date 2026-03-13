@@ -114,12 +114,13 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size
       {% if job %}
       <div class="info-detail">
         <strong>{{ job.device_model }}</strong><br>
+        <span style="color:#00BCD4;font-weight:700;font-size:0.72rem;">Job #{{ job.id }}</span><br>
         {% if job.imei_billing or job.imei %}<span style="color:#94a3b8;font-size:0.65rem;">IMEI: {{ job.imei_billing or job.imei }}</span><br>{% endif %}
         {% if job.aadhar_number %}<span style="color:#f59e0b;font-size:0.65rem;">Aadhar: {{ job.aadhar_number }}</span><br>{% endif %}
         Date: {{ inv.created_at[:10] }}
       </div>
       {% else %}
-      <div class="info-detail">Date: {{ inv.created_at[:10] }}</div>
+      <div class="info-detail">Job #{{ inv.job_id }}<br>Date: {{ inv.created_at[:10] }}</div>
       {% endif %}
     </div>
   </div>
