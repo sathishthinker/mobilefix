@@ -681,9 +681,9 @@ function openWA(phone, msg) {
   document.getElementById('waPhone').value = phone.replace(/\D/g,'').substring(phone.length-10);
   openM('waModal');
 }
-function confirmWA() {
+async function confirmWA() {
   const ph = document.getElementById('waPhone').value.trim();
-  if(ph.length !== 10){ alert('Please enter a valid 10-digit number.'); return; }
+  if(ph.length !== 10){ await showAlert('Please enter a valid 10-digit number.'); return; }
   window.open(`https://wa.me/91${ph}?text=${encodeURIComponent(waPendingMsg)}`,'_blank');
   closeM('waModal');
 }
@@ -728,7 +728,7 @@ function openHappyVerify(id) {
 }
 async function verifyHappy() {
   const code = document.getElementById('happyCodeInput').value.trim();
-  if(code.length!==6){ alert('Happy Code must be 6 digits.'); return; }
+  if(code.length!==6){ await showAlert('Happy Code must be 6 digits.'); return; }
   const r = await fetch(`/jobs/${curId}/verify_happy`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
   const d = await r.json();
   const res = document.getElementById('happyResult');
@@ -754,7 +754,7 @@ function openReminder(id) {
 }
 async function saveReminder() {
   const date=document.getElementById('reminderDate').value;
-  if(!date){ alert('Please select a date.'); return; }
+  if(!date){ await showAlert('Please select a date.'); return; }
   const r=await fetch(`/jobs/${curId}/set_reminder`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({reminder_date:date})});
   if(r.ok){ closeM('reminderModal'); toast('Reminder set for '+date+' ✓'); setTimeout(()=>location.reload(),1200); }
 }
@@ -844,7 +844,7 @@ async function saveDiagnose() {
   const items=[...document.querySelectorAll('#diagnoseItems > div')].map(r=>({desc:r.querySelector('.diag-desc').value.trim(),price:parseFloat(r.querySelector('.diag-price').value||0)})).filter(i=>i.desc);
   const total=items.reduce((s,i)=>s+i.price,0);
   if(total<=0){
-    alert('Please enter a price (quote amount) before saving.');
+    await showAlert('Please enter a price (quote amount) before saving.');
     document.querySelector('.diag-price')&&document.querySelector('.diag-price').focus();
     return;
   }
@@ -856,14 +856,14 @@ async function saveDiagnose() {
   const alreadyPaid=j&&j.advance_amount?parseFloat(j.advance_amount):0;
   if(advVal!==''&&newAdv>0){
     if(newAdv<0){
-      alert('Advance amount cannot be negative.');
+      await showAlert('Advance amount cannot be negative.');
       document.getElementById('diagAdvance').style.borderColor='#ef4444';
       document.getElementById('diagAdvance').focus();
       return;
     }
     if(alreadyPaid+newAdv>total){
       const remaining=Math.max(0,total-alreadyPaid);
-      alert(`Cannot add ₹${newAdv.toFixed(2)} advance.\nAlready paid: ₹${alreadyPaid.toFixed(2)}\nQuote total: ₹${total.toFixed(2)}\nMax you can add: ₹${remaining.toFixed(2)}`);
+      await showAlert(`Cannot add ₹${newAdv.toFixed(2)} advance.\nAlready paid: ₹${alreadyPaid.toFixed(2)}\nQuote total: ₹${total.toFixed(2)}\nMax you can add: ₹${remaining.toFixed(2)}`);
       document.getElementById('diagAdvance').style.borderColor='#ef4444';
       document.getElementById('diagAdvance').focus();
       return;
@@ -878,7 +878,7 @@ async function saveDiagnose() {
 }
 
 async function markReady(id) {
-  if(!confirm('Mark as Ready for Pickup?')) return;
+  if(!await showConfirm('Mark as Ready for Pickup?','✅')) return;
   const r=await fetch(`/jobs/${id}/update`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({status:'Ready'})});
   if(r.ok){ toast('Marked as Ready ✓'); setTimeout(()=>location.reload(),1200); }
 }
@@ -945,8 +945,13 @@ function updInvTotal() {
   const rows=document.querySelectorAll('#invItemsContainer > div');
   let sub=0;
   rows.forEach(r=>{sub+=parseFloat(r.querySelector('.inv-price').value||0)*parseFloat(r.querySelector('.inv-qty').value||1);});
-  const disc=parseFloat(document.getElementById('deliverDiscount').value||0);
+  const discEl=document.getElementById('deliverDiscount');
+  let disc=parseFloat(discEl.value||0);
   const adv=parseFloat(document.getElementById('deliverAdvance').value||0);
+  const maxDisc=Math.max(0,sub-adv);
+  if(disc>maxDisc){ disc=maxDisc; discEl.value=maxDisc.toFixed(2); discEl.style.borderColor='#ef4444'; }
+  else { discEl.style.borderColor=''; }
+  discEl.max=maxDisc.toFixed(2);
   const bal=Math.max(0,sub-disc-adv);
   const box=document.getElementById('balanceBox');
   document.getElementById('invBal').textContent='₹'+bal.toFixed(2);
@@ -1005,7 +1010,7 @@ async function confirmDeliver(doPrint) {
   const imeiInput=document.getElementById('deliverImei');
   if(imeiBox.style.display!=='none'&&!imeiInput.value.trim()){
     imeiInput.style.borderColor='#ef4444'; imeiInput.focus();
-    alert('IMEI / Serial Number is required to generate invoice.'); return;
+    await showAlert('IMEI / Serial Number is required to generate invoice.'); return;
   }
   imeiInput.style.borderColor='';
   // Happy code check
@@ -1016,7 +1021,7 @@ async function confirmDeliver(doPrint) {
     if(entered!==String(j.happy_code)){
       document.getElementById('deliverHappyInput').style.borderColor='#ef4444';
       document.getElementById('deliverHappyInput').focus();
-      alert('Happy Code does not match. Please verify with the customer before releasing the device.');
+      await showAlert('Happy Code does not match. Please verify with the customer before releasing the device.');
       return;
     }
     document.getElementById('deliverHappyInput').style.borderColor='#4ade80';
@@ -1027,7 +1032,7 @@ async function confirmDeliver(doPrint) {
     const aadharVal=aadharInput.value.replace(/\s/g,'');
     if(!/^\d{12}$/.test(aadharVal)){
       aadharInput.style.borderColor='#ef4444'; aadharInput.focus();
-      alert('Aadhar Card Number (12 digits) is mandatory for FRP Lock / Flash invoice.'); return;
+      await showAlert('Aadhar Card Number (12 digits) is mandatory for FRP Lock / Flash invoice.'); return;
     }
     aadharInput.style.borderColor='';
   }
@@ -1040,7 +1045,7 @@ async function confirmDeliver(doPrint) {
   const total=Math.max(0,sub-disc);
   const amountPaidNow=parseFloat(document.getElementById('deliverAmtPaid').value||0);
   const credit=Math.max(0,total-adv-amountPaidNow);
-  if(credit>0.01&&!creditDueDate){ alert('Please set a due date for the remaining credit balance.'); return; }
+  if(credit>0.01&&!creditDueDate){ await showAlert('Please set a due date for the remaining credit balance.'); return; }
   const resp=await fetch(`/jobs/${curId}/deliver`,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({items,discount:disc,advance:adv,amountPaidNow,total,payMethod,creditDueDate,status:'Delivered',imei:imeiInput.value.trim()})});
   if(resp.ok){
@@ -1090,7 +1095,7 @@ function openRefundModal(id, advAmt) {
 }
 async function confirmRefund() {
   const amt = parseFloat(document.getElementById('refundAmount').value || 0);
-  if (amt <= 0) { alert('Please enter refund amount.'); return; }
+  if (amt <= 0) { await showAlert('Please enter refund amount.'); return; }
   const method = document.getElementById('refundMethod').value;
   const date = document.getElementById('refundDate').value;
   const r = await fetch(`/jobs/${refundJobId}/record_refund`, {
@@ -1132,7 +1137,7 @@ async function confirmCancel() {
   const j=JOBS.find(x=>x.id==curId);
   const adv = j ? parseFloat(j.advance_amount||0) : 0;
   let reason=document.getElementById('cancelReason').value;
-  if(reason==='Other'){ const t=document.getElementById('cancelOtherText').value.trim(); if(!t){ alert('Please specify.'); return; } reason='Other: '+t; }
+  if(reason==='Other'){ const t=document.getElementById('cancelOtherText').value.trim(); if(!t){ await showAlert('Please specify the reason.'); return; } reason='Other: '+t; }
   const refundAmt = adv > 0 ? parseFloat(document.getElementById('cancelRefundAmtInput').value||0) : 0;
   const refundMethod = adv > 0 ? document.getElementById('cancelRefundMethod').value : '';
 
@@ -1167,7 +1172,7 @@ function markRework(id) {
 }
 async function confirmRework() {
   const details=document.getElementById('reworkDetails').value.trim();
-  if(!details){ alert('Please describe the rework issue.'); return; }
+  if(!details){ await showAlert('Please describe the rework issue.'); return; }
   const r=await fetch(`/jobs/${curId}/rework`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({details})});
   if(r.ok){ closeM('reworkModal'); toast('Rework job created!'); setTimeout(()=>location.reload(),1200); }
 }

@@ -249,6 +249,68 @@ tbody tr:last-child td { border-bottom: none; }
 </div>
 
 {% block expiry_popup %}{% endblock %}
+
+<!-- Custom centered dialog (replaces browser alert/confirm) -->
+<div id="customDialog" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:18px;padding:32px 28px 24px;max-width:360px;width:90%;box-shadow:0 24px 60px rgba(0,0,0,0.25);text-align:center;animation:dlgIn .18s ease;">
+    <div id="dialogIcon" style="font-size:2rem;margin-bottom:12px;"></div>
+    <div id="dialogMsg" style="font-size:0.93rem;color:#1a2332;line-height:1.65;margin-bottom:24px;white-space:pre-line;"></div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button id="dialogOk" style="background:linear-gradient(135deg,#00BCD4,#0097A7);color:white;border:none;border-radius:10px;padding:10px 30px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;min-width:90px;">OK</button>
+      <button id="dialogCancel" style="background:#f1f5f9;color:#64748b;border:none;border-radius:10px;padding:10px 22px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;display:none;">Cancel</button>
+    </div>
+  </div>
+</div>
+<style>
+@keyframes dlgIn{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
+</style>
+<script>
+(function(){
+  const dlg=document.getElementById('customDialog');
+  const msgEl=document.getElementById('dialogMsg');
+  const iconEl=document.getElementById('dialogIcon');
+  const okBtn=document.getElementById('dialogOk');
+  const cancelBtn=document.getElementById('dialogCancel');
+  function open(){dlg.style.display='flex';}
+  function close(){dlg.style.display='none';}
+  window.showAlert=function(text,icon){
+    return new Promise(res=>{
+      msgEl.textContent=text;
+      iconEl.textContent=icon||'ℹ️';
+      cancelBtn.style.display='none';
+      okBtn.textContent='OK';
+      okBtn.style.background='linear-gradient(135deg,#00BCD4,#0097A7)';
+      open();
+      okBtn.onclick=()=>{close();res();};
+    });
+  };
+  window.showConfirm=function(text,icon){
+    return new Promise(res=>{
+      msgEl.textContent=text;
+      iconEl.textContent=icon||'❓';
+      cancelBtn.style.display='';
+      okBtn.textContent='OK';
+      okBtn.style.background='linear-gradient(135deg,#00BCD4,#0097A7)';
+      open();
+      okBtn.onclick=()=>{close();res(true);};
+      cancelBtn.onclick=()=>{close();res(false);};
+    });
+  };
+  window.showDanger=function(text){
+    return new Promise(res=>{
+      msgEl.textContent=text;
+      iconEl.textContent='⚠️';
+      cancelBtn.style.display='';
+      okBtn.textContent='Delete';
+      okBtn.style.background='linear-gradient(135deg,#ef4444,#b91c1c)';
+      open();
+      okBtn.onclick=()=>{close();res(true);};
+      cancelBtn.onclick=()=>{close();res(false);};
+    });
+  };
+})();
+</script>
+
 {% block scripts %}{% endblock %}
 </body>
 </html>

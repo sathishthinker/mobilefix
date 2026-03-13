@@ -205,12 +205,12 @@ function updatePayBalance() {
 
 async function confirmPayment() {
   const amt = parseFloat(document.getElementById('payAmount').value || 0);
-  if (amt <= 0) { alert('Please enter an amount greater than 0.'); return; }
+  if (amt <= 0) { await showAlert('Please enter an amount greater than 0.'); return; }
   const bal = Math.max(0, curInvTotal - curInvAdv);
-  if (amt > bal + 0.005) { alert(`Amount cannot exceed balance due ₹${bal.toFixed(2)}`); return; }
+  if (amt > bal + 0.005) { await showAlert(`Amount cannot exceed balance due ₹${bal.toFixed(2)}`); return; }
   const remaining = Math.max(0, bal - amt);
   const dueDate = document.getElementById('payDueDate').value;
-  if (remaining > 0.01 && !dueDate) { alert('Please set a due date for the remaining balance.'); return; }
+  if (remaining > 0.01 && !dueDate) { await showAlert('Please set a due date for the remaining balance.'); return; }
   const method = document.getElementById('selectedPayMethod').value;
   let data;
   try {

@@ -92,7 +92,7 @@
   <div class="card-header" style="padding:20px 24px 16px;">
     <div style="display:flex;align-items:center;justify-content:space-between;">
       <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:1rem;">All Registered Shops</div>
-      <input type="text" id="adminSearch" class="form-control" placeholder="🔍  Search shops..." style="max-width:240px;" onkeyup="filterShops()">
+      <input type="text" id="adminSearch" class="form-control" placeholder="🔍  Search shops..." style="max-width:240px;">
     </div>
   </div>
   <div class="card-body" style="padding-top:0;">
@@ -297,7 +297,7 @@ async function confirmPlan() {
   }
 }
 async function deleteUser(uid, name) {
-  if (!confirm(`Delete shop "${name}" and all their data? This cannot be undone.`)) return;
+  if (!await showDanger(`Delete shop "${name}" and all their data? This cannot be undone.`)) return;
   const res = await fetch(`/admin/delete/${uid}`, {method:'POST'});
   const data = await res.json();
   if (data.success) {
@@ -343,10 +343,11 @@ function closeHistory() {
   document.getElementById('historyModal').classList.remove('show');
 }
 function filterShops() {
-  const q = document.getElementById('adminSearch').value.toLowerCase();
-  document.querySelectorAll('#shopsTable tbody tr').forEach(row => {
+  const q = document.getElementById('adminSearch').value.toLowerCase().trim();
+  document.querySelectorAll('#shopsTable tr:not(thead tr)').forEach(row => {
     row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
   });
 }
+document.getElementById('adminSearch').addEventListener('input', filterShops);
 </script>
 {% endblock %}
