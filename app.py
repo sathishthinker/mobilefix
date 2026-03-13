@@ -106,7 +106,7 @@ def init_db():
         for col in ['advance_amount REAL DEFAULT 0','discount REAL DEFAULT 0','pay_method TEXT','paid TEXT DEFAULT "Unpaid"','due_date TEXT']:
             try: db.execute(f"ALTER TABLE invoices ADD COLUMN {col}"); db.commit()
             except: pass
-        for col in ['logo TEXT']:
+        for col in ['logo TEXT', 'google_review_link TEXT']:
             try: db.execute(f"ALTER TABLE users ADD COLUMN {col}"); db.commit()
             except: pass
         # Subscription history table
@@ -618,6 +618,7 @@ def settings():
     if request.method == 'POST':
         shop_name = request.form.get('shop_name','').strip()
         address = request.form.get('address','').strip()
+        google_review_link = request.form.get('google_review_link','').strip()
         new_pw = request.form.get('new_password','')
         logo_data = None
         if 'logo' in request.files:
@@ -625,7 +626,8 @@ def settings():
             if f and f.filename:
                 mime = f.content_type or 'image/png'
                 logo_data = 'data:' + mime + ';base64,' + base64.b64encode(f.read()).decode()
-        db.execute("UPDATE users SET shop_name=?,address=? WHERE id=?", (shop_name, address, session['user_id']))
+        db.execute("UPDATE users SET shop_name=?,address=?,google_review_link=? WHERE id=?",
+                   (shop_name, address, google_review_link, session['user_id']))
         if new_pw and len(new_pw) >= 6:
             db.execute("UPDATE users SET password=? WHERE id=?", (hash_pw(new_pw), session['user_id']))
         if logo_data:
