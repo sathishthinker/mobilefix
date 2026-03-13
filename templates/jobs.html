@@ -502,7 +502,7 @@ function toggleMenu(id) {
   let left = rect.right - ddW;
   if (left < 8) left = rect.left;
   if (left + ddW > window.innerWidth - 8) left = window.innerWidth - ddW - 8;
-  if (rect.bottom + ddH > window.innerHeight) top = rect.top + window.scrollY - ddH - 4;
+  if (rect.bottom + ddH > window.innerHeight) top = rect.top - ddH - 4;
   dd.style.top = top + 'px';
   dd.style.left = left + 'px';
   dd.classList.add('open');
