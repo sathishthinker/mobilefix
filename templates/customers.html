@@ -76,6 +76,9 @@
               <td style="font-size:0.8rem;color:#94a3b8;">{{ job.delivery_date or 'N/A' }}</td>
               <td style="white-space:nowrap;">
                 <button onclick='viewCustJob({{ job | tojson }})' style="background:#00BCD4;color:white;border:none;border-radius:7px;padding:4px 10px;font-size:0.75rem;font-weight:600;cursor:pointer;margin:2px;">View Details</button>
+                {% if job.inv_balance and job.inv_balance > 0 %}
+                <button onclick="window.open('/jobs/{{ job.id }}/set_reminder','_blank')" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:7px;padding:4px 10px;font-size:0.75rem;font-weight:600;cursor:pointer;margin:2px;"><i class="fas fa-bell"></i> Reminder</button>
+                {% endif %}
                 {% if job.inv_id %}
                 <a href="https://wa.me/91{{ c.phone }}?text={{ ('Invoice for your repair: ' + request.host_url + 'invoices/' + job.inv_id|string + '/print')|urlencode }}" style="background:#25D366;color:white;border:none;border-radius:7px;padding:4px 10px;font-size:0.75rem;font-weight:600;text-decoration:none;display:inline-block;margin:2px;"><i class="fab fa-whatsapp"></i> Invoice</a>
                 {% endif %}
