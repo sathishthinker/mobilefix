@@ -232,7 +232,10 @@ def login_required(f):
 def admin_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        if session.get('role') != 'admin': return redirect(url_for('login'))
+        if session.get('role') != 'admin':
+            if request.method == 'POST' or request.headers.get('X-Requested-With') or request.is_json:
+                return jsonify({'error': 'Unauthorized'}), 401
+            return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated
 
@@ -807,8 +810,10 @@ def admin_sub_history(uid):
 @admin_required
 def admin_delete_user(uid):
     db = get_db()
-    db.execute("DELETE FROM repair_jobs WHERE user_id=%s", (uid,))
+    # Order matters: delete referencing tables before referenced ones (PostgreSQL FK enforcement)
     db.execute("DELETE FROM invoices WHERE user_id=%s", (uid,))
+    db.execute("DELETE FROM subscription_history WHERE user_id=%s", (uid,))
+    db.execute("DELETE FROM repair_jobs WHERE user_id=%s", (uid,))
     db.execute("DELETE FROM users WHERE id=%s", (uid,))
     db.commit(); db.close()
     return jsonify({'success': True})

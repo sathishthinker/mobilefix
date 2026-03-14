@@ -248,22 +248,25 @@ function showToast(msg) {
 }
 
 async function toggleAccount(uid) {
-  const res = await fetch(`/admin/toggle/${uid}`, {method:'POST'});
-  const data = await res.json();
-  const btn = document.getElementById(`toggle-btn-${uid}`);
-  const txt = document.getElementById(`toggle-text-${uid}`);
-  const icon = btn.querySelector('i');
-  if (data.enabled) {
-    btn.className = 'btn btn-sm btn-danger';
-    txt.textContent = 'Disable';
-    icon.className = 'fas fa-ban';
-    showToast('Account enabled');
-  } else {
-    btn.className = 'btn btn-sm btn-success';
-    txt.textContent = 'Enable';
-    icon.className = 'fas fa-check';
-    showToast('Account disabled');
-  }
+  try {
+    const res = await fetch(`/admin/toggle/${uid}`, {method:'POST'});
+    if (!res.ok) { if(res.status===401){location.href='/login';} else showToast('Error: '+res.status); return; }
+    const data = await res.json();
+    const btn = document.getElementById(`toggle-btn-${uid}`);
+    const txt = document.getElementById(`toggle-text-${uid}`);
+    const icon = btn.querySelector('i');
+    if (data.enabled) {
+      btn.className = 'btn btn-sm btn-danger';
+      txt.textContent = 'Disable';
+      icon.className = 'fas fa-ban';
+      showToast('Account enabled');
+    } else {
+      btn.className = 'btn btn-sm btn-success';
+      txt.textContent = 'Enable';
+      icon.className = 'fas fa-check';
+      showToast('Account disabled');
+    }
+  } catch(e) { showToast('Network error. Please try again.'); }
 }
 
 function openSubModal(uid, name) {
@@ -286,24 +289,30 @@ function selectPlan(plan, btn) {
 }
 async function confirmPlan() {
   if (!currentUid || !selectedPlan) return;
-  const fd = new FormData();
-  fd.append('plan', selectedPlan);
-  const res = await fetch(`/admin/set_subscription/${currentUid}`, {method:'POST', body:fd});
-  const data = await res.json();
-  if (data.success) {
-    showToast(`Plan activated! Expires: ${data.end_date}`);
-    closeSubModal();
-    setTimeout(() => location.reload(), 1500);
-  }
+  try {
+    const fd = new FormData();
+    fd.append('plan', selectedPlan);
+    const res = await fetch(`/admin/set_subscription/${currentUid}`, {method:'POST', body:fd});
+    if (!res.ok) { if(res.status===401){location.href='/login';} else showToast('Error: '+res.status); return; }
+    const data = await res.json();
+    if (data.success) {
+      showToast(`Plan activated! Expires: ${data.end_date}`);
+      closeSubModal();
+      setTimeout(() => location.reload(), 1500);
+    }
+  } catch(e) { showToast('Network error. Please try again.'); }
 }
 async function deleteUser(uid, name) {
   if (!await showDanger(`Delete shop "${name}" and all their data? This cannot be undone.`)) return;
-  const res = await fetch(`/admin/delete/${uid}`, {method:'POST'});
-  const data = await res.json();
-  if (data.success) {
-    document.getElementById(`row-${uid}`).remove();
-    showToast('Shop deleted successfully');
-  }
+  try {
+    const res = await fetch(`/admin/delete/${uid}`, {method:'POST'});
+    if (!res.ok) { if(res.status===401){location.href='/login';} else showToast('Error: '+res.status); return; }
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById(`row-${uid}`).remove();
+      showToast('Shop deleted successfully');
+    }
+  } catch(e) { showToast('Network error. Please try again.'); }
 }
 document.getElementById('subModal').addEventListener('click', function(e) {
   if (e.target === this) closeSubModal();
