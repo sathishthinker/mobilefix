@@ -407,9 +407,9 @@ def update_job(job_id):
     existing = db.execute("SELECT advance_amount, advance_history FROM repair_jobs WHERE id=%s AND user_id=%s",
                           (job_id, session['user_id'])).fetchone()
     has_cost = 'cost' in request.form
-    now_str = _now_str()
-    set_parts = ['status=%s', 'diagnosed_at=COALESCE(diagnosed_at,%s)', 'updated_at=%s']
-    params = [request.form.get('status'), now_str, now_str]
+    _ts = "to_char(NOW() AT TIME ZONE 'UTC','YYYY-MM-DD HH24:MI:SS')"
+    set_parts = ['status=%s', f'diagnosed_at=COALESCE(diagnosed_at,{_ts})', f'updated_at={_ts}']
+    params = [request.form.get('status')]
     if has_cost:
         new_cost = float(request.form.get('cost') or 0)
         set_parts.insert(1, 'cost=%s')
