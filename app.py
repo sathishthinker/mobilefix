@@ -336,12 +336,18 @@ def update_job(job_id):
     set_parts = ['status=?', 'diagnosed_at=COALESCE(diagnosed_at,datetime("now"))', 'updated_at=datetime("now")']
     params = [request.form.get('status')]
     if has_cost:
+        new_cost = float(request.form.get('cost') or 0)
         set_parts.insert(1, 'cost=?')
         set_parts.insert(2, 'notes=?')
         set_parts.insert(3, 'quote_items=?')
-        params += [float(request.form.get('cost') or 0),
-                   request.form.get('notes', ''),
-                   request.form.get('quote_items', '')]
+        params += [new_cost, request.form.get('notes', ''), request.form.get('quote_items', '')]
+        # If no new advance being added, recalculate paid_status from existing advance vs new cost
+        if adv_str is None or new_adv == 0:
+            row = db.execute("SELECT advance_amount FROM repair_jobs WHERE id=? AND user_id=?", (job_id, session['user_id'])).fetchone()
+            cur_adv = float(row['advance_amount'] or 0) if row else 0
+            recalc_paid = 'Paid' if new_cost > 0 and cur_adv >= new_cost else ('Partial' if cur_adv > 0 else 'Unpaid')
+            set_parts.insert(4, 'paid_status=?')
+            params += [recalc_paid]
     if adv_str is not None and new_adv > 0:
         adv_method = request.form.get('advance_method', '')
         old_total = float(existing['advance_amount'] or 0) if existing else 0
@@ -349,10 +355,17 @@ def update_job(job_id):
         history.append({'amount': new_adv, 'method': adv_method,
                         'date': datetime.now(IST).strftime('%Y-%m-%d %H:%M')})
         total_adv = old_total + new_adv
+        # Recalculate paid_status based on total advance vs cost
+        cost_val = float(request.form.get('cost') or 0) if has_cost else None
+        if cost_val is None:
+            row = db.execute("SELECT cost FROM repair_jobs WHERE id=? AND user_id=?", (job_id, session['user_id'])).fetchone()
+            cost_val = float(row['cost'] or 0) if row and row['cost'] else 0
+        new_paid = 'Paid' if cost_val > 0 and total_adv >= cost_val else ('Partial' if total_adv > 0 else 'Unpaid')
         set_parts.insert(-2, 'advance_amount=?')
         set_parts.insert(-2, 'advance_method=?')
         set_parts.insert(-2, 'advance_history=?')
-        params += [total_adv, adv_method, json.dumps(history)]
+        set_parts.insert(-2, 'paid_status=?')
+        params += [total_adv, adv_method, json.dumps(history), new_paid]
     params += [job_id, session['user_id']]
     db.execute(f"UPDATE repair_jobs SET {', '.join(set_parts)} WHERE id=? AND user_id=?", params)
     db.commit()
