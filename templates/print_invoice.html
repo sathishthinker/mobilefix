@@ -205,7 +205,7 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size
 </div>
 
 <script>
-const RAW_ITEMS = {{ inv.items | tojson if inv.items else '[]' | tojson }};
+const RAW_ITEMS = {{ inv['items'] | tojson if inv['items'] else '[]' | tojson }};
 const TOTAL = {{ inv.total }};
 const ADV = {{ inv.advance_amount or 0 }};
 const DISC = {{ inv.discount or 0 }};
