@@ -449,7 +449,7 @@
 {% block scripts %}
 <script>
 const JOBS = {{ jobs_json|safe }};
-const SHOP = { name:{{ user.shop_name|default('My Shop')|tojson }}, phone:{{ (user.phone or '')|tojson }}, address:{{ user.address|default('')|tojson }} };
+const SHOP = { name:{{ user.shop_name|default('My Shop')|tojson }}, phone:{{ (user.phone or '')|tojson }}, address:{{ user.address|default('')|tojson }}, review:{{ (user.google_review_link or '')|tojson }} };
 let curId = null, waPendingMsg = '', waPendingPhone = '';
 
 // ── Overdue & Partial toggle ──
@@ -714,6 +714,7 @@ function sendInvoice(id) {
   if(j.cost) m+=`*Total:* ₹${parseFloat(j.cost).toFixed(2)}\n`;
   if(j.advance_amount>0) m+=`*Advance Paid:* ₹${parseFloat(j.advance_amount).toFixed(2)}\n*Balance Due:* ₹${Math.max(0,j.cost-j.advance_amount).toFixed(2)}\n`;
   m+=`*Status:* ${j.paid_status||'Unpaid'}`;
+  if(SHOP.review) m+=`\n\n⭐ *Happy with the service? Leave us a review:*\n${SHOP.review}`;
   openWA(j.customer_phone, m);
 }
 
