@@ -72,7 +72,7 @@
                 <span style="color:#16a34a;font-size:0.8rem;font-weight:600;padding:6px 4px;"><i class="fas fa-check-circle"></i> Settled</span>
                 {% endif %}
                 {% if inv.customer_phone %}
-                <button onclick="sendInvWA('{{ inv.customer_name }}','{{ inv.customer_phone }}','{{ inv.id }}','{{ inv.total }}','{{ inv.pay_method or 'Cash' }}')"
+                <button onclick="sendInvWA('{{ inv.customer_name }}','{{ inv.customer_phone }}','{{ inv.id }}')"
                   style="background:#25D366;color:white;border:none;border-radius:8px;padding:6px 11px;cursor:pointer;font-size:0.85rem;">
                   <i class="fab fa-whatsapp"></i>
                 </button>
@@ -157,6 +157,8 @@
 
 {% block scripts %}
 <script>
+const INVOICES = {{ invoices_json|safe }};
+const SHOP = { name:{{ user.shop_name|default('My Shop')|tojson }}, phone:{{ (user.phone or '')|tojson }}, address:{{ user.address|default('')|tojson }}, review:{{ (user.google_review_link or '')|tojson }} };
 let curInvId = null, curInvTotal = 0, curInvAdv = 0;
 
 function openPayModal(invId, total, adv) {
@@ -272,9 +274,35 @@ function downloadInvoicePDF(invId) {
   window.open(window.location.origin + '/invoices/' + invId + '/print?download=1', '_blank');
 }
 
-function sendInvWA(name, phone, invId, total, method) {
-  const msg = `*INVOICE — INV-${String(invId).padStart(4,'0')}*\n\nDear *${name}*,\nYour invoice has been generated.\n\n*Total: ₹${parseFloat(total).toFixed(2)}*\nPayment: ${method}\n\nThank you for choosing us!`;
-  window.open('https://wa.me/91'+phone.replace(/\D/g,'')+'?text='+encodeURIComponent(msg),'_blank');
+function sendInvWA(name, phone, invId) {
+  const inv = INVOICES.find(x => x.id == invId); if(!inv) return;
+  const now = new Date();
+  const dateStr = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
+  const adv = parseFloat(inv.advance_amount || 0);
+  const disc = parseFloat(inv.discount || 0);
+  const total = parseFloat(inv.total || 0);
+  const credit = Math.max(0, total - adv);
+  let items = [];
+  try { items = JSON.parse(inv.items || '[]'); } catch(e) {}
+  let m = `*--- INVOICE ---*\n*${SHOP.name}*\n${SHOP.address}\nPhone: ${SHOP.phone}\n\n`;
+  m += `Dear *${name}*,\nHere is your invoice.\n\n`;
+  m += `*Invoice:* INV-${String(invId).padStart(4,'0')}\n*Date:* ${dateStr}\n\n`;
+  if(items.length) {
+    m += `*Services/Parts:*\n`;
+    items.forEach(i => { m += `- ${i.qty||1} x ${i.desc} @ ₹${parseFloat(i.price).toFixed(2)} = ₹${((i.qty||1)*i.price).toFixed(2)}\n`; });
+    m += `\n-----------------------------------\n`;
+    const sub = items.reduce((s,i) => s+(i.qty||1)*i.price, 0);
+    m += `*Subtotal:* ₹${sub.toFixed(2)}\n`;
+    if(disc > 0) m += `*Discount:* -₹${disc.toFixed(2)}\n`;
+    m += `*Grand Total:* ₹${total.toFixed(2)}\n`;
+    m += `-----------------------------------\n\n`;
+  }
+  m += `*Total Paid:* ₹${adv.toFixed(2)}\n`;
+  const statusTxt = credit < 0.01 ? 'COMPLETED' : `PARTIAL — Balance Due: ₹${credit.toFixed(2)}`;
+  m += `*Payment Status:* ${statusTxt}\n\n`;
+  m += `Thank you for your business!\n`;
+  if(SHOP.review) m += `\nWe value your feedback! Please take a moment to leave us a review:\n${SHOP.review}`;
+  window.open('https://wa.me/91'+phone.replace(/\D/g,'').slice(-10)+'?text='+encodeURIComponent(m),'_blank');
 }
 
 function toast(msg) {

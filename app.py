@@ -486,8 +486,9 @@ def invoices():
     db = get_db()
     user = db.execute("SELECT * FROM users WHERE id=?", (session['user_id'],)).fetchone()
     all_inv = db.execute("SELECT * FROM invoices WHERE user_id=? ORDER BY created_at DESC", (session['user_id'],)).fetchall()
-    return render_template('invoices.html', invoices=all_inv, user=user,
-                           status=subscription_status(user), days_left=days_left(user))
+    inv_list = [dict(r) for r in all_inv]
+    return render_template('invoices.html', invoices=all_inv, invoices_json=json.dumps(inv_list),
+                           user=user, status=subscription_status(user), days_left=days_left(user))
 
 @app.route('/invoices/create', methods=['GET','POST'])
 @active_required
