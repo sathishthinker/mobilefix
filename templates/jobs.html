@@ -675,7 +675,11 @@ function viewJob(id) {
 }
 function printFromDetails() { const j=JOBS.find(x=>x.id==curId); if(j) printJobCard(curId); closeM('viewModal'); }
 
-// ── WhatsApp with editable number ──
+// ── WhatsApp helpers ──
+function directWA(phone, msg) {
+  const ph = phone.replace(/\D/g,'').slice(-10);
+  if(ph.length === 10) window.open(`https://wa.me/91${ph}?text=${encodeURIComponent(msg)}`,'_blank');
+}
 function openWA(phone, msg) {
   waPendingMsg = msg; waPendingPhone = phone;
   document.getElementById('waPhone').value = phone.replace(/\D/g,'').substring(phone.length-10);
@@ -1083,7 +1087,7 @@ async function confirmDeliver(doPrint) {
     if(doPrint&&d.inv_id) setTimeout(()=>window.open(`/invoices/${d.inv_id}/print`,'_blank'),400);
     // Auto-send WhatsApp invoice
     const waMsg=buildInvoiceWAMsg(j,items,sub,disc,adv,amountPaidNow,total,credit);
-    setTimeout(()=>openWA(j.customer_phone, waMsg),600);
+    setTimeout(()=>directWA(j.customer_phone, waMsg),600);
     setTimeout(()=>location.reload(),1400);
   } else toast('Error saving delivery.','#E53935');
 }
