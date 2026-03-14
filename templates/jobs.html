@@ -706,15 +706,39 @@ function notifyWA(id) {
   m+=`*${SHOP.name}* | ${SHOP.phone}`;
   openWA(j.customer_phone, m);
 }
+function buildInvoiceWAMsg(j, items, sub, disc, adv, amtPaid, total, credit) {
+  const now=new Date();
+  const dateStr=`${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
+  let m=`*--- INVOICE ---*\n*${SHOP.name}*\n${SHOP.address}\nPhone: ${SHOP.phone}\n\n`;
+  m+=`Dear *${j.customer_name}*,\nHere is the invoice for your *${j.device_model}*.\n\n`;
+  m+=`*Job ID:* #${j.id}\n*Date:* ${dateStr}\n\n`;
+  if(items&&items.length){
+    m+=`*Services/Parts:*\n`;
+    items.forEach(i=>{ m+=`- ${i.qty} x ${i.desc} @ ₹${parseFloat(i.price).toFixed(2)} = ₹${(i.qty*i.price).toFixed(2)}\n`; });
+    m+=`\n-----------------------------------\n`;
+    m+=`*Subtotal:* ₹${sub.toFixed(2)}\n`;
+    if(disc>0) m+=`*Discount:* -₹${disc.toFixed(2)}\n`;
+    m+=`*Grand Total:* ₹${total.toFixed(2)}\n`;
+    m+=`-----------------------------------\n\n`;
+  }
+  const totalPaid=adv+amtPaid;
+  m+=`*Total Paid:* ₹${totalPaid.toFixed(2)}\n`;
+  if(adv>0) m+=`  (Advance: ₹${adv.toFixed(2)} + Now: ₹${amtPaid.toFixed(2)})\n`;
+  const statusTxt=credit>0.01?`PARTIAL — Balance Due: ₹${credit.toFixed(2)}`:'COMPLETED';
+  m+=`*Payment Status:* ${statusTxt}\n\n`;
+  m+=`Thank you for your business!\n`;
+  if(SHOP.review) m+=`\nWe value your feedback! Please take a moment to leave us a review:\n${SHOP.review}`;
+  return m;
+}
 function sendInvoice(id) {
   const j=JOBS.find(x=>x.id==id); if(!j) return;
-  let m=`*--- INVOICE ---*\n*${SHOP.name}*\n${SHOP.address} | ${SHOP.phone}\n\nDear *${j.customer_name}*,\nThank you for choosing us!\n\n`;
-  m+=`*Job ID:* #${j.id}\n*Device:* ${j.device_model}\n`;
-  if(j.imei_billing||j.imei) m+=`*IMEI/SN:* ${j.imei_billing||j.imei}\n`;
-  if(j.cost) m+=`*Total:* ₹${parseFloat(j.cost).toFixed(2)}\n`;
-  if(j.advance_amount>0) m+=`*Advance Paid:* ₹${parseFloat(j.advance_amount).toFixed(2)}\n*Balance Due:* ₹${Math.max(0,j.cost-j.advance_amount).toFixed(2)}\n`;
-  m+=`*Status:* ${j.paid_status||'Unpaid'}`;
-  if(SHOP.review) m+=`\n\n⭐ *Happy with the service? Leave us a review:*\n${SHOP.review}`;
+  const cost=parseFloat(j.cost||0);
+  const adv=parseFloat(j.advance_amount||0);
+  const amtPaid=Math.max(0,cost-adv);
+  const items=j.quote_items?JSON.parse(j.quote_items):[{desc:'Repair Service',qty:1,price:cost}];
+  const sub=items.reduce((s,i)=>s+(i.qty||1)*i.price,0);
+  const credit=0;
+  const m=buildInvoiceWAMsg(j,items,sub,0,adv,amtPaid,cost,credit);
   openWA(j.customer_phone, m);
 }
 
@@ -1057,6 +1081,9 @@ async function confirmDeliver(doPrint) {
     const d=await resp.json();
     closeM('deliverModal'); toast('Delivered! Invoice saved ✓');
     if(doPrint&&d.inv_id) setTimeout(()=>window.open(`/invoices/${d.inv_id}/print`,'_blank'),400);
+    // Auto-send WhatsApp invoice
+    const waMsg=buildInvoiceWAMsg(j,items,sub,disc,adv,amountPaidNow,total,credit);
+    setTimeout(()=>openWA(j.customer_phone, waMsg),600);
     setTimeout(()=>location.reload(),1400);
   } else toast('Error saving delivery.','#E53935');
 }
