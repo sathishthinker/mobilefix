@@ -130,25 +130,33 @@ def _parse_dt(s):
     if not s: return None
     return datetime.fromisoformat(str(s)[:19]).replace(tzinfo=timezone.utc)
 
+def _trial_end(trial_start):
+    """Trial expires at midnight IST on the 30th day (end of the 30th day)."""
+    if not trial_start: return None
+    ist_start = trial_start.astimezone(IST)
+    end_day = (ist_start + timedelta(days=30)).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+    return end_day.astimezone(timezone.utc)
+
 def subscription_status(user):
     if not user['enabled']: return 'inactive'
     now = datetime.now(timezone.utc)
     trial_start = _parse_dt(user['trial_start'])
     sub_end = _parse_dt(user['subscription_end'])
     if sub_end and now < sub_end: return 'active'
-    if trial_start and now < trial_start + timedelta(days=30): return 'trial'
+    if trial_start and now < _trial_end(trial_start): return 'trial'
     if sub_end and now >= sub_end: return 'expired'
-    if trial_start and now >= trial_start + timedelta(days=30): return 'trial_expired'
+    if trial_start and now >= _trial_end(trial_start): return 'trial_expired'
     return 'trial'
 
 def days_left(user):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(IST)
     sub_end = _parse_dt(user['subscription_end'])
     trial_start = _parse_dt(user['trial_start'])
     if sub_end:
-        return max(0, (sub_end - now).days)
+        return max(0, (sub_end.astimezone(IST) - now).days)
     if trial_start:
-        return max(0, (trial_start + timedelta(days=30) - now).days)
+        trial_expire = _trial_end(trial_start).astimezone(IST)
+        return max(0, (trial_expire - now).days)
     return 0
 
 def login_required(f):

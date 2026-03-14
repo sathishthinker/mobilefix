@@ -3,6 +3,35 @@
 {% block page_title %}Dashboard{% endblock %}
 {% block content %}
 
+{% if status == 'trial' %}
+<div style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border-radius:14px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;box-shadow:0 4px 16px rgba(245,158,11,0.3);">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <i class="fas fa-clock" style="font-size:1.4rem;opacity:0.9;"></i>
+    <div>
+      <div style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1rem;">Free Trial Active</div>
+      <div style="font-size:0.82rem;opacity:0.9;">
+        {% if days_left > 1 %}{{ days_left }} days remaining — trial ends at midnight on day 30
+        {% elif days_left == 1 %}Last day of trial — expires tonight at midnight
+        {% else %}Trial expires today at midnight
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <a href="{{ url_for('subscription_page') }}" style="background:white;color:#d97706;padding:8px 18px;border-radius:10px;font-weight:700;font-size:0.85rem;text-decoration:none;white-space:nowrap;"><i class="fas fa-crown"></i> Upgrade Now</a>
+</div>
+{% elif status == 'trial_expired' %}
+<div style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border-radius:14px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;box-shadow:0 4px 16px rgba(239,68,68,0.3);">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <i class="fas fa-exclamation-circle" style="font-size:1.4rem;"></i>
+    <div>
+      <div style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1rem;">Trial Expired</div>
+      <div style="font-size:0.82rem;opacity:0.9;">Your 30-day free trial has ended. Upgrade to continue using MobileFix Pro.</div>
+    </div>
+  </div>
+  <a href="{{ url_for('subscription_page') }}" style="background:white;color:#dc2626;padding:8px 18px;border-radius:10px;font-weight:700;font-size:0.85rem;text-decoration:none;white-space:nowrap;"><i class="fas fa-crown"></i> Upgrade Now</a>
+</div>
+{% endif %}
+
 <div class="page-header">
   <div>
     <div class="page-title">{{ user.shop_name or 'My Shop' }} 👋</div>
