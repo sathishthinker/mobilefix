@@ -53,22 +53,22 @@
         </div>
         <div class="form-group">
           <label class="form-label">Shop Name</label>
-          <input type="text" name="shop_name" class="form-control" value="{{ user.shop_name or '' }}" placeholder="Your shop name">
+          <input type="text" name="shop_name" class="form-control" value="{{ user.shop_name or '' }}" placeholder="Your shop name" style="text-transform:uppercase">
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div class="form-group">
             <label class="form-label">Door No / Flat</label>
-            <input type="text" name="door_no" class="form-control" value="{{ user.door_no or '' }}" placeholder="e.g. 12/A, Shop 3">
+            <input type="text" name="door_no" class="form-control" value="{{ user.door_no or '' }}" placeholder="e.g. 12/A, SHOP 3" style="text-transform:uppercase">
           </div>
           <div class="form-group">
             <label class="form-label">Area / Street</label>
-            <input type="text" name="street" class="form-control" value="{{ user.street or '' }}" placeholder="e.g. Gandhi Nagar Road">
+            <input type="text" name="street" class="form-control" value="{{ user.street or '' }}" placeholder="e.g. GANDHI NAGAR ROAD" style="text-transform:uppercase">
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div class="form-group">
             <label class="form-label">City</label>
-            <input type="text" name="city" class="form-control" value="{{ user.city or '' }}" placeholder="e.g. Coimbatore">
+            <input type="text" name="city" class="form-control" value="{{ user.city or '' }}" placeholder="e.g. COIMBATORE" style="text-transform:uppercase">
           </div>
           <div class="form-group">
             <label class="form-label">Pincode</label>
