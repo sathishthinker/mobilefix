@@ -171,16 +171,70 @@ tbody tr:last-child td { border-bottom: none; }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  .sidebar { transform: translateX(-100%); }
+  .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay { display: block; }
   .main { margin-left: 0; }
-  .content { padding: 20px 16px; }
+  .content { padding: 16px 12px 80px; }
+  .topbar { padding: 0 16px; }
+  .topbar-title { font-size: 1rem; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stat-card { padding: 14px 12px; }
+  .stat-num { font-size: 1.5rem; }
+  .modal-box { padding: 24px 18px; border-radius: 14px; max-height: 90vh; overflow-y: auto; }
+  .hamburger { display: flex !important; }
+  .sub-badge { display: none; }
+  .bottom-nav { display: flex !important; }
+  table { font-size: 0.78rem; }
+  thead th, tbody td { padding: 10px 8px; }
 }
+@media (min-width: 769px) {
+  .hamburger { display: none !important; }
+  .bottom-nav { display: none !important; }
+  .sidebar-overlay { display: none !important; }
+}
+
+/* ── SIDEBAR OVERLAY ── */
+.sidebar-overlay {
+  display: none;
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 99; backdrop-filter: blur(2px);
+}
+
+/* ── HAMBURGER ── */
+.hamburger {
+  display: none; flex-direction: column; justify-content: center;
+  gap: 5px; width: 36px; height: 36px; cursor: pointer;
+  background: none; border: none; padding: 4px;
+}
+.hamburger span {
+  display: block; width: 22px; height: 2px;
+  background: var(--text); border-radius: 2px; transition: all 0.3s;
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0;
+  height: 62px; background: white; border-top: 1px solid var(--border);
+  z-index: 90; box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+  align-items: stretch;
+}
+.bnav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 3px; text-decoration: none;
+  color: #94a3b8; font-size: 0.62rem; font-weight: 600;
+  padding: 6px 4px; transition: color 0.2s; border: none; background: none;
+}
+.bnav-item i { font-size: 1.1rem; }
+.bnav-item.active { color: var(--teal); }
+.bnav-item.active i { color: var(--teal); }
 </style>
 {% block extra_head %}{% endblock %}
 </head>
 <body>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 {% if session.get('user_id') and session.get('role') != 'admin' %}
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="logo-icon"><i class="fas fa-mobile-alt"></i></div>
     <div class="logo-text">Mobile<span>Fix</span><br><small style="font-size:0.65rem;color:#7a90a8;font-weight:400;">Repair Management</small></div>
@@ -199,7 +253,7 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
 </aside>
 {% elif session.get('role') == 'admin' %}
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
     <div class="logo-text">Mobile<span>Fix</span><br><small style="font-size:0.65rem;color:#7a90a8;font-weight:400;">Admin Panel</small></div>
@@ -216,7 +270,12 @@ tbody tr:last-child td { border-bottom: none; }
 <div class="main">
 {% if session.get('user_id') %}
   <div class="topbar">
-    <span class="topbar-title">{% block page_title %}MobileFix Pro{% endblock %}</span>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <span class="topbar-title">{% block page_title %}MobileFix Pro{% endblock %}</span>
+    </div>
     <div class="topbar-right">
       {% if session.get('role') != 'admin' %}
         {% if status is defined %}
@@ -249,6 +308,26 @@ tbody tr:last-child td { border-bottom: none; }
 </div>
 
 {% block expiry_popup %}{% endblock %}
+
+{% if session.get('user_id') and session.get('role') != 'admin' %}
+<nav class="bottom-nav">
+  <a href="{{ url_for('dashboard') }}" class="bnav-item {% if request.endpoint=='dashboard' %}active{% endif %}">
+    <i class="fas fa-th-large"></i>Home
+  </a>
+  <a href="{{ url_for('jobs') }}" class="bnav-item {% if 'job' in request.endpoint %}active{% endif %}">
+    <i class="fas fa-tools"></i>Jobs
+  </a>
+  <a href="{{ url_for('invoices') }}" class="bnav-item {% if 'invoice' in request.endpoint %}active{% endif %}">
+    <i class="fas fa-file-invoice"></i>Invoices
+  </a>
+  <a href="{{ url_for('customers') }}" class="bnav-item {% if request.endpoint=='customers' %}active{% endif %}">
+    <i class="fas fa-users"></i>Customers
+  </a>
+  <a href="{{ url_for('settings') }}" class="bnav-item {% if request.endpoint=='settings' %}active{% endif %}">
+    <i class="fas fa-cog"></i>Settings
+  </a>
+</nav>
+{% endif %}
 
 <!-- Custom centered dialog (replaces browser alert/confirm) -->
 <div id="customDialog" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;">
@@ -312,5 +391,25 @@ tbody tr:last-child td { border-bottom: none; }
 </script>
 
 {% block scripts %}{% endblock %}
+<script>
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');
+  const ov=document.getElementById('sidebarOverlay');
+  if(!sb) return;
+  sb.classList.toggle('open');
+  ov.style.display = sb.classList.contains('open') ? 'block' : 'none';
+}
+function closeSidebar(){
+  const sb=document.getElementById('sidebar');
+  const ov=document.getElementById('sidebarOverlay');
+  if(!sb) return;
+  sb.classList.remove('open');
+  ov.style.display='none';
+}
+// Close sidebar when a nav link is tapped on mobile
+document.querySelectorAll('.sidebar .nav-link').forEach(function(a){
+  a.addEventListener('click', function(){ if(window.innerWidth<=768) closeSidebar(); });
+});
+</script>
 </body>
 </html>
