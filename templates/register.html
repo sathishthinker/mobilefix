@@ -76,7 +76,7 @@ textarea.form-control{padding-left:38px;resize:vertical;min-height:80px;}
         <label class="form-label">Email Address <span style="color:#ef4444;">*</span></label>
         <div class="input-wrap">
           <i class="fas fa-envelope"></i>
-          <input type="email" name="email" class="form-control" placeholder="you@email.com" required>
+          <input type="email" name="email" class="form-control" placeholder="you@email.com" required pattern="[^@]+@[^@]+\.[^@]+" title="Enter a valid email address (e.g. you@email.com)">
         </div>
       </div>
     </div>
@@ -115,7 +115,7 @@ textarea.form-control{padding-left:38px;resize:vertical;min-height:80px;}
         <label class="form-label">Pincode</label>
         <div class="input-wrap">
           <i class="fas fa-map-pin"></i>
-          <input type="text" name="pincode" class="form-control" placeholder="e.g. 641001" maxlength="6">
+          <input type="tel" name="pincode" class="form-control" placeholder="e.g. 641001" maxlength="6" minlength="6" pattern="\d{6}" title="Enter a valid 6-digit pincode" inputmode="numeric">
         </div>
       </div>
     </div>
