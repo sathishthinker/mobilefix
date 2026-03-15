@@ -168,7 +168,8 @@ def init_db():
             except Exception:
                 db.rollback()
 
-        for col in ["logo TEXT", "google_review_link TEXT", "phone TEXT"]:
+        for col in ["logo TEXT", "google_review_link TEXT", "phone TEXT",
+                    "door_no TEXT", "street TEXT", "city TEXT", "pincode TEXT"]:
             try:
                 db.execute(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col}")
                 db.commit()
@@ -297,7 +298,14 @@ def register():
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
         shop_name = request.form.get('shop_name', '').strip()
-        address = request.form.get('address', '').strip()
+        door_no   = request.form.get('door_no', '').strip()
+        street    = request.form.get('street', '').strip()
+        city      = request.form.get('city', '').strip()
+        pincode   = request.form.get('pincode', '').strip()
+        addr_parts = [p for p in [door_no, street] if p]
+        addr_line1 = ', '.join(addr_parts)
+        addr_line2 = city + (' - ' + pincode if pincode else '')
+        address = '\n'.join([l for l in [addr_line1, addr_line2] if l])
         if not re.match(r'^\d{10}$', phone):
             flash('Phone must be exactly 10 digits.', 'error'); return render_template('register.html')
         if not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
@@ -308,8 +316,8 @@ def register():
         if db.execute("SELECT id FROM users WHERE phone=%s OR email=%s", (phone, email)).fetchone():
             db.close()
             flash('Phone or email already registered.', 'error'); return render_template('register.html')
-        db.execute('INSERT INTO users (phone,email,password,shop_name,address,trial_start) VALUES (%s,%s,%s,%s,%s,%s)',
-                   (phone, email, hash_pw(password), shop_name, address, _now_str()))
+        db.execute('INSERT INTO users (phone,email,password,shop_name,address,door_no,street,city,pincode,trial_start) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+                   (phone, email, hash_pw(password), shop_name, address, door_no, street, city, pincode, _now_str()))
         db.commit(); db.close()
         flash('Registration successful! Your 30-day free trial has started.', 'success')
         return redirect(url_for('login'))
@@ -709,18 +717,25 @@ def settings():
     db = get_db()
     user = db.execute("SELECT * FROM users WHERE id=%s", (session['user_id'],)).fetchone()
     if request.method == 'POST':
-        shop_name           = request.form.get('shop_name', '').strip()
-        address             = request.form.get('address', '').strip()
-        google_review_link  = request.form.get('google_review_link', '').strip()
-        new_pw              = request.form.get('new_password', '')
+        shop_name          = request.form.get('shop_name', '').strip()
+        door_no            = request.form.get('door_no', '').strip()
+        street             = request.form.get('street', '').strip()
+        city               = request.form.get('city', '').strip()
+        pincode            = request.form.get('pincode', '').strip()
+        addr_parts = [p for p in [door_no, street] if p]
+        addr_line1 = ', '.join(addr_parts)
+        addr_line2 = city + (' - ' + pincode if pincode else '')
+        address = '\n'.join([l for l in [addr_line1, addr_line2] if l])
+        google_review_link = request.form.get('google_review_link', '').strip()
+        new_pw             = request.form.get('new_password', '')
         logo_data = None
         if 'logo' in request.files:
             f = request.files['logo']
             if f and f.filename:
                 mime = f.content_type or 'image/png'
                 logo_data = 'data:' + mime + ';base64,' + base64.b64encode(f.read()).decode()
-        db.execute("UPDATE users SET shop_name=%s,address=%s,google_review_link=%s WHERE id=%s",
-                   (shop_name, address, google_review_link, session['user_id']))
+        db.execute("UPDATE users SET shop_name=%s,address=%s,door_no=%s,street=%s,city=%s,pincode=%s,google_review_link=%s WHERE id=%s",
+                   (shop_name, address, door_no, street, city, pincode, google_review_link, session['user_id']))
         if new_pw and len(new_pw) >= 6:
             db.execute("UPDATE users SET password=%s WHERE id=%s", (hash_pw(new_pw), session['user_id']))
         if logo_data:

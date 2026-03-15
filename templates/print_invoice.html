@@ -102,7 +102,14 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size
     <div class="inv-info-cell">
       <div class="info-label">From</div>
       <div class="info-name">{{ user.shop_name or 'My Shop' }}</div>
-      <div class="info-detail">{{ user.address or '' }}<br>📞 {{ user.phone }}</div>
+      <div class="info-detail">
+        {% if user.door_no or user.street %}
+          {{ user.door_no or '' }}{% if user.door_no and user.street %}, {% endif %}{{ user.street or '' }}<br>
+        {% endif %}
+        {% if user.city %}{{ user.city }}{% if user.pincode %} - {{ user.pincode }}{% endif %}<br>{% endif %}
+        {% if not (user.door_no or user.street or user.city) and user.address %}{{ user.address }}<br>{% endif %}
+        📞 {{ user.phone }}
+      </div>
     </div>
     <div class="inv-info-cell">
       <div class="info-label">Bill To</div>

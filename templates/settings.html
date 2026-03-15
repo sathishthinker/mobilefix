@@ -55,9 +55,25 @@
           <label class="form-label">Shop Name</label>
           <input type="text" name="shop_name" class="form-control" value="{{ user.shop_name or '' }}" placeholder="Your shop name">
         </div>
-        <div class="form-group">
-          <label class="form-label">Shop Address</label>
-          <textarea name="address" class="form-control" placeholder="Full address...">{{ user.address or '' }}</textarea>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Door No / Flat</label>
+            <input type="text" name="door_no" class="form-control" value="{{ user.door_no or '' }}" placeholder="e.g. 12/A, Shop 3">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Area / Street</label>
+            <input type="text" name="street" class="form-control" value="{{ user.street or '' }}" placeholder="e.g. Gandhi Nagar Road">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label class="form-label">City</label>
+            <input type="text" name="city" class="form-control" value="{{ user.city or '' }}" placeholder="e.g. Coimbatore">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pincode</label>
+            <input type="text" name="pincode" class="form-control" value="{{ user.pincode or '' }}" placeholder="e.g. 641001" maxlength="6">
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label"><i class="fab fa-google" style="color:#4285F4;"></i> Google Review Link</label>
