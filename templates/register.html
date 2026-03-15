@@ -123,12 +123,72 @@ textarea.form-control{padding-left:38px;resize:vertical;min-height:80px;}
       <label class="form-label">Password <span style="color:#ef4444;">*</span></label>
       <div class="input-wrap">
         <i class="fas fa-lock"></i>
-        <input type="password" name="password" class="form-control" placeholder="Min. 6 characters" required minlength="6">
+        <input type="password" name="password" id="pwdInput" class="form-control" placeholder="Create a strong password" required minlength="6" oninput="checkPwd(this.value)">
+        <span id="pwdToggle" onclick="togglePwd()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:0.85rem;"><i class="fas fa-eye" id="pwdEyeIcon"></i></span>
+      </div>
+      <!-- Strength bar -->
+      <div id="strengthBar" style="display:none;margin-top:8px;">
+        <div style="display:flex;gap:4px;margin-bottom:6px;">
+          <div id="sb1" style="flex:1;height:4px;border-radius:2px;background:#e2e8f0;transition:background .3s;"></div>
+          <div id="sb2" style="flex:1;height:4px;border-radius:2px;background:#e2e8f0;transition:background .3s;"></div>
+          <div id="sb3" style="flex:1;height:4px;border-radius:2px;background:#e2e8f0;transition:background .3s;"></div>
+          <div id="sb4" style="flex:1;height:4px;border-radius:2px;background:#e2e8f0;transition:background .3s;"></div>
+        </div>
+        <div id="strengthLabel" style="font-size:0.75rem;font-weight:600;margin-bottom:8px;"></div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div id="r1" class="pwd-rule"><i class="fas fa-circle-xmark" style="color:#e2e8f0;font-size:0.7rem;"></i> <span>At least 6 characters</span></div>
+          <div id="r2" class="pwd-rule"><i class="fas fa-circle-xmark" style="color:#e2e8f0;font-size:0.7rem;"></i> <span>At least 1 uppercase letter (A–Z)</span></div>
+          <div id="r3" class="pwd-rule"><i class="fas fa-circle-xmark" style="color:#e2e8f0;font-size:0.7rem;"></i> <span>At least 1 number (0–9)</span></div>
+          <div id="r4" class="pwd-rule"><i class="fas fa-circle-xmark" style="color:#e2e8f0;font-size:0.7rem;"></i> <span>At least 1 special character (!@#$...)</span></div>
+        </div>
       </div>
     </div>
     <button type="submit" class="btn-block"><i class="fas fa-rocket"></i> Start Free Trial</button>
   </form>
   <p class="link-row">Already have an account? <a href="{{ url_for('login') }}">Sign In</a></p>
 </div>
+<style>
+.pwd-rule{font-size:0.75rem;color:#64748b;display:flex;align-items:center;gap:6px;transition:color .2s;}
+.pwd-rule.pass{color:#16a34a;}
+.pwd-rule.pass i{color:#16a34a !important;}
+</style>
+<script>
+function togglePwd(){
+  const inp=document.getElementById('pwdInput');
+  const icon=document.getElementById('pwdEyeIcon');
+  if(inp.type==='password'){inp.type='text';icon.className='fas fa-eye-slash';}
+  else{inp.type='password';icon.className='fas fa-eye';}
+}
+function checkPwd(v){
+  document.getElementById('strengthBar').style.display = v.length ? '' : 'none';
+  const rules=[
+    {id:'r1', ok: v.length>=6},
+    {id:'r2', ok: /[A-Z]/.test(v)},
+    {id:'r3', ok: /[0-9]/.test(v)},
+    {id:'r4', ok: /[^A-Za-z0-9]/.test(v)},
+  ];
+  let score=0;
+  rules.forEach(r=>{
+    const el=document.getElementById(r.id);
+    const icon=el.querySelector('i');
+    if(r.ok){el.className='pwd-rule pass';icon.className='fas fa-circle-check';score++;}
+    else{el.className='pwd-rule';icon.className='fas fa-circle-xmark';icon.style.color='#e2e8f0';}
+  });
+  const bars=['sb1','sb2','sb3','sb4'];
+  const colors=['#ef4444','#f97316','#eab308','#16a34a'];
+  const labels=[
+    {text:'Too weak',color:'#ef4444'},
+    {text:'Weak',color:'#f97316'},
+    {text:'Medium',color:'#eab308'},
+    {text:'Strong',color:'#16a34a'},
+  ];
+  bars.forEach((id,i)=>{
+    document.getElementById(id).style.background = i<score ? colors[score-1] : '#e2e8f0';
+  });
+  const lbl=document.getElementById('strengthLabel');
+  if(score===0){lbl.textContent='';}
+  else{lbl.textContent=labels[score-1].text;lbl.style.color=labels[score-1].color;}
+}
+</script>
 </body>
 </html>
