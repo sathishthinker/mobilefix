@@ -52,27 +52,27 @@
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Shop Name</label>
-          <input type="text" name="shop_name" class="form-control" value="{{ user.shop_name or '' }}" placeholder="Your shop name" style="text-transform:uppercase">
+          <label class="form-label">Shop Name <span style="color:#ef4444;">*</span></label>
+          <input type="text" name="shop_name" class="form-control" value="{{ user.shop_name or '' }}" placeholder="Your shop name" required style="text-transform:uppercase">
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div class="form-group">
-            <label class="form-label">Door No / Flat</label>
-            <input type="text" name="door_no" class="form-control" value="{{ user.door_no or '' }}" placeholder="e.g. 12/A, SHOP 3" style="text-transform:uppercase">
+            <label class="form-label">Door No / Flat <span style="color:#ef4444;">*</span></label>
+            <input type="text" name="door_no" class="form-control" value="{{ user.door_no or '' }}" placeholder="e.g. 12/A, SHOP 3" required style="text-transform:uppercase">
           </div>
           <div class="form-group">
-            <label class="form-label">Area / Street</label>
-            <input type="text" name="street" class="form-control" value="{{ user.street or '' }}" placeholder="e.g. GANDHI NAGAR ROAD" style="text-transform:uppercase">
+            <label class="form-label">Area / Street <span style="color:#ef4444;">*</span></label>
+            <input type="text" name="street" class="form-control" value="{{ user.street or '' }}" placeholder="e.g. GANDHI NAGAR ROAD" required style="text-transform:uppercase">
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div class="form-group">
-            <label class="form-label">City</label>
-            <input type="text" name="city" class="form-control" value="{{ user.city or '' }}" placeholder="e.g. COIMBATORE" style="text-transform:uppercase">
+            <label class="form-label">City <span style="color:#ef4444;">*</span></label>
+            <input type="text" name="city" class="form-control" value="{{ user.city or '' }}" placeholder="e.g. COIMBATORE" required style="text-transform:uppercase">
           </div>
           <div class="form-group">
-            <label class="form-label">Pincode</label>
-            <input type="text" name="pincode" class="form-control" value="{{ user.pincode or '' }}" placeholder="e.g. 641001" maxlength="6">
+            <label class="form-label">Pincode <span style="color:#ef4444;">*</span></label>
+            <input type="tel" name="pincode" class="form-control" value="{{ user.pincode or '' }}" placeholder="e.g. 641001" required maxlength="6" minlength="6" pattern="\d{6}" title="Enter a valid 6-digit pincode" inputmode="numeric">
           </div>
         </div>
         <div class="form-group">
@@ -87,7 +87,25 @@
         </div>
         <div class="form-group">
           <label class="form-label">New Password <span style="color:#94a3b8;font-weight:400;">(leave blank to keep current)</span></label>
-          <input type="password" name="new_password" class="form-control" placeholder="Min. 6 characters" minlength="6">
+          <div style="position:relative;">
+            <input type="password" name="new_password" id="sPwdInput" class="form-control" placeholder="Create a strong password" minlength="6" oninput="sCheckPwd(this.value)" style="padding-right:40px;">
+            <span onclick="sTogglePwd()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:0.85rem;"><i class="fas fa-eye" id="sPwdEyeIcon"></i></span>
+          </div>
+          <div id="sStrengthBar" style="display:none;margin-top:8px;">
+            <div style="display:flex;gap:4px;margin-bottom:6px;">
+              <div id="ssb1" style="flex:1;height:4px;border-radius:2px;background:#e2e8f0;transition:background .3s;"></div>
+              <div id="ssb2" style="flex:1;height:4px;border-radius:2px;background:#e2e8f0;transition:background .3s;"></div>
+              <div id="ssb3" style="flex:1;height:4px;border-radius:2px;background:#e2e8f0;transition:background .3s;"></div>
+              <div id="ssb4" style="flex:1;height:4px;border-radius:2px;background:#e2e8f0;transition:background .3s;"></div>
+            </div>
+            <div id="sStrengthLabel" style="font-size:0.75rem;font-weight:600;margin-bottom:8px;"></div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div id="sr1" class="spwd-rule"><i class="fas fa-circle-xmark" style="color:#e2e8f0;font-size:0.7rem;"></i> <span>At least 6 characters</span></div>
+              <div id="sr2" class="spwd-rule"><i class="fas fa-circle-xmark" style="color:#e2e8f0;font-size:0.7rem;"></i> <span>At least 1 uppercase letter (A–Z)</span></div>
+              <div id="sr3" class="spwd-rule"><i class="fas fa-circle-xmark" style="color:#e2e8f0;font-size:0.7rem;"></i> <span>At least 1 number (0–9)</span></div>
+              <div id="sr4" class="spwd-rule"><i class="fas fa-circle-xmark" style="color:#e2e8f0;font-size:0.7rem;"></i> <span>At least 1 special character (!@#$...)</span></div>
+            </div>
+          </div>
         </div>
         <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;"><i class="fas fa-save"></i> Save Settings</button>
       </form>
@@ -96,6 +114,11 @@
 </div>
 {% endblock %}
 {% block scripts %}
+<style>
+.spwd-rule{font-size:0.75rem;color:#64748b;display:flex;align-items:center;gap:6px;transition:color .2s;}
+.spwd-rule.pass{color:#16a34a;}
+.spwd-rule.pass i{color:#16a34a !important;}
+</style>
 <script>
 function previewLogo(input) {
   if (!input.files || !input.files[0]) return;
@@ -105,6 +128,41 @@ function previewLogo(input) {
     prev.outerHTML = '<img id="logoPreview" src="'+e.target.result+'" alt="Logo" style="width:64px;height:64px;object-fit:contain;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;padding:4px;">';
   };
   reader.readAsDataURL(input.files[0]);
+}
+function sTogglePwd(){
+  const inp=document.getElementById('sPwdInput');
+  const icon=document.getElementById('sPwdEyeIcon');
+  if(inp.type==='password'){inp.type='text';icon.className='fas fa-eye-slash';}
+  else{inp.type='password';icon.className='fas fa-eye';}
+}
+function sCheckPwd(v){
+  document.getElementById('sStrengthBar').style.display = v.length ? '' : 'none';
+  const rules=[
+    {id:'sr1', ok: v.length>=6},
+    {id:'sr2', ok: /[A-Z]/.test(v)},
+    {id:'sr3', ok: /[0-9]/.test(v)},
+    {id:'sr4', ok: /[^A-Za-z0-9]/.test(v)},
+  ];
+  let score=0;
+  rules.forEach(r=>{
+    const el=document.getElementById(r.id);
+    const icon=el.querySelector('i');
+    if(r.ok){el.className='spwd-rule pass';icon.className='fas fa-circle-check';score++;}
+    else{el.className='spwd-rule';icon.className='fas fa-circle-xmark';icon.style.color='#e2e8f0';}
+  });
+  const colors=['#ef4444','#f97316','#eab308','#16a34a'];
+  const labels=[
+    {text:'Too weak',color:'#ef4444'},
+    {text:'Weak',color:'#f97316'},
+    {text:'Medium',color:'#eab308'},
+    {text:'Strong',color:'#16a34a'},
+  ];
+  ['ssb1','ssb2','ssb3','ssb4'].forEach((id,i)=>{
+    document.getElementById(id).style.background = i<score ? colors[score-1] : '#e2e8f0';
+  });
+  const lbl=document.getElementById('sStrengthLabel');
+  if(score===0){lbl.textContent='';}
+  else{lbl.textContent=labels[score-1].text;lbl.style.color=labels[score-1].color;}
 }
 </script>
 {% endblock %}
