@@ -924,13 +924,32 @@ def forgot_password():
         db.close()
         if user:
             session['fp_uid'] = user['id']
+            session['fp_2fa_done'] = False
+            if user['totp_enabled'] and user['totp_secret']:
+                return redirect(url_for('forgot_password_2fa'))
+            session['fp_2fa_done'] = True
             return redirect(url_for('forgot_password_reset'))
         flash('No account found with that email and phone combination.', 'error')
     return render_template('forgot_password.html', step=1)
 
+@app.route('/forgot-password/2fa', methods=['GET', 'POST'])
+def forgot_password_2fa():
+    if 'fp_uid' not in session:
+        return redirect(url_for('forgot_password'))
+    if request.method == 'POST':
+        code = request.form.get('code', '').strip().replace(' ', '')
+        db = get_db()
+        user = db.execute("SELECT * FROM users WHERE id=%s", (session['fp_uid'],)).fetchone()
+        db.close()
+        if user and user['totp_secret'] and pyotp.TOTP(user['totp_secret']).verify(code, valid_window=1):
+            session['fp_2fa_done'] = True
+            return redirect(url_for('forgot_password_reset'))
+        flash('Invalid or expired code. Please try again.', 'error')
+    return render_template('forgot_password.html', step='2fa')
+
 @app.route('/forgot-password/reset', methods=['GET', 'POST'])
 def forgot_password_reset():
-    if 'fp_uid' not in session:
+    if 'fp_uid' not in session or not session.get('fp_2fa_done'):
         return redirect(url_for('forgot_password'))
     if request.method == 'POST':
         new_pw = request.form.get('new_password', '')
@@ -941,6 +960,7 @@ def forgot_password_reset():
         db.execute("UPDATE users SET password=%s WHERE id=%s", (hash_pw(new_pw), session['fp_uid']))
         db.commit(); db.close()
         session.pop('fp_uid', None)
+        session.pop('fp_2fa_done', None)
         flash('Password reset successfully! Please log in with your new password.', 'success')
         return redirect(url_for('login'))
     return render_template('forgot_password.html', step=2)
