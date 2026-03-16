@@ -29,7 +29,7 @@
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th>#</th><th>Customer</th><th>Total (₹)</th><th>Advance</th><th>Balance Due</th><th>Method</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+          <tr><th>#</th><th>Customer</th><th>Total (₹)</th><th>Paid</th><th>Balance Due</th><th>Method</th><th>Status</th><th>Date</th><th>Actions</th></tr>
         </thead>
         <tbody>
           {% for inv in invoices %}
@@ -166,7 +166,7 @@ function openPayModal(invId, total, adv) {
   const bal = Math.max(0, total - adv);
   document.getElementById('payModalInfo').innerHTML =
     `Invoice <strong>INV-${String(invId).padStart(4,'0')}</strong> &nbsp;|&nbsp; Total: <strong>₹${total.toFixed(2)}</strong>` +
-    (adv > 0 ? ` &nbsp;|&nbsp; Already Paid: <strong style="color:#4CAF50;">₹${adv.toFixed(2)}</strong>` : '') +
+    (adv > 0 ? ` &nbsp;|&nbsp; Amount Paid: <strong style="color:#4CAF50;">₹${adv.toFixed(2)}</strong>` : '') +
     `<br><span style="color:#ef4444;font-weight:700;">Balance Due: ₹${bal.toFixed(2)}</span>`;
   document.getElementById('payAmount').value = bal.toFixed(2);
   document.getElementById('payDueDate').value = '';
@@ -236,6 +236,12 @@ async function confirmPayment() {
   }
   if (data.ok) {
     document.getElementById('payModal').classList.remove('show');
+    // Keep INVOICES array in sync so WA message uses fresh data
+    const invIdx = INVOICES.findIndex(x => x.id == curInvId);
+    if (invIdx >= 0) {
+      INVOICES[invIdx].advance_amount = data.advance;
+      INVOICES[invIdx].paid = data.paid;
+    }
     // Update row in-place
     const advEl = document.getElementById(`inv-adv-${curInvId}`);
     const balEl = document.getElementById(`inv-bal-${curInvId}`);
