@@ -242,6 +242,10 @@ function showToast(msg) {
 }
 
 async function toggleAccount(uid) {
+  const txt = document.getElementById(`toggle-text-${uid}`).textContent.trim();
+  const action = txt === 'Disable' ? 'disable' : 'enable';
+  const icon = action === 'disable' ? '⛔' : '✅';
+  if (!await showConfirm(`Are you sure you want to ${action} this shop account?`, icon)) return;
   try {
     const res = await fetch(`/admin/toggle/${uid}`, {method:'POST'});
     if (!res.ok) { if(res.status===401){location.href='/login';} else showToast('Error: '+res.status); return; }
