@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% block title %}Setup 2FA{% endblock %}
+{% block page_title %}Two-Factor Authentication{% endblock %}
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+{% endblock %}
+{% block content %}
+<div style="max-width:500px;margin:0 auto;">
+
+  <!-- Steps indicator -->
+  <div style="display:flex;align-items:center;gap:0;margin-bottom:28px;">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+      <div style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;">1</div>
+      <span style="font-size:0.7rem;font-weight:600;color:var(--teal);">Scan</span>
+    </div>
+    <div style="flex:1;height:2px;background:var(--teal);margin:0 4px 18px;"></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+      <div style="width:32px;height:32px;border-radius:50%;background:#e2e8f0;color:#94a3b8;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;">2</div>
+      <span style="font-size:0.7rem;font-weight:600;color:#94a3b8;">Verify</span>
+    </div>
+    <div style="flex:1;height:2px;background:#e2e8f0;margin:0 4px 18px;"></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+      <div style="width:32px;height:32px;border-radius:50%;background:#e2e8f0;color:#94a3b8;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;">3</div>
+      <span style="font-size:0.7rem;font-weight:600;color:#94a3b8;">Done</span>
+    </div>
+  </div>
+
+  <!-- Step 1: Scan QR -->
+  <div class="card" style="margin-bottom:20px;">
+    <div class="card-body">
+      <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:16px;">
+        Step 1 — Scan QR Code
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:16px;margin-bottom:20px;">
+        <div id="qrcode" style="padding:12px;background:white;border:2px solid #e2e8f0;border-radius:14px;display:inline-block;"></div>
+        <div style="text-align:center;">
+          <div style="font-size:0.82rem;color:#64748b;margin-bottom:8px;">Can't scan? Enter this key manually:</div>
+          <div style="font-family:monospace;font-size:1rem;font-weight:700;background:#f1f5f9;padding:8px 16px;border-radius:8px;letter-spacing:3px;color:#1a2332;word-break:break-all;">{{ secret }}</div>
+          <button onclick="copySecret()" style="margin-top:8px;background:none;border:none;color:var(--teal);font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;">
+            <i class="fas fa-copy"></i> Copy key
+          </button>
+        </div>
+      </div>
+
+      <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:14px;">
+        <div style="font-size:0.78rem;font-weight:700;color:#0369a1;margin-bottom:8px;"><i class="fas fa-circle-info"></i> How to scan</div>
+        <ol style="font-size:0.8rem;color:#0c4a6e;line-height:1.8;padding-left:18px;">
+          <li>Open <strong>Google Authenticator</strong> or <strong>Authy</strong> app</li>
+          <li>Tap the <strong>+</strong> button → <strong>Scan a QR code</strong></li>
+          <li>Point your camera at the QR code above</li>
+          <li>"MobileFix Pro" will appear in your app</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Verify -->
+  <div class="card">
+    <div class="card-body">
+      <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:16px;">
+        Step 2 — Verify &amp; Activate
+      </div>
+      <p style="font-size:0.85rem;color:#64748b;margin-bottom:20px;">Enter the 6-digit code shown in your authenticator app to confirm the setup.</p>
+
+      <form method="POST" action="{{ url_for('verify_2fa_setup') }}" id="verifyForm">
+        <input type="hidden" name="code" id="codeInput">
+        <div style="display:flex;gap:10px;justify-content:center;margin-bottom:20px;">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+        </div>
+        <button type="submit" class="btn btn-primary" id="activateBtn" disabled style="width:100%;padding:12px;font-size:0.95rem;">
+          <i class="fas fa-shield-halved"></i> Activate 2FA
+        </button>
+      </form>
+
+      <div style="text-align:center;margin-top:16px;">
+        <a href="{{ url_for('settings') }}" style="font-size:0.82rem;color:#94a3b8;text-decoration:none;"><i class="fas fa-arrow-left"></i> Cancel, go back to Settings</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+{% block scripts %}
+<style>
+.otp-box{width:44px;height:52px;border:2px solid #e2e8f0;border-radius:10px;text-align:center;font-size:1.4rem;font-weight:700;font-family:'Exo 2',sans-serif;color:#1a2332;background:#f8fafc;transition:all .2s;}
+.otp-box:focus{outline:none;border-color:var(--teal);background:white;box-shadow:0 0 0 3px var(--teal-glow);}
+.otp-box.filled{border-color:var(--teal);background:white;}
+@media(max-width:480px){
+  .otp-box{width:38px;height:46px;font-size:1.2rem;}
+}
+</style>
+<script>
+// QR Code
+new QRCode(document.getElementById('qrcode'), {
+  text: {{ totp_uri|tojson }},
+  width: 180, height: 180,
+  colorDark: '#0d1b2a', colorLight: '#ffffff',
+  correctLevel: QRCode.CorrectLevel.M
+});
+
+// OTP boxes
+const boxes = document.querySelectorAll('.otp-box');
+const codeInput = document.getElementById('codeInput');
+const activateBtn = document.getElementById('activateBtn');
+
+boxes.forEach((box, i) => {
+  box.addEventListener('input', function() {
+    this.value = this.value.replace(/[^0-9]/g, '');
+    if (this.value) { this.classList.add('filled'); if (i < boxes.length-1) boxes[i+1].focus(); }
+    else this.classList.remove('filled');
+    updateCode();
+  });
+  box.addEventListener('keydown', function(e) {
+    if (e.key === 'Backspace' && !this.value && i > 0) {
+      boxes[i-1].value = ''; boxes[i-1].classList.remove('filled'); boxes[i-1].focus(); updateCode();
+    }
+  });
+  box.addEventListener('paste', function(e) {
+    e.preventDefault();
+    const p = (e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'');
+    [...p].slice(0,6).forEach((ch,j)=>{ if(boxes[j]){boxes[j].value=ch;boxes[j].classList.add('filled');} });
+    updateCode();
+    boxes[Math.min(p.length,5)].focus();
+  });
+});
+
+function updateCode() {
+  const val = [...boxes].map(b=>b.value).join('');
+  codeInput.value = val;
+  activateBtn.disabled = val.length < 6;
+}
+
+function copySecret() {
+  navigator.clipboard.writeText('{{ secret }}').then(()=> showAlert('Secret key copied!','📋'));
+}
+
+boxes[0].focus();
+</script>
+{% endblock %}

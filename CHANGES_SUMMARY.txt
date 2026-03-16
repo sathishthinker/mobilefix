@@ -1,0 +1,157 @@
+================================================================
+  MobileFix Pro v4 — Changes Summary
+  Project: mobilefix.up.railway.app
+  GitHub:  github.com/sathishthinker/mobilefix
+================================================================
+
+----------------------------------------------------------------
+YESTERDAY'S CHANGES
+----------------------------------------------------------------
+
+1. INVOICE PRINT REDESIGN
+   - Compact A5 landscape layout (was A4)
+   - 3-column header: From | Bill To | Job Details
+   - 2-column bottom: Payment Info + Terms | Summary Table
+   - Added "Download PDF" button using html2pdf.js
+   - Shop logo displayed in invoice header (if uploaded)
+
+2. COLLECT PAYMENT CAP
+   - Payment amount in invoice section cannot exceed outstanding balance
+   - Shows real-time balance remaining as user types
+
+3. WHATSAPP URL FIX
+   - All WA buttons updated from whatsapp://send to https://wa.me/91...
+   - Fixed in: jobs.html, invoices.html, customers.html
+
+4. REFUND ON CANCELLATION
+   - Cancel modal redesigned as "Return & Refund" form
+   - Fields: Job ID, Customer, Advance Paid (read-only),
+             Refund Amount (read-only), Refund Method, Reason
+   - New DB columns: refund_amount, refund_method, refund_date
+   - New route: POST /jobs/<id>/record_refund
+
+5. WHATSAPP MESSAGE ON CANCEL
+   - Auto-triggers WA message after confirming cancellation
+   - Message includes: customer name, device, job ID,
+     advance paid, refund amount/method, UPI note if applicable
+   - window.open() called BEFORE await to avoid browser popup block
+
+6. SECRET_KEY PERSISTENCE
+   - Changed from os.urandom(24) to os.environ.get('SECRET_KEY')
+   - Prevents session invalidation on every server restart
+   - Set SECRET_KEY in Railway environment variables
+
+7. ADMIN CREDENTIALS VIA ENV VARIABLES
+   - ADMIN_EMAIL, ADMIN_PHONE, ADMIN_PASSWORD can be set via env
+   - Falls back to: admin@mobilefix.com / 0000000000 / admin123
+
+8. USER MANUAL
+   - Created templates/user_manual.html
+   - 14 sections covering all features
+   - Route: /manual
+
+9. DUE AMOUNT IN INVOICES
+   - Due date field appears when partial payment entered
+   - Stored in invoices.due_date column
+   - Shown in amber on invoice list under Balance Due
+
+----------------------------------------------------------------
+TODAY'S CHANGES
+----------------------------------------------------------------
+
+1. BALANCE DUE FIX IN CUSTOMER POPUP
+   - Was showing cost - advance (booking advance only)
+   - Now uses inv_balance (actual invoice remaining after delivery)
+   - Correctly shows "Paid" for fully settled delivered jobs
+   - File: templates/customers.html
+
+2. ACTIONS DROPDOWN POSITION FIX
+   - Dropdown moved to document.body (portal pattern) to escape
+     overflow:hidden and stacking-context parent containers
+   - Measures actual dropdown height off-screen before positioning
+     (prevents wrong flip for mid-page buttons)
+   - toggle-btn-{id} added for precise button reference
+   - File: templates/jobs.html
+
+3. SET REMINDER → NEW TAB PAGE
+   - "Set Reminder" now opens /jobs/<id>/set_reminder in new tab
+   - Dedicated full-page form with job details + date picker
+   - Created: templates/set_reminder.html
+   - Updated: app.py (GET + POST route)
+
+4. COMPANY LOGO UPLOAD IN SETTINGS
+   - New logo upload field in Shop Settings
+   - Preview shown instantly before saving
+   - Stored as base64 data URL in users.logo DB column
+   - Displayed in invoice print header
+   - Files: templates/settings.html, app.py
+
+5. TRIAL DAYS FIX
+   - Added migration: UPDATE users SET trial_start=datetime('now')
+     WHERE trial_start IS NULL
+   - Fixes 0 days remaining shown for existing users
+   - File: app.py
+
+6. INVOICE PDF DOWNLOAD
+   - Download button now generates real A5 landscape PDF
+   - Uses html2pdf.js via ?download=1 URL param
+   - Auto-triggers PDF download when page loads with that param
+   - Files: templates/invoices.html, templates/print_invoice.html
+
+7. IST TIMEZONE
+   - All timestamps now use IST (UTC+5:30)
+   - Added IST = timezone(timedelta(hours=5, minutes=30))
+   - Applied to: job received time, advance history, refund date
+   - File: app.py
+
+8. EXPECTED RETURN DATE CAP
+   - Max 15 days from today allowed when creating a new job
+   - File: templates/add_job.html
+
+9. REMOVE "VERIFY HAPPY CODE" FROM ACTIONS MENU
+   - Removed from the Actions dropdown in Repair Jobs list
+   - File: templates/jobs.html
+
+10. INVOICE FORMAT UPDATE
+    - Updated print_invoice.html to match reference design
+    - A5 landscape, shop logo in header, tighter padding/fonts
+    - 3 buttons: Print Invoice | Download PDF | Close
+
+----------------------------------------------------------------
+DATABASE COLUMNS ADDED (Migrations)
+----------------------------------------------------------------
+
+repair_jobs table:
+  - refund_amount REAL DEFAULT 0
+  - refund_method TEXT
+  - refund_date TEXT
+
+invoices table:
+  - due_date TEXT
+
+users table:
+  - logo TEXT
+
+----------------------------------------------------------------
+ENVIRONMENT VARIABLES (Railway)
+----------------------------------------------------------------
+
+  SECRET_KEY      = <random strong key>
+  DATABASE_PATH   = /app/instance/mobilefix.db
+  ADMIN_EMAIL     = your-email@example.com
+  ADMIN_PHONE     = your-phone-number
+  ADMIN_PASSWORD  = your-strong-password
+
+----------------------------------------------------------------
+GIT COMMITS (today)
+----------------------------------------------------------------
+
+  a752541  Fix Balance Due in customer job popup for delivered jobs
+  5bd82c3  Fix dropdown position, add reminder page, logo upload, trial days
+  d917039  Redesign invoice to A5 landscape with logo and PDF download
+  a920a99  Fix action dropdown position for rows near bottom of viewport
+  f3d5825  Fix invoice download button to generate PDF instead of HTML
+  fc8747c  Fix action dropdown position by moving to document.body on open
+  114e0c6  Fix dropdown flip by measuring actual height before positioning
+
+================================================================

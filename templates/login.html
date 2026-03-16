@@ -73,6 +73,9 @@ p.sub{color:#6b7c93;font-size:0.875rem;margin-bottom:28px;}
     </div>
     <button type="submit" class="btn-block"><i class="fas fa-sign-in-alt"></i> Sign In</button>
   </form>
+  <div style="text-align:right;margin-top:12px;">
+    <a href="{{ url_for('forgot_password') }}" style="font-size:0.82rem;color:var(--teal);font-weight:600;text-decoration:none;">Forgot password?</a>
+  </div>
   <div class="divider">or</div>
   <p class="link-row">New shop? <a href="{{ url_for('register') }}">Register for free trial</a></p>
 </div>

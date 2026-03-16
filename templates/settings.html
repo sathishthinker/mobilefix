@@ -31,6 +31,44 @@
     </div>
   </div>
 
+  <!-- 2FA Card -->
+  <div class="card" style="margin-bottom:20px;">
+    <div class="card-body">
+      <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:14px;">Two-Factor Authentication</div>
+      {% if user.totp_enabled %}
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:42px;height:42px;border-radius:12px;background:#d1fae5;display:flex;align-items:center;justify-content:center;color:#10b981;font-size:1.2rem;flex-shrink:0;">
+            <i class="fas fa-shield-halved"></i>
+          </div>
+          <div>
+            <div style="font-weight:700;color:#065f46;font-size:0.9rem;"><i class="fas fa-circle-check" style="color:#10b981;"></i> 2FA Enabled</div>
+            <div style="font-size:0.78rem;color:#64748b;margin-top:2px;">Your account is protected with Google Authenticator</div>
+          </div>
+        </div>
+        <button onclick="document.getElementById('disable2faModal').style.display='flex'" class="btn btn-sm btn-danger">
+          <i class="fas fa-shield-xmark"></i> Disable 2FA
+        </button>
+      </div>
+      {% else %}
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:42px;height:42px;border-radius:12px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:1.2rem;flex-shrink:0;">
+            <i class="fas fa-shield"></i>
+          </div>
+          <div>
+            <div style="font-weight:600;color:#1a2332;font-size:0.9rem;">2FA Disabled</div>
+            <div style="font-size:0.78rem;color:#94a3b8;margin-top:2px;">Add an extra layer of security to your account</div>
+          </div>
+        </div>
+        <a href="{{ url_for('setup_2fa') }}" class="btn btn-sm btn-primary">
+          <i class="fas fa-shield-halved"></i> Enable 2FA
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
   <!-- Shop Info -->
   <div class="card" style="margin-bottom:20px;">
     <div class="card-body">
@@ -85,10 +123,17 @@
           <div style="font-size:0.85rem;color:#64748b;margin-bottom:4px;"><strong>Phone:</strong> {{ user.phone }}</div>
           <div style="font-size:0.85rem;color:#64748b;"><strong>Email:</strong> {{ user.email }}</div>
         </div>
+        <div class="form-group" id="currPwdGroup" style="display:none;">
+          <label class="form-label">Current Password <span style="color:#ef4444;">*</span></label>
+          <div style="position:relative;">
+            <input type="password" name="current_password" id="sCurrPwdInput" class="form-control" placeholder="Enter your current password" style="padding-right:40px;">
+            <span onclick="sToggleCurrPwd()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:0.85rem;"><i class="fas fa-eye" id="sCurrPwdEye"></i></span>
+          </div>
+        </div>
         <div class="form-group">
           <label class="form-label">New Password <span style="color:#94a3b8;font-weight:400;">(leave blank to keep current)</span></label>
           <div style="position:relative;">
-            <input type="password" name="new_password" id="sPwdInput" class="form-control" placeholder="Create a strong password" minlength="6" oninput="sCheckPwd(this.value)" style="padding-right:40px;">
+            <input type="password" name="new_password" id="sPwdInput" class="form-control" placeholder="Create a strong password" minlength="6" oninput="sCheckPwd(this.value);toggleCurrPwd(this.value)" style="padding-right:40px;">
             <span onclick="sTogglePwd()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:0.85rem;"><i class="fas fa-eye" id="sPwdEyeIcon"></i></span>
           </div>
           <div id="sStrengthBar" style="display:none;margin-top:8px;">
@@ -113,11 +158,41 @@
   </div>
 </div>
 {% endblock %}
+<!-- Disable 2FA Modal -->
+<div id="disable2faModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+  <div style="background:white;border-radius:18px;padding:32px 28px;max-width:380px;width:90%;box-shadow:0 25px 60px rgba(0,0,0,0.2);">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:2.5rem;margin-bottom:8px;">🔓</div>
+      <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:1.1rem;color:#1a2332;">Disable 2FA</div>
+      <div style="font-size:0.82rem;color:#64748b;margin-top:4px;">Enter the code from your authenticator app to confirm</div>
+    </div>
+    <form method="POST" action="{{ url_for('disable_2fa') }}">
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:20px;">
+        <input class="d2fa-box" maxlength="1" inputmode="numeric" autocomplete="off">
+        <input class="d2fa-box" maxlength="1" inputmode="numeric" autocomplete="off">
+        <input class="d2fa-box" maxlength="1" inputmode="numeric" autocomplete="off">
+        <input class="d2fa-box" maxlength="1" inputmode="numeric" autocomplete="off">
+        <input class="d2fa-box" maxlength="1" inputmode="numeric" autocomplete="off">
+        <input class="d2fa-box" maxlength="1" inputmode="numeric" autocomplete="off">
+      </div>
+      <input type="hidden" name="code" id="d2faCode">
+      <button type="submit" id="d2faSubmit" class="btn btn-danger" style="width:100%;padding:11px;justify-content:center;" disabled>
+        <i class="fas fa-shield-xmark"></i> Confirm Disable
+      </button>
+    </form>
+    <div style="text-align:center;margin-top:14px;">
+      <button onclick="document.getElementById('disable2faModal').style.display='none'" style="background:none;border:none;color:#94a3b8;font-size:0.82rem;cursor:pointer;font-family:inherit;">Cancel</button>
+    </div>
+  </div>
+</div>
+
 {% block scripts %}
 <style>
 .spwd-rule{font-size:0.75rem;color:#64748b;display:flex;align-items:center;gap:6px;transition:color .2s;}
 .spwd-rule.pass{color:#16a34a;}
 .spwd-rule.pass i{color:#16a34a !important;}
+.d2fa-box{width:42px;height:50px;border:2px solid #e2e8f0;border-radius:10px;text-align:center;font-size:1.3rem;font-weight:700;font-family:'Exo 2',sans-serif;color:#1a2332;background:#f8fafc;transition:all .2s;}
+.d2fa-box:focus{outline:none;border-color:var(--teal);background:white;box-shadow:0 0 0 3px var(--teal-glow);}
 </style>
 <script>
 function previewLogo(input) {
@@ -164,5 +239,38 @@ function sCheckPwd(v){
   if(score===0){lbl.textContent='';}
   else{lbl.textContent=labels[score-1].text;lbl.style.color=labels[score-1].color;}
 }
+function toggleCurrPwd(v){
+  document.getElementById('currPwdGroup').style.display = v ? '' : 'none';
+  document.getElementById('sCurrPwdInput').required = !!v;
+}
+function sToggleCurrPwd(){
+  const inp=document.getElementById('sCurrPwdInput');
+  const icon=document.getElementById('sCurrPwdEye');
+  if(inp.type==='password'){inp.type='text';icon.className='fas fa-eye-slash';}
+  else{inp.type='password';icon.className='fas fa-eye';}
+}
+
+// Disable 2FA modal OTP boxes
+(function(){
+  const dBoxes=document.querySelectorAll('.d2fa-box');
+  const dCode=document.getElementById('d2faCode');
+  const dBtn=document.getElementById('d2faSubmit');
+  if(!dBoxes.length) return;
+  dBoxes.forEach((box,i)=>{
+    box.addEventListener('input',function(){
+      this.value=this.value.replace(/[^0-9]/g,'');
+      if(this.value && i<dBoxes.length-1) dBoxes[i+1].focus();
+      const val=[...dBoxes].map(b=>b.value).join('');
+      dCode.value=val; dBtn.disabled=val.length<6;
+    });
+    box.addEventListener('keydown',function(e){
+      if(e.key==='Backspace'&&!this.value&&i>0){dBoxes[i-1].value='';dBoxes[i-1].focus();}
+    });
+  });
+  // focus first box when modal opens
+  document.querySelector('[onclick*="disable2faModal"]')?.addEventListener('click',()=>{
+    setTimeout(()=>dBoxes[0].focus(),100);
+  });
+})();
 </script>
 {% endblock %}

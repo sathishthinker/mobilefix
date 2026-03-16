@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from functools import wraps
 from datetime import datetime, timedelta, timezone
-import psycopg2, psycopg2.extras, hashlib, os, re, json, random, string, base64
+import psycopg2, psycopg2.extras, hashlib, os, re, json, random, string, base64, pyotp
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
@@ -169,7 +169,8 @@ def init_db():
                 db.rollback()
 
         for col in ["logo TEXT", "google_review_link TEXT", "phone TEXT",
-                    "door_no TEXT", "street TEXT", "city TEXT", "pincode TEXT"]:
+                    "door_no TEXT", "street TEXT", "city TEXT", "pincode TEXT",
+                    "totp_secret TEXT", "totp_enabled BOOLEAN DEFAULT FALSE"]:
             try:
                 db.execute(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col}")
                 db.commit()
@@ -284,6 +285,9 @@ def login():
             if not user['enabled'] and user['role'] != 'admin':
                 flash('Your account has been disabled. Contact support.', 'error')
                 return render_template('login.html')
+            if user['totp_enabled'] and user['totp_secret']:
+                session['pending_2fa_uid'] = user['id']
+                return redirect(url_for('login_2fa'))
             session['user_id'] = user['id']
             session['role'] = user['role']
             session['shop_name'] = user['shop_name'] or 'My Shop'
@@ -728,6 +732,7 @@ def settings():
         address = '\n'.join([l for l in [addr_line1, addr_line2] if l])
         google_review_link = request.form.get('google_review_link', '').strip()
         new_pw             = request.form.get('new_password', '')
+        current_pw         = request.form.get('current_password', '')
         logo_data = None
         if 'logo' in request.files:
             f = request.files['logo']
@@ -736,7 +741,15 @@ def settings():
                 logo_data = 'data:' + mime + ';base64,' + base64.b64encode(f.read()).decode()
         db.execute("UPDATE users SET shop_name=%s,address=%s,door_no=%s,street=%s,city=%s,pincode=%s,google_review_link=%s WHERE id=%s",
                    (shop_name, address, door_no, street, city, pincode, google_review_link, session['user_id']))
-        if new_pw and len(new_pw) >= 6:
+        if new_pw:
+            if not current_pw or user['password'] != hash_pw(current_pw):
+                db.close()
+                flash('Current password is incorrect.', 'error')
+                return redirect(url_for('settings'))
+            if len(new_pw) < 6:
+                db.close()
+                flash('New password must be at least 6 characters.', 'error')
+                return redirect(url_for('settings'))
             db.execute("UPDATE users SET password=%s WHERE id=%s", (hash_pw(new_pw), session['user_id']))
         if logo_data:
             db.execute("UPDATE users SET logo=%s WHERE id=%s", (logo_data, session['user_id']))
@@ -832,6 +845,105 @@ def admin_delete_user(uid):
     db.execute("DELETE FROM users WHERE id=%s", (uid,))
     db.commit(); db.close()
     return jsonify({'success': True})
+
+@app.route('/login/2fa', methods=['GET', 'POST'])
+def login_2fa():
+    uid = session.get('pending_2fa_uid')
+    if not uid:
+        return redirect(url_for('login'))
+    if request.method == 'POST':
+        code = request.form.get('code', '').strip().replace(' ', '')
+        db = get_db()
+        user = db.execute("SELECT * FROM users WHERE id=%s", (uid,)).fetchone()
+        db.close()
+        if user and user['totp_secret'] and pyotp.TOTP(user['totp_secret']).verify(code, valid_window=1):
+            session.pop('pending_2fa_uid', None)
+            session['user_id'] = user['id']
+            session['role'] = user['role']
+            session['shop_name'] = user['shop_name'] or 'My Shop'
+            return redirect(url_for('admin_dashboard') if user['role'] == 'admin' else url_for('dashboard'))
+        flash('Invalid or expired code. Please try again.', 'error')
+    return render_template('login_2fa.html')
+
+@app.route('/settings/2fa/setup')
+@login_required
+@active_required
+def setup_2fa():
+    db = get_db()
+    user = db.execute("SELECT * FROM users WHERE id=%s", (session['user_id'],)).fetchone()
+    secret = user['totp_secret'] if user['totp_secret'] else pyotp.random_base32()
+    if not user['totp_secret']:
+        db.execute("UPDATE users SET totp_secret=%s WHERE id=%s", (secret, session['user_id']))
+        db.commit()
+    db.close()
+    totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
+        name=user['email'], issuer_name='MobileFix Pro'
+    )
+    return render_template('setup_2fa.html', secret=secret, totp_uri=totp_uri,
+                           status=subscription_status(user), days_left=days_left(user))
+
+@app.route('/settings/2fa/verify', methods=['POST'])
+@login_required
+@active_required
+def verify_2fa_setup():
+    code = request.form.get('code', '').strip().replace(' ', '')
+    db = get_db()
+    user = db.execute("SELECT * FROM users WHERE id=%s", (session['user_id'],)).fetchone()
+    if user['totp_secret'] and pyotp.TOTP(user['totp_secret']).verify(code, valid_window=1):
+        db.execute("UPDATE users SET totp_enabled=TRUE WHERE id=%s", (session['user_id'],))
+        db.commit(); db.close()
+        flash('Two-factor authentication enabled! Your account is now more secure.', 'success')
+        return redirect(url_for('settings'))
+    db.close()
+    flash('Invalid code. Please try again — make sure your phone clock is accurate.', 'error')
+    return redirect(url_for('setup_2fa'))
+
+@app.route('/settings/2fa/disable', methods=['POST'])
+@login_required
+@active_required
+def disable_2fa():
+    code = request.form.get('code', '').strip().replace(' ', '')
+    db = get_db()
+    user = db.execute("SELECT * FROM users WHERE id=%s", (session['user_id'],)).fetchone()
+    if user['totp_secret'] and pyotp.TOTP(user['totp_secret']).verify(code, valid_window=1):
+        db.execute("UPDATE users SET totp_enabled=FALSE, totp_secret=NULL WHERE id=%s", (session['user_id'],))
+        db.commit(); db.close()
+        flash('Two-factor authentication has been disabled.', 'success')
+        return redirect(url_for('settings'))
+    db.close()
+    flash('Invalid code. 2FA was not disabled.', 'error')
+    return redirect(url_for('settings'))
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        phone = request.form.get('phone', '').strip()
+        db = get_db()
+        user = db.execute("SELECT * FROM users WHERE email=%s AND phone=%s AND role='user'", (email, phone)).fetchone()
+        db.close()
+        if user:
+            session['fp_uid'] = user['id']
+            return redirect(url_for('forgot_password_reset'))
+        flash('No account found with that email and phone combination.', 'error')
+    return render_template('forgot_password.html', step=1)
+
+@app.route('/forgot-password/reset', methods=['GET', 'POST'])
+def forgot_password_reset():
+    if 'fp_uid' not in session:
+        return redirect(url_for('forgot_password'))
+    if request.method == 'POST':
+        new_pw = request.form.get('new_password', '')
+        if len(new_pw) < 6:
+            flash('Password must be at least 6 characters.', 'error')
+            return render_template('forgot_password.html', step=2)
+        db = get_db()
+        db.execute("UPDATE users SET password=%s WHERE id=%s", (hash_pw(new_pw), session['fp_uid']))
+        db.commit(); db.close()
+        session.pop('fp_uid', None)
+        flash('Password reset successfully! Please log in with your new password.', 'success')
+        return redirect(url_for('login'))
+    return render_template('forgot_password.html', step=2)
 
 @app.route('/manual')
 @login_required

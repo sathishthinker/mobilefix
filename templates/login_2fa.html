@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MobileFix Pro — Verification</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--teal:#00BCD4;--teal-dark:#0097A7;--teal-glow:rgba(0,188,212,0.25);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#0d1b2a;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.bg-circles{position:fixed;inset:0;pointer-events:none;overflow:hidden;}
+.circle{position:absolute;border-radius:50%;opacity:0.05;background:var(--teal);}
+.circle:nth-child(1){width:500px;height:500px;top:-200px;right:-150px;}
+.circle:nth-child(2){width:350px;height:350px;bottom:-120px;left:-100px;}
+.auth-card{background:#fff;border-radius:24px;padding:44px 40px;width:100%;max-width:420px;box-shadow:0 30px 80px rgba(0,0,0,0.3);position:relative;z-index:1;}
+.logo-row{display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+.logo-icon{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:white;box-shadow:0 6px 20px var(--teal-glow);}
+.logo-text{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.5rem;color:#1a2332;line-height:1.1;}
+.logo-text span{color:var(--teal);}
+.shield-icon{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#e0f7fa,#b2ebf2);display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:var(--teal);margin:0 auto 20px;}
+h2{font-family:'Exo 2',sans-serif;font-weight:700;font-size:1.3rem;color:#1a2332;text-align:center;margin-bottom:6px;}
+p.sub{color:#6b7c93;font-size:0.85rem;margin-bottom:28px;text-align:center;line-height:1.5;}
+.otp-row{display:flex;gap:10px;justify-content:center;margin:0 0 28px;}
+.otp-box{width:46px;height:56px;border:2px solid #e2e8f0;border-radius:12px;text-align:center;font-size:1.5rem;font-weight:700;font-family:'Exo 2',sans-serif;color:#1a2332;background:#f8fafc;transition:all 0.2s;-webkit-appearance:none;}
+.otp-box:focus{outline:none;border-color:var(--teal);background:white;box-shadow:0 0 0 3px var(--teal-glow);}
+.otp-box.filled{border-color:var(--teal);background:white;}
+.btn-block{width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));color:white;font-size:1rem;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 6px 18px var(--teal-glow);transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-block:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--teal-glow);}
+.btn-block:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.link-row{text-align:center;font-size:0.85rem;color:#6b7c93;margin-top:18px;}
+.link-row a{color:var(--teal);font-weight:600;text-decoration:none;}
+.flash{padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:0.85rem;font-weight:500;display:flex;align-items:center;gap:8px;}
+.flash.error{background:#fee2e2;color:#991b1b;border:1px solid #fecaca;}
+.timer{display:flex;align-items:center;justify-content:center;gap:6px;font-size:0.78rem;color:#94a3b8;margin-top:16px;}
+.timer-dot{width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+@media(max-width:480px){
+  .auth-card{padding:32px 24px;}
+  .otp-box{width:40px;height:50px;font-size:1.3rem;}
+  .otp-row{gap:8px;}
+}
+</style>
+</head>
+<body>
+<div class="bg-circles"><div class="circle"></div><div class="circle"></div></div>
+<div class="auth-card">
+  <div class="logo-row">
+    <div class="logo-icon"><i class="fas fa-mobile-alt"></i></div>
+    <div class="logo-text">Mobile<span>Fix</span> Pro</div>
+  </div>
+
+  <div class="shield-icon"><i class="fas fa-shield-halved"></i></div>
+  <h2>Two-Factor Verification</h2>
+  <p class="sub">Enter the 6-digit code from your<br><strong>Google Authenticator</strong> app</p>
+
+  {% with messages = get_flashed_messages(with_categories=True) %}
+    {% for cat, msg in messages %}
+      <div class="flash {{ cat }}"><i class="fas fa-exclamation-circle"></i> {{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <form method="POST" id="tfaForm">
+    <input type="hidden" name="code" id="codeInput">
+    <div class="otp-row">
+      <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+    </div>
+    <button type="submit" class="btn-block" id="verifyBtn" disabled>
+      <i class="fas fa-check-circle"></i> Verify
+    </button>
+  </form>
+
+  <div class="timer">
+    <span class="timer-dot"></span>
+    Code refreshes every <strong id="timerSec">30</strong>s
+  </div>
+
+  <p class="link-row"><a href="{{ url_for('login') }}"><i class="fas fa-arrow-left"></i> Back to login</a></p>
+</div>
+
+<script>
+const boxes = document.querySelectorAll('.otp-box');
+const codeInput = document.getElementById('codeInput');
+const verifyBtn = document.getElementById('verifyBtn');
+
+boxes.forEach((box, i) => {
+  box.addEventListener('input', function() {
+    this.value = this.value.replace(/[^0-9]/g, '');
+    if (this.value.length === 1) {
+      this.classList.add('filled');
+      if (i < boxes.length - 1) boxes[i+1].focus();
+    } else {
+      this.classList.remove('filled');
+    }
+    updateCode();
+  });
+  box.addEventListener('keydown', function(e) {
+    if (e.key === 'Backspace' && !this.value && i > 0) {
+      boxes[i-1].value = '';
+      boxes[i-1].classList.remove('filled');
+      boxes[i-1].focus();
+      updateCode();
+    }
+  });
+  box.addEventListener('paste', function(e) {
+    e.preventDefault();
+    const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'');
+    [...paste].slice(0,6).forEach((ch, j) => {
+      if (boxes[j]) { boxes[j].value = ch; boxes[j].classList.add('filled'); }
+    });
+    updateCode();
+    const next = Math.min(paste.length, 5);
+    boxes[next].focus();
+  });
+});
+
+function updateCode() {
+  const val = [...boxes].map(b => b.value).join('');
+  codeInput.value = val;
+  verifyBtn.disabled = val.length < 6;
+}
+
+// Auto-submit when 6 digits entered
+function maybeAutoSubmit() {
+  const val = [...boxes].map(b => b.value).join('');
+  if (val.length === 6) {
+    setTimeout(() => document.getElementById('tfaForm').submit(), 300);
+  }
+}
+boxes[5].addEventListener('input', maybeAutoSubmit);
+
+// Countdown timer
+function startTimer() {
+  function tick() {
+    const sec = 30 - (Math.floor(Date.now()/1000) % 30);
+    document.getElementById('timerSec').textContent = sec;
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+startTimer();
+
+// Focus first box on load
+boxes[0].focus();
+</script>
+</body>
+</html>
