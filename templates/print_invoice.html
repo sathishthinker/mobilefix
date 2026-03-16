@@ -179,9 +179,17 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size
             <td style="color:#64748b;">Advance Paid</td>
             <td id="advanceAmt" style="color:#4CAF50;">—</td>
           </tr>
+          <tr id="rowPaidDelivery" style="display:none;">
+            <td style="color:#64748b;">Paid at Delivery</td>
+            <td id="paidDeliveryAmt" style="color:#4CAF50;">—</td>
+          </tr>
           <tr class="grand">
             <td>Total Amount</td>
             <td id="grandTotal">₹0.00</td>
+          </tr>
+          <tr id="rowTotalPaid" style="display:none;">
+            <td style="color:#16a34a;font-weight:700;">Total Paid</td>
+            <td id="totalPaidAmt" style="color:#16a34a;font-weight:700;">—</td>
           </tr>
           <tr class="balance" id="rowBalance" style="display:none;">
             <td>Balance Due</td>
@@ -213,9 +221,10 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size
 
 <script>
 const RAW_ITEMS = {{ inv['items'] | tojson if inv['items'] else '[]' | tojson }};
-const TOTAL = {{ inv.total }};
-const ADV = {{ inv.advance_amount or 0 }};
-const DISC = {{ inv.discount or 0 }};
+const TOTAL    = {{ inv.total }};
+const ADV      = {{ inv.advance_amount or 0 }};   // total collected
+const DISC     = {{ inv.discount or 0 }};
+const JOB_ADV  = {{ (job.advance_amount or 0) | float if job else 0 }};  // initial advance from repair job
 
 function renderItems() {
   let items = [];
@@ -246,11 +255,28 @@ function renderItems() {
     document.getElementById('discountAmt').textContent = '-₹' + DISC.toFixed(2);
   }
   document.getElementById('grandTotal').textContent = '₹' + TOTAL.toFixed(2);
-  if (ADV > 0) {
-    document.getElementById('rowAdvance').style.display = '';
-    document.getElementById('advanceAmt').textContent = '₹' + ADV.toFixed(2);
+
+  if (ADV > 0.005) {
+    // Initial advance from the repair job
+    const initAdv   = Math.min(JOB_ADV, ADV);   // never exceed total collected
+    const laterPaid = Math.max(0, ADV - initAdv); // paid at delivery or via collect
+
+    if (initAdv > 0.005) {
+      document.getElementById('rowAdvance').style.display = '';
+      document.getElementById('advanceAmt').textContent = '₹' + initAdv.toFixed(2);
+    }
+    if (laterPaid > 0.005) {
+      document.getElementById('rowPaidDelivery').style.display = '';
+      document.getElementById('paidDeliveryAmt').textContent = '₹' + laterPaid.toFixed(2);
+    }
+    // Show "Total Paid" summary only when there are two payment rows
+    if (initAdv > 0.005 && laterPaid > 0.005) {
+      document.getElementById('rowTotalPaid').style.display = '';
+      document.getElementById('totalPaidAmt').textContent = '₹' + ADV.toFixed(2);
+    }
+
     const bal = Math.max(0, TOTAL - ADV);
-    if (bal > 0) {
+    if (bal > 0.005) {
       document.getElementById('rowBalance').style.display = '';
       document.getElementById('balanceAmt').textContent = '₹' + bal.toFixed(2);
     }
