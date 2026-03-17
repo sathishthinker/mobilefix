@@ -854,7 +854,7 @@ def admin_dashboard():
         """).fetchall()
         brand_stats = [dict(b) for b in brand_stats]
 
-        cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).strftime('%Y-%m-%d')
+        cutoff = (datetime.now(IST) - timedelta(days=30)).strftime('%Y-%m-%d')
         daily_jobs = db.execute("""
             SELECT SUBSTRING(created_at FROM 1 FOR 10) AS day, COUNT(*) AS cnt
             FROM repair_jobs
