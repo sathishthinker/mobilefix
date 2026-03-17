@@ -301,7 +301,7 @@ def index():
     return redirect(url_for('login'))
 
 def _log_login(db, user_id, identifier, status):
-    ip = request.remote_addr or 'unknown'
+    ip = (request.headers.get('X-Forwarded-For') or request.remote_addr or 'unknown').split(',')[0].strip()
     ua = (request.headers.get('User-Agent') or '')[:300]
     now_ist = datetime.now(IST).strftime('%Y-%m-%d %H:%M:%S')
     db.execute(
