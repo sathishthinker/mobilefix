@@ -146,6 +146,17 @@ function startTimer() {
 }
 startTimer();
 
+// Always sync hidden input fresh on submit (fixes click not working)
+document.getElementById('tfaForm').addEventListener('submit', function(e) {
+  const val = [...boxes].map(b => b.value).join('');
+  codeInput.value = val;
+  if (val.length < 6) {
+    e.preventDefault();
+    const next = boxes[val.length] || boxes[5];
+    next.focus();
+  }
+});
+
 // Focus first box on load
 boxes[0].focus();
 </script>
