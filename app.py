@@ -180,6 +180,15 @@ def init_db():
         # Fix NULL trial_start
         db.execute("UPDATE users SET trial_start=%s WHERE trial_start IS NULL", (_now_str(),))
         db.commit()
+
+        # Uppercase existing addresses
+        db.execute("""UPDATE users SET
+            shop_name = UPPER(shop_name),
+            door_no   = UPPER(COALESCE(door_no,'')),
+            street    = UPPER(COALESCE(street,'')),
+            city      = UPPER(COALESCE(city,''))
+            WHERE role != 'admin'""")
+        db.commit()
     finally:
         db.close()
 
@@ -263,6 +272,13 @@ def active_required(f):
                 return jsonify({'error': 'Subscription expired'}), 403
             reason = 'disabled' if status == 'inactive' else status
             return redirect(url_for('subscription_page', reason=reason))
+        # Enforce mandatory 2FA — redirect to setup if not yet enabled
+        _2fa_exempt = {'setup_2fa', 'verify_2fa_setup', 'logout', 'subscription_page', 'static'}
+        if not user.get('totp_enabled') and request.endpoint not in _2fa_exempt:
+            if request.is_json or request.headers.get('X-Requested-With'):
+                return jsonify({'error': '2FA setup required'}), 403
+            flash('Please set up Two-Factor Authentication to secure your account.', 'error')
+            return redirect(url_for('setup_2fa'))
         return f(*args, **kwargs)
     return decorated
 
@@ -322,9 +338,14 @@ def register():
             flash('Phone or email already registered.', 'error'); return render_template('register.html')
         db.execute('INSERT INTO users (phone,email,password,shop_name,address,door_no,street,city,pincode,trial_start) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
                    (phone, email, hash_pw(password), shop_name, address, door_no, street, city, pincode, _now_str()))
-        db.commit(); db.close()
-        flash('Registration successful! Your 30-day free trial has started.', 'success')
-        return redirect(url_for('login'))
+        db.commit()
+        new_user = db.execute("SELECT id FROM users WHERE phone=%s", (phone,)).fetchone()
+        db.close()
+        session['user_id'] = new_user['id']
+        session['role'] = 'user'
+        session['shop_name'] = shop_name
+        flash('Welcome! Your 30-day free trial has started. Please set up Two-Factor Authentication to secure your account.', 'success')
+        return redirect(url_for('setup_2fa'))
     return render_template('register.html')
 
 @app.route('/logout')
@@ -796,8 +817,8 @@ def admin_dashboard():
 
     return render_template('admin_dashboard.html', users=enriched, total=total,
                            active_count=sum(1 for u in users if subscription_status(u) in ('trial', 'active')),
-                           expired_count=sum(1 for u in users if subscription_status(u) in ('trial_expired', 'expired')),
                            disabled_count=sum(1 for u in users if not u['enabled']),
+                           expired_count=sum(1 for u in users if subscription_status(u) in ('trial_expired', 'expired')),
                            platform=platform, shop_activity=shop_activity,
                            expiring=expiring, new_this_month=new_this_month)
 

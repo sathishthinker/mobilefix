@@ -251,17 +251,13 @@ async function toggleAccount(uid) {
     if (!res.ok) { if(res.status===401){location.href='/login';} else showToast('Error: '+res.status); return; }
     const data = await res.json();
     const btn = document.getElementById(`toggle-btn-${uid}`);
-    const txt = document.getElementById(`toggle-text-${uid}`);
-    const icon = btn.querySelector('i');
+    const sp = document.getElementById(`toggle-text-${uid}`);
+    const ic = btn.querySelector('i');
     if (data.enabled) {
-      btn.className = 'dd-item danger';
-      txt.textContent = 'Disable';
-      icon.className = 'fas fa-ban';
+      btn.className = 'dd-item danger'; sp.textContent = 'Disable'; ic.className = 'fas fa-ban';
       showToast('Account enabled');
     } else {
-      btn.className = 'dd-item success';
-      txt.textContent = 'Enable';
-      icon.className = 'fas fa-check';
+      btn.className = 'dd-item success'; sp.textContent = 'Enable'; ic.className = 'fas fa-check';
       showToast('Account disabled');
     }
   } catch(e) { showToast('Network error. Please try again.'); }
