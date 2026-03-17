@@ -300,7 +300,7 @@
     <!-- Tab: Daily Activity -->
     <div id="tab-activity" class="rtab-panel" style="display:none;">
       {% if daily_jobs %}
-      {% set max_day = daily_jobs|map(attribute='cnt')|max %}
+      {% set max_day = (daily_jobs|map(attribute='cnt')|list|max) or 1 %}
       <div style="font-size:0.8rem;color:#94a3b8;margin-bottom:16px;">Jobs created per day (last 30 days)</div>
       <div style="display:flex;align-items:flex-end;gap:4px;height:120px;overflow-x:auto;padding-bottom:8px;">
         {% for d in daily_jobs %}
