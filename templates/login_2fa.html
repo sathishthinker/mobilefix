@@ -71,7 +71,7 @@ p.sub{color:#6b7c93;font-size:0.85rem;margin-bottom:28px;text-align:center;line-
       <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
       <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
     </div>
-    <button type="submit" class="btn-block" id="verifyBtn" disabled>
+    <button type="submit" class="btn-block" id="verifyBtn">
       <i class="fas fa-check-circle"></i> Verify
     </button>
   </form>
@@ -87,25 +87,18 @@ p.sub{color:#6b7c93;font-size:0.85rem;margin-bottom:28px;text-align:center;line-
 <script>
 const boxes = document.querySelectorAll('.otp-box');
 const codeInput = document.getElementById('codeInput');
-const verifyBtn = document.getElementById('verifyBtn');
 
 boxes.forEach((box, i) => {
   box.addEventListener('input', function() {
-    this.value = this.value.replace(/[^0-9]/g, '');
-    if (this.value.length === 1) {
-      this.classList.add('filled');
-      if (i < boxes.length - 1) boxes[i+1].focus();
-    } else {
-      this.classList.remove('filled');
-    }
-    updateCode();
+    this.value = this.value.replace(/[^0-9]/g, '').slice(0,1);
+    this.classList.toggle('filled', this.value.length === 1);
+    if (this.value.length === 1 && i < boxes.length - 1) boxes[i+1].focus();
   });
   box.addEventListener('keydown', function(e) {
     if (e.key === 'Backspace' && !this.value && i > 0) {
       boxes[i-1].value = '';
       boxes[i-1].classList.remove('filled');
       boxes[i-1].focus();
-      updateCode();
     }
   });
   box.addEventListener('paste', function(e) {
@@ -114,50 +107,28 @@ boxes.forEach((box, i) => {
     [...paste].slice(0,6).forEach((ch, j) => {
       if (boxes[j]) { boxes[j].value = ch; boxes[j].classList.add('filled'); }
     });
-    updateCode();
-    const next = Math.min(paste.length, 5);
-    boxes[next].focus();
+    boxes[Math.min(paste.length, 5)].focus();
   });
 });
 
-function updateCode() {
-  const val = [...boxes].map(b => b.value).join('');
-  codeInput.value = val;
-  verifyBtn.disabled = val.length < 6;
-}
-
-// Auto-submit when 6 digits entered
-function maybeAutoSubmit() {
-  const val = [...boxes].map(b => b.value).join('');
-  if (val.length === 6) {
-    setTimeout(() => document.getElementById('tfaForm').submit(), 300);
-  }
-}
-boxes[5].addEventListener('input', maybeAutoSubmit);
-
-// Countdown timer
-function startTimer() {
-  function tick() {
-    const sec = 30 - (Math.floor(Date.now()/1000) % 30);
-    document.getElementById('timerSec').textContent = sec;
-  }
-  tick();
-  setInterval(tick, 1000);
-}
-startTimer();
-
-// Always sync hidden input fresh on submit (fixes click not working)
+// Single source of truth: always read boxes on submit
 document.getElementById('tfaForm').addEventListener('submit', function(e) {
   const val = [...boxes].map(b => b.value).join('');
   codeInput.value = val;
   if (val.length < 6) {
     e.preventDefault();
-    const next = boxes[val.length] || boxes[5];
-    next.focus();
+    for (let i = 0; i < boxes.length; i++) {
+      if (!boxes[i].value) { boxes[i].focus(); break; }
+    }
   }
 });
 
-// Focus first box on load
+// Countdown timer
+(function tick() {
+  document.getElementById('timerSec').textContent = 30 - (Math.floor(Date.now()/1000) % 30);
+  setTimeout(tick, 1000);
+})();
+
 boxes[0].focus();
 </script>
 </body>
