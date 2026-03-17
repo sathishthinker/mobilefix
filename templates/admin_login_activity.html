@@ -173,22 +173,19 @@
   <div class="card">
     <div class="card-body">
       <div class="section-title">⏰ Logins by Hour (IST)</div>
-      {% if hourly %}
       {% set hr_max = (hourly|map(attribute='cnt')|list|max) or 1 %}
-      <div style="display:flex;align-items:flex-end;gap:3px;height:100px;">
+      <div style="display:flex;align-items:flex-end;gap:2px;height:90px;">
         {% for h in hourly %}
-        <div style="display:flex;flex-direction:column;align-items:center;flex:1;" title="{{ h.hr }}:00 — {{ h.cnt }} logins">
-          <div style="background:linear-gradient(180deg,#00BCD4,#0097A7);border-radius:3px 3px 0 0;width:100%;
-               height:{{ (h.cnt / hr_max * 80)|round|int }}px;min-height:2px;"></div>
-          {% if loop.index0 % 4 == 0 %}
-          <div style="font-size:0.55rem;color:#94a3b8;margin-top:3px;">{{ h.hr }}</div>
-          {% endif %}
+        <div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0;"
+             title="{{ h.hr }}:00 — {{ h.cnt }} login{{ 's' if h.cnt != 1 }}">
+          <div style="background:{% if h.cnt > 0 %}linear-gradient(180deg,#00BCD4,#0097A7){% else %}#e2e8f0{% endif %};
+               border-radius:3px 3px 0 0;width:100%;height:{{ [((h.cnt / hr_max * 68)|round|int), 3]|max }}px;"></div>
+          {% if loop.index0 % 6 == 0 %}
+          <div style="font-size:0.58rem;color:#94a3b8;margin-top:3px;">{{ h.hr }}h</div>
+          {% else %}<div style="height:14px;"></div>{% endif %}
         </div>
         {% endfor %}
       </div>
-      {% else %}
-      <div style="color:#94a3b8;font-size:0.85rem;">No data yet</div>
-      {% endif %}
     </div>
   </div>
 

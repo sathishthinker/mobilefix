@@ -1010,13 +1010,14 @@ def admin_login_activity():
         online_now = [dict(o) for o in online_now]
 
         # Hourly heatmap (0-23) for all time
-        hourly = db.execute("""
+        hourly_raw = db.execute("""
             SELECT SUBSTRING(created_at FROM 12 FOR 2) AS hr, COUNT(*) AS cnt
             FROM login_logs
             WHERE status='success'
             GROUP BY hr ORDER BY hr
         """).fetchall()
-        hourly = [dict(h) for h in hourly]
+        hourly_data = {r['hr']: r['cnt'] for r in hourly_raw}
+        hourly = [{'hr': str(h).zfill(2), 'cnt': hourly_data.get(str(h).zfill(2), 0)} for h in range(24)]
 
         # Day of week heatmap
         dow_names = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
