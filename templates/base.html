@@ -259,7 +259,8 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="logo-text">Mobile<span>Fix</span><br><small style="font-size:0.65rem;color:#7a90a8;font-weight:400;">Admin Panel</small></div>
   </div>
   <nav class="sidebar-nav">
-    <a href="{{ url_for('admin_dashboard') }}" class="nav-link active"><i class="fas fa-users-cog"></i> Manage Shops</a>
+    <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint=='admin_dashboard' %}active{% endif %}"><i class="fas fa-users-cog"></i> Manage Shops</a>
+    <a href="{{ url_for('admin_login_activity') }}" class="nav-link {% if request.endpoint=='admin_login_activity' %}active{% endif %}"><i class="fas fa-shield-halved"></i> Login Activity</a>
   </nav>
   <div class="sidebar-footer">
     <a href="{{ url_for('logout') }}" class="nav-link"><i class="fas fa-sign-out-alt"></i> Logout</a>

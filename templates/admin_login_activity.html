@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+{% block title %}Login Activity — Admin{% endblock %}
+{% block page_title %}Login Activity{% endblock %}
+{% block extra_head %}
+<style>
+.alert-card { border-radius:14px; padding:16px 20px; margin-bottom:14px; display:flex; align-items:flex-start; gap:14px; }
+.alert-card.danger { background:#fff1f2; border:1.5px solid #fecaca; }
+.alert-card.warning { background:#fffbeb; border:1.5px solid #fde68a; }
+.alert-icon { font-size:1.4rem; flex-shrink:0; margin-top:2px; }
+.online-chip { background:#d1fae5; color:#065f46; border:1.5px solid #a7f3d0; border-radius:999px; padding:6px 14px; font-size:0.82rem; font-weight:600; display:inline-flex; align-items:center; gap:6px; }
+.pulse { width:8px; height:8px; border-radius:50%; background:#10b981; animation:pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+.bar-h { background:#f1f5f9; border-radius:999px; height:8px; overflow:hidden; }
+.bar-h-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,#00BCD4,#0097A7); transition:width .5s; }
+.section-title { font-family:'Exo 2',sans-serif; font-weight:700; font-size:0.95rem; color:#1a2332; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Login Activity</div>
+    <div class="page-subtitle">Monitor shop login behaviour and security alerts</div>
+  </div>
+</div>
+
+<!-- Online Now -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-body">
+    <div class="section-title"><span class="pulse"></span> Currently Active (last 30 mins)</div>
+    {% if online_now %}
+    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+      {% for o in online_now %}
+      <div class="online-chip">
+        <span class="pulse"></span>
+        {{ o.shop_name }} &nbsp;<span style="opacity:.6;font-size:0.76rem;">{{ o.phone }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="color:#94a3b8;font-size:0.85rem;">No shops active in the last 30 minutes</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Security Alerts -->
+{% if brute_force or inactive_shops %}
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-body">
+    <div class="section-title">⚠️ Security Alerts</div>
+    {% for b in brute_force %}
+    <div class="alert-card danger">
+      <div class="alert-icon">🔴</div>
+      <div>
+        <div style="font-weight:700;font-size:0.88rem;color:#991b1b;">Brute Force Detected</div>
+        <div style="font-size:0.82rem;color:#64748b;margin-top:3px;">
+          <strong>{{ b.shop_name }}</strong> ({{ b.phone }}) — <strong>{{ b.attempts }} failed attempts</strong> in the last 24 hours
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    {% for i in inactive_shops %}
+    <div class="alert-card warning">
+      <div class="alert-icon">💤</div>
+      <div>
+        <div style="font-weight:700;font-size:0.88rem;color:#92400e;">Inactive Shop</div>
+        <div style="font-size:0.82rem;color:#64748b;margin-top:3px;">
+          <strong>{{ i.shop_name }}</strong> ({{ i.phone }}) — Last seen: {{ i.last_seen[:10] if i.last_seen else 'Never logged in' }}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Per-Shop Table -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-header" style="padding:20px 24px 14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="section-title" style="margin:0;">📋 Shop Login Summary</div>
+      <input type="text" id="laSearch" class="form-control" placeholder="🔍 Search shops..." style="max-width:220px;"
+             oninput="filterTable(this.value)">
+    </div>
+  </div>
+  <div class="card-body" style="padding-top:0;">
+    <div class="table-wrap">
+      <table id="laTable">
+        <thead>
+          <tr>
+            <th>Shop</th><th>Total Logins</th><th>Failed</th>
+            <th>Last Login (IST)</th><th>Last IP</th><th>Device</th><th>History</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in shop_logins %}
+          <tr>
+            <td>
+              <strong style="font-size:0.85rem;">{{ s.shop_name or '—' }}</strong>
+              <div style="font-size:0.76rem;color:#94a3b8;">{{ s.phone }}</div>
+            </td>
+            <td style="text-align:center;">
+              <span style="font-family:'Exo 2',sans-serif;font-weight:800;color:#00BCD4;">{{ s.total_logins or 0 }}</span>
+            </td>
+            <td style="text-align:center;">
+              {% if s.failed_logins and s.failed_logins > 0 %}
+              <span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">{{ s.failed_logins }}</span>
+              {% else %}
+              <span style="color:#94a3b8;font-size:0.82rem;">—</span>
+              {% endif %}
+            </td>
+            <td style="font-size:0.82rem;color:#64748b;">
+              {{ s.last_login[:16].replace('T',' ') if s.last_login else 'Never' }}
+            </td>
+            <td style="font-size:0.78rem;color:#94a3b8;font-family:monospace;">
+              {{ s.last_ip or '—' }}
+            </td>
+            <td style="font-size:0.78rem;color:#64748b;">
+              {% if s.last_ua %}
+                {% if 'Mobile' in s.last_ua or 'Android' in s.last_ua or 'iPhone' in s.last_ua %}
+                  📱 Mobile
+                {% elif 'Chrome' in s.last_ua %}
+                  💻 Chrome
+                {% elif 'Firefox' in s.last_ua %}
+                  🦊 Firefox
+                {% elif 'Safari' in s.last_ua %}
+                  🧭 Safari
+                {% else %}
+                  🖥️ Desktop
+                {% endif %}
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              <button onclick="openHistory({{ s.id }},'{{ s.shop_name }}')"
+                class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:5px 12px;">
+                <i class="fas fa-history"></i> View
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Heatmaps row -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+
+  <!-- Day of Week -->
+  <div class="card">
+    <div class="card-body">
+      <div class="section-title">📅 Logins by Day of Week</div>
+      {% if dow_stats %}
+      {% set dow_max = (dow_stats|map(attribute='cnt')|list|max) or 1 %}
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        {% for d in dow_stats %}
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:32px;font-size:0.78rem;font-weight:600;color:#64748b;flex-shrink:0;">{{ d.day }}</div>
+          <div class="bar-h" style="flex:1;">
+            <div class="bar-h-fill" style="width:{{ (d.cnt / dow_max * 100)|round|int }}%;"></div>
+          </div>
+          <div style="width:28px;text-align:right;font-size:0.78rem;font-weight:700;color:#00BCD4;">{{ d.cnt }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="color:#94a3b8;font-size:0.85rem;">No data yet</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Hourly -->
+  <div class="card">
+    <div class="card-body">
+      <div class="section-title">⏰ Logins by Hour (IST)</div>
+      {% if hourly %}
+      {% set hr_max = (hourly|map(attribute='cnt')|list|max) or 1 %}
+      <div style="display:flex;align-items:flex-end;gap:3px;height:100px;">
+        {% for h in hourly %}
+        <div style="display:flex;flex-direction:column;align-items:center;flex:1;" title="{{ h.hr }}:00 — {{ h.cnt }} logins">
+          <div style="background:linear-gradient(180deg,#00BCD4,#0097A7);border-radius:3px 3px 0 0;width:100%;
+               height:{{ (h.cnt / hr_max * 80)|round|int }}px;min-height:2px;"></div>
+          {% if loop.index0 % 4 == 0 %}
+          <div style="font-size:0.55rem;color:#94a3b8;margin-top:3px;">{{ h.hr }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="color:#94a3b8;font-size:0.85rem;">No data yet</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<!-- Login History Modal -->
+<div id="histModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:18px;padding:28px;width:90%;max-width:600px;max-height:85vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,0.25);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <div>
+        <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:1.1rem;" id="histTitle">Login History</div>
+        <div style="font-size:0.78rem;color:#94a3b8;margin-top:2px;">Last 50 login attempts</div>
+      </div>
+      <button onclick="closeHistory()" style="background:none;border:none;font-size:1.3rem;color:#94a3b8;cursor:pointer;">✕</button>
+    </div>
+    <div id="histBody">
+      <div style="text-align:center;padding:30px;color:#94a3b8;">Loading...</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+function filterTable(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('#laTable tbody tr').forEach(function(r) {
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function openHistory(uid, name) {
+  document.getElementById('histTitle').textContent = name + ' — Login History';
+  document.getElementById('histBody').innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;">Loading...</div>';
+  document.getElementById('histModal').style.display = 'flex';
+  fetch('/admin/login-history/' + uid)
+    .then(r => r.json())
+    .then(function(logs) {
+      if (!logs.length) {
+        document.getElementById('histBody').innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;">No login history found</div>';
+        return;
+      }
+      var icons = { success: '✅', failed: '❌', blocked: '⛔' };
+      var colors = { success: '#065f46', failed: '#991b1b', blocked: '#92400e' };
+      var bgs = { success: '#d1fae5', failed: '#fee2e2', blocked: '#fef3c7' };
+      var html = '<div style="display:flex;flex-direction:column;gap:8px;">';
+      logs.forEach(function(l) {
+        var device = '🖥️ Desktop';
+        var ua = l.user_agent || '';
+        if (ua.match(/Mobile|Android|iPhone/i)) device = '📱 Mobile';
+        else if (ua.match(/Chrome/i)) device = '💻 Chrome';
+        else if (ua.match(/Firefox/i)) device = '🦊 Firefox';
+        else if (ua.match(/Safari/i)) device = '🧭 Safari';
+        html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;background:' + (bgs[l.status]||'#f8fafc') + ';">';
+        html += '<span style="font-size:1rem;">' + (icons[l.status]||'•') + '</span>';
+        html += '<div style="flex:1;">';
+        html += '<div style="font-size:0.82rem;font-weight:600;color:' + (colors[l.status]||'#1a2332') + ';">' + l.status.toUpperCase() + '</div>';
+        html += '<div style="font-size:0.75rem;color:#64748b;margin-top:2px;">' + (l.created_at||'').slice(0,16) + ' &nbsp;|&nbsp; IP: ' + (l.ip_address||'?') + '</div>';
+        html += '</div>';
+        html += '<div style="font-size:0.75rem;color:#94a3b8;">' + device + '</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+      document.getElementById('histBody').innerHTML = html;
+    })
+    .catch(function() {
+      document.getElementById('histBody').innerHTML = '<div style="text-align:center;padding:30px;color:#ef4444;">Failed to load history</div>';
+    });
+}
+
+function closeHistory() {
+  document.getElementById('histModal').style.display = 'none';
+}
+</script>
+{% endblock %}

@@ -177,6 +177,17 @@ def init_db():
             except Exception:
                 db.rollback()
 
+        db.execute('''CREATE TABLE IF NOT EXISTS login_logs (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+            identifier TEXT,
+            ip_address TEXT,
+            user_agent TEXT,
+            status TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )''')
+        db.commit()
+
         # Fix NULL trial_start
         db.execute("UPDATE users SET trial_start=%s WHERE trial_start IS NULL", (_now_str(),))
         db.commit()
@@ -289,6 +300,15 @@ def index():
         return redirect(url_for('admin_dashboard') if session.get('role') == 'admin' else url_for('dashboard'))
     return redirect(url_for('login'))
 
+def _log_login(db, user_id, identifier, status):
+    ip = request.remote_addr or 'unknown'
+    ua = (request.headers.get('User-Agent') or '')[:300]
+    db.execute(
+        "INSERT INTO login_logs (user_id, identifier, ip_address, user_agent, status, created_at) VALUES (%s,%s,%s,%s,%s,%s)",
+        (user_id, identifier, ip, ua, status, _now_str())
+    )
+    db.commit()
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -296,18 +316,25 @@ def login():
         password = request.form.get('password', '')
         db = get_db()
         user = db.execute("SELECT * FROM users WHERE phone=%s OR email=%s", (identifier, identifier)).fetchone()
-        db.close()
         if user and user['password'] == hash_pw(password):
             if not user['enabled'] and user['role'] != 'admin':
+                _log_login(db, user['id'], identifier, 'blocked')
+                db.close()
                 flash('Your account has been disabled. Contact support.', 'error')
                 return render_template('login.html')
+            _log_login(db, user['id'], identifier, 'success')
             if user['totp_enabled'] and user['totp_secret']:
                 session['pending_2fa_uid'] = user['id']
+                db.close()
                 return redirect(url_for('login_2fa'))
             session['user_id'] = user['id']
             session['role'] = user['role']
             session['shop_name'] = user['shop_name'] or 'My Shop'
+            db.close()
             return redirect(url_for('admin_dashboard') if user['role'] == 'admin' else url_for('dashboard'))
+        uid = user['id'] if user else None
+        _log_login(db, uid, identifier, 'failed')
+        db.close()
         flash('Invalid phone/email or password.', 'error')
     return render_template('login.html')
 
@@ -921,6 +948,114 @@ def admin_delete_user(uid):
     db.execute("DELETE FROM users WHERE id=%s", (uid,))
     db.commit(); db.close()
     return jsonify({'success': True})
+
+@app.route('/admin/login-activity')
+@admin_required
+def admin_login_activity():
+    db = get_db()
+    try:
+        # Per-shop login summary
+        shop_logins = db.execute("""
+            SELECT u.id, u.shop_name, u.phone,
+                   COUNT(CASE WHEN l.status='success' THEN 1 END) AS total_logins,
+                   COUNT(CASE WHEN l.status='failed' THEN 1 END) AS failed_logins,
+                   MAX(CASE WHEN l.status='success' THEN l.created_at END) AS last_login,
+                   MAX(CASE WHEN l.status='success' THEN l.ip_address END) AS last_ip,
+                   MAX(CASE WHEN l.status='success' THEN l.user_agent END) AS last_ua
+            FROM users u
+            LEFT JOIN login_logs l ON l.user_id=u.id
+            WHERE u.role='user'
+            GROUP BY u.id, u.shop_name, u.phone
+            ORDER BY last_login DESC NULLS LAST
+        """).fetchall()
+        shop_logins = [dict(s) for s in shop_logins]
+
+        # Security alerts: 3+ failed in last 24h
+        alert_cutoff = (datetime.now(IST) - timedelta(hours=24)).strftime('%Y-%m-%d %H:%M:%S')
+        brute_force = db.execute("""
+            SELECT u.shop_name, u.phone, COUNT(*) AS attempts
+            FROM login_logs l
+            JOIN users u ON u.id=l.user_id
+            WHERE l.status='failed' AND l.created_at >= %s AND u.role='user'
+            GROUP BY u.id, u.shop_name, u.phone
+            HAVING COUNT(*) >= 3
+            ORDER BY attempts DESC
+        """, (alert_cutoff,)).fetchall()
+        brute_force = [dict(b) for b in brute_force]
+
+        # Inactive: no login in 15+ days but account exists
+        inactive_cutoff = (datetime.now(IST) - timedelta(days=15)).strftime('%Y-%m-%d %H:%M:%S')
+        inactive_shops = db.execute("""
+            SELECT u.shop_name, u.phone,
+                   MAX(l.created_at) AS last_seen
+            FROM users u
+            LEFT JOIN login_logs l ON l.user_id=u.id AND l.status='success'
+            WHERE u.role='user' AND u.enabled=1
+            GROUP BY u.id, u.shop_name, u.phone
+            HAVING MAX(l.created_at) < %s OR MAX(l.created_at) IS NULL
+            ORDER BY last_seen ASC NULLS FIRST
+        """, (inactive_cutoff,)).fetchall()
+        inactive_shops = [dict(i) for i in inactive_shops]
+
+        # Currently active: success login in last 30 mins
+        active_cutoff = (datetime.now(IST) - timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S')
+        online_now = db.execute("""
+            SELECT DISTINCT u.shop_name, u.phone, MAX(l.created_at) AS last_seen
+            FROM login_logs l
+            JOIN users u ON u.id=l.user_id
+            WHERE l.status='success' AND l.created_at >= %s AND u.role='user'
+            GROUP BY u.id, u.shop_name, u.phone
+        """, (active_cutoff,)).fetchall()
+        online_now = [dict(o) for o in online_now]
+
+        # Hourly heatmap (0-23) for all time
+        hourly = db.execute("""
+            SELECT SUBSTRING(created_at FROM 12 FOR 2) AS hr, COUNT(*) AS cnt
+            FROM login_logs
+            WHERE status='success'
+            GROUP BY hr ORDER BY hr
+        """).fetchall()
+        hourly = [dict(h) for h in hourly]
+
+        # Day of week heatmap
+        dow_names = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+        dow_raw = db.execute("""
+            SELECT EXTRACT(DOW FROM created_at::timestamp)::int AS dow, COUNT(*) AS cnt
+            FROM login_logs WHERE status='success'
+            GROUP BY dow ORDER BY dow
+        """).fetchall()
+        dow_data = {r['dow']: r['cnt'] for r in dow_raw}
+        dow_stats = [{'day': dow_names[i], 'cnt': dow_data.get(i, 0)} for i in range(7)]
+
+    except Exception as e:
+        db.rollback()
+        shop_logins = []; brute_force = []; inactive_shops = []
+        online_now = []; hourly = []; dow_stats = []
+    finally:
+        db.close()
+
+    return render_template('admin_login_activity.html',
+                           shop_logins=shop_logins, brute_force=brute_force,
+                           inactive_shops=inactive_shops, online_now=online_now,
+                           hourly=hourly, dow_stats=dow_stats)
+
+
+@app.route('/admin/login-history/<int:uid>')
+@admin_required
+def admin_login_history(uid):
+    db = get_db()
+    try:
+        logs = db.execute("""
+            SELECT status, ip_address, user_agent, created_at
+            FROM login_logs WHERE user_id=%s
+            ORDER BY created_at DESC LIMIT 50
+        """, (uid,)).fetchall()
+        return jsonify([dict(l) for l in logs])
+    except Exception:
+        return jsonify([])
+    finally:
+        db.close()
+
 
 @app.route('/login/2fa', methods=['GET', 'POST'])
 def login_2fa():
