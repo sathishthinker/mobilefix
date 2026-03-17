@@ -303,9 +303,10 @@ def index():
 def _log_login(db, user_id, identifier, status):
     ip = request.remote_addr or 'unknown'
     ua = (request.headers.get('User-Agent') or '')[:300]
+    now_ist = datetime.now(IST).strftime('%Y-%m-%d %H:%M:%S')
     db.execute(
         "INSERT INTO login_logs (user_id, identifier, ip_address, user_agent, status, created_at) VALUES (%s,%s,%s,%s,%s,%s)",
-        (user_id, identifier, ip, ua, status, _now_str())
+        (user_id, identifier, ip, ua, status, now_ist)
     )
     db.commit()
 
