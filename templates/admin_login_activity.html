@@ -13,6 +13,7 @@
 .bar-h { background:#f1f5f9; border-radius:999px; height:8px; overflow:hidden; }
 .bar-h-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,#00BCD4,#0097A7); transition:width .5s; }
 .section-title { font-family:'Exo 2',sans-serif; font-weight:700; font-size:0.95rem; color:#1a2332; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+@media(max-width:768px){.heatmap-grid{grid-template-columns:1fr;}}
 </style>
 {% endblock %}
 {% block content %}
@@ -83,7 +84,7 @@
     </div>
   </div>
   <div class="card-body" style="padding-top:0;">
-    <div class="table-wrap">
+    <div class="table-wrap mob-cards">
       <table id="laTable">
         <thead>
           <tr>
@@ -94,27 +95,27 @@
         <tbody>
           {% for s in shop_logins %}
           <tr>
-            <td>
+            <td data-label="Shop">
               <strong style="font-size:0.85rem;">{{ s.shop_name or '—' }}</strong>
               <div style="font-size:0.76rem;color:#94a3b8;">{{ s.phone }}</div>
             </td>
-            <td style="text-align:center;">
+            <td data-label="Total Logins" style="text-align:center;">
               <span style="font-family:'Exo 2',sans-serif;font-weight:800;color:#00BCD4;">{{ s.total_logins or 0 }}</span>
             </td>
-            <td style="text-align:center;">
+            <td data-label="Failed" style="text-align:center;">
               {% if s.failed_logins and s.failed_logins > 0 %}
               <span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">{{ s.failed_logins }}</span>
               {% else %}
               <span style="color:#94a3b8;font-size:0.82rem;">—</span>
               {% endif %}
             </td>
-            <td style="font-size:0.82rem;color:#64748b;">
+            <td data-label="Last Login (IST)" style="font-size:0.82rem;color:#64748b;">
               {{ s.last_login[:16].replace('T',' ') if s.last_login else 'Never' }}
             </td>
-            <td style="font-size:0.78rem;color:#94a3b8;font-family:monospace;">
+            <td data-label="Last IP" style="font-size:0.78rem;color:#94a3b8;font-family:monospace;">
               {{ s.last_ip or '—' }}
             </td>
-            <td style="font-size:0.78rem;color:#64748b;">
+            <td data-label="Device" style="font-size:0.78rem;color:#64748b;">
               {% if s.last_ua %}
                 {% if 'Mobile' in s.last_ua or 'Android' in s.last_ua or 'iPhone' in s.last_ua %}
                   📱 Mobile
@@ -129,7 +130,7 @@
                 {% endif %}
               {% else %}—{% endif %}
             </td>
-            <td>
+            <td data-label="History">
               <button onclick="openHistory({{ s.id }},'{{ s.shop_name }}')"
                 class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:5px 12px;">
                 <i class="fas fa-history"></i> View
@@ -144,7 +145,7 @@
 </div>
 
 <!-- Heatmaps row -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+<div class="heatmap-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
 
   <!-- Day of Week -->
   <div class="card">

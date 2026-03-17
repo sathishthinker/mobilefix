@@ -89,21 +89,21 @@
   </div>
   <div class="card-body" style="padding-top:0;">
     {% if recent_jobs %}
-    <div class="table-wrap">
+    <div class="table-wrap mob-cards">
       <table>
         <thead><tr><th>ID</th><th>Customer</th><th>Device</th><th>Issue</th><th>Status</th><th>Date</th></tr></thead>
         <tbody>
           {% for job in recent_jobs %}
           <tr>
-            <td style="color:#94a3b8;font-size:0.8rem;">#{{ job.id }}</td>
-            <td><strong>{{ job.customer_name }}</strong><br><small style="color:#94a3b8;">{{ job.customer_phone }}</small></td>
-            <td>{{ job.device_model }}</td>
-            <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ job.issue }}</td>
-            <td>
+            <td data-label="ID" style="color:#94a3b8;font-size:0.8rem;">#{{ job.id }}</td>
+            <td data-label="Customer"><strong>{{ job.customer_name }}</strong><br><small style="color:#94a3b8;">{{ job.customer_phone }}</small></td>
+            <td data-label="Device">{{ job.device_model }}</td>
+            <td data-label="Issue" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ job.issue }}</td>
+            <td data-label="Status">
               {% set sc = {'Received':'#00BCD4','Diagnosing':'#FFC107','Repairing':'#FF9800','Ready':'#9C27B0','Delivered':'#4CAF50','Cancelled':'#795548','Rework':'#03A9F4'} %}
               <span style="background:{{ sc.get(job.status,'#94a3b8') }};color:{% if job.status=='Diagnosing' %}#333{% else %}white{% endif %};padding:4px 10px;border-radius:999px;font-size:0.74rem;font-weight:700;">{{ job.status }}</span>
             </td>
-            <td style="color:#94a3b8;font-size:0.8rem;">{{ job.created_at[:10] }}</td>
+            <td data-label="Date" style="color:#94a3b8;font-size:0.8rem;">{{ job.created_at[:10] }}</td>
           </tr>
           {% endfor %}
         </tbody>

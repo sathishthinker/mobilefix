@@ -70,7 +70,7 @@
   </div>
   <div class="card-body" style="padding-top:0;">
     {% if users %}
-    <div class="table-wrap">
+    <div class="table-wrap mob-cards">
       <table id="shopsTable">
         <thead>
           <tr><th>Shop</th><th>Contact</th><th>Status</th><th>Subscription</th><th>Joined</th><th>Actions</th></tr>
@@ -78,15 +78,15 @@
         <tbody>
           {% for u in users %}
           <tr id="row-{{ u.id }}">
-            <td>
+            <td data-label="Shop">
               <strong>{{ u.shop_name or '(No name)' }}</strong>
               <div style="font-size:0.78rem;color:#94a3b8;margin-top:2px;">{{ u.address or 'No address set' }}</div>
             </td>
-            <td>
+            <td data-label="Contact">
               <div style="font-size:0.85rem;">📞 {{ u.phone }}</div>
               <div style="font-size:0.8rem;color:#94a3b8;">✉️ {{ u.email }}</div>
             </td>
-            <td>
+            <td data-label="Status">
               <div style="display:flex;align-items:center;gap:8px;" id="status-cell-{{ u.id }}">
                 {% if u.enabled %}
                   {% if u.status == 'trial' %}
@@ -103,7 +103,7 @@
                 {% endif %}
               </div>
             </td>
-            <td>
+            <td data-label="Subscription">
               <div style="font-size:0.82rem;color:#64748b;">
                 {% if u.subscription_plan %}
                   Plan: <strong>{{ u.subscription_plan }}</strong><br>
@@ -115,8 +115,8 @@
                 {% endif %}
               </div>
             </td>
-            <td style="color:#94a3b8;font-size:0.82rem;">{{ u.created_at[:10] }}</td>
-            <td>
+            <td data-label="Joined" style="color:#94a3b8;font-size:0.82rem;">{{ u.created_at[:10] }}</td>
+            <td data-label="Actions">
               <div class="action-dropdown" id="dd-{{ u.id }}">
                 <button class="dd-trigger" onclick="toggleDd('{{ u.id }}')">
                   Actions <i class="fas fa-chevron-down" style="font-size:0.7rem;margin-left:4px;"></i>
@@ -160,7 +160,7 @@
       <i class="fas fa-chart-bar" style="color:#00BCD4;"></i> Platform Reports
     </div>
     <!-- Tabs -->
-    <div style="display:flex;gap:4px;border-bottom:2px solid #f1f5f9;margin:0 -24px;padding:0 24px;">
+    <div style="display:flex;gap:4px;border-bottom:2px solid #f1f5f9;margin:0 -24px;padding:0 24px;overflow-x:auto;white-space:nowrap;">
       <button class="rtab active" onclick="showTab('perf',this)">📊 Shop Performance</button>
       <button class="rtab" onclick="showTab('trial',this)">🎯 Trial Tracker</button>
       <button class="rtab" onclick="showTab('brand',this)">📱 Top Brands</button>

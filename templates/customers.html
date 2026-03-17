@@ -10,23 +10,23 @@
 </div></div>
 <div class="card"><div class="card-body">
   {% if customers %}
-  <div class="table-wrap">
+  <div class="table-wrap mob-cards">
   <table id="custTable">
     <thead><tr><th>Customer</th><th>Phone</th><th>Total Jobs</th><th>Total Business</th><th>Last Device</th><th>Actions</th></tr></thead>
     <tbody>
     {% for c in customers %}
     <tr>
-      <td>
+      <td data-label="Customer">
         <strong>{{ c.name }}</strong>
         {% if c.total_due > 0 %}
           <br><span style="background:#fee2e2;color:#b91c1c;border-radius:999px;padding:2px 9px;font-size:0.7rem;font-weight:700;display:inline-block;margin-top:3px;">Due ₹{{ '%.2f'|format(c.total_due) }}</span>
         {% endif %}
       </td>
-      <td><i class="fas fa-phone" style="color:#00BCD4;font-size:0.75rem;"></i> {{ c.phone }}</td>
-      <td><span style="font-family:'Exo 2',sans-serif;font-weight:700;color:#00BCD4;">{{ c.jobs|length }}</span></td>
-      <td style="font-weight:700;">₹{{ '%.2f'|format(c.total_business) }}</td>
-      <td style="font-size:0.82rem;color:#94a3b8;">{{ c.jobs[0].device_model if c.jobs else '—' }}</td>
-      <td>
+      <td data-label="Phone"><i class="fas fa-phone" style="color:#00BCD4;font-size:0.75rem;"></i> {{ c.phone }}</td>
+      <td data-label="Total Jobs"><span style="font-family:'Exo 2',sans-serif;font-weight:700;color:#00BCD4;">{{ c.jobs|length }}</span></td>
+      <td data-label="Total Business" style="font-weight:700;">₹{{ '%.2f'|format(c.total_business) }}</td>
+      <td data-label="Last Device" style="font-size:0.82rem;color:#94a3b8;">{{ c.jobs[0].device_model if c.jobs else '—' }}</td>
+      <td data-label="Actions">
         <a href="{{ url_for('add_job') }}" class="act act-orange" style="text-decoration:none;padding:6px 12px;border-radius:7px;display:inline-block;font-size:0.78rem;font-weight:600;color:white;">New Job</a>
         <button class="act act-blue" onclick="toggleHistory('{{ c.phone }}', this)" style="padding:6px 12px;">History</button>
         {% if c.jobs and c.jobs[0].customer_phone %}
@@ -46,7 +46,7 @@
             </div>
             {% endif %}
           </div>
-          <div class="table-wrap" style="margin-top:0;">
+          <div class="table-wrap mob-cards" style="margin-top:0;">
           <table style="margin:0;">
             <thead><tr><th>Job ID</th><th>Device</th><th>Status</th><th>Amount</th><th>Booked On</th><th>Delivered On</th><th>Actions</th></tr></thead>
             <tbody>
@@ -54,14 +54,14 @@
             {% set due = (job.cost or 0) - (job.advance_amount or 0) %}
             {% set sc = {'Received':'#00BCD4','Diagnosing':'#FFC107','Repairing':'#FF9800','Ready':'#9C27B0','Delivered':'#4CAF50','Cancelled':'#795548','Rework':'#03A9F4','Credit Delivery':'#E91E63'} %}
             <tr>
-              <td style="font-size:0.82rem;color:#94a3b8;">#{{ job.id }}</td>
-              <td>{{ job.device_model }}</td>
-              <td>
+              <td data-label="Job ID" style="font-size:0.82rem;color:#94a3b8;">#{{ job.id }}</td>
+              <td data-label="Device">{{ job.device_model }}</td>
+              <td data-label="Status">
                 <span style="background:{{ sc.get(job.status,'#94a3b8') }};color:white;padding:3px 9px;border-radius:999px;font-size:0.72rem;font-weight:700;">{{ job.status }}</span>
                 {% if job.paid_status == 'Unpaid' and job.cost %}<br><span style="background:#ef4444;color:white;padding:1px 7px;border-radius:999px;font-size:0.68rem;font-weight:700;margin-top:3px;display:inline-block;">UNPAID</span>{% endif %}
                 {% if job.paid_status == 'Partial' %}<br><span style="background:#FF9800;color:white;padding:1px 7px;border-radius:999px;font-size:0.68rem;font-weight:700;margin-top:3px;display:inline-block;">PARTIAL</span>{% endif %}
               </td>
-              <td style="font-weight:700;">
+              <td data-label="Amount" style="font-weight:700;">
                 {% if job.cost %}₹{{ '%.2f'|format(job.cost) }}{% else %}—{% endif %}
                 {% if job.advance_amount and job.advance_amount > 0 %}<br><small style="color:#64748b;">Adv: ₹{{ '%.2f'|format(job.advance_amount) }}</small>{% endif %}
                 {% if due > 0 and job.status not in ('Delivered','Cancelled') %}<br><small style="color:#ef4444;font-weight:700;">Due: ₹{{ '%.2f'|format(due) }}</small>{% endif %}
@@ -72,9 +72,9 @@
                   </span>
                 {% endif %}
               </td>
-              <td style="font-size:0.8rem;color:#94a3b8;">{{ job.created_at[:10] }}</td>
-              <td style="font-size:0.8rem;color:#94a3b8;">{{ job.delivery_date or 'N/A' }}</td>
-              <td style="white-space:nowrap;">
+              <td data-label="Booked On" style="font-size:0.8rem;color:#94a3b8;">{{ job.created_at[:10] }}</td>
+              <td data-label="Delivered On" style="font-size:0.8rem;color:#94a3b8;">{{ job.delivery_date or 'N/A' }}</td>
+              <td data-label="Actions" style="white-space:nowrap;">
                 <button onclick='viewCustJob({{ job | tojson }})' style="background:#00BCD4;color:white;border:none;border-radius:7px;padding:4px 10px;font-size:0.75rem;font-weight:600;cursor:pointer;margin:2px;">View Details</button>
                 {% if job.inv_balance and job.inv_balance > 0 %}
                 {% set wa_msg = 'Dear ' + c.name + ', this is a friendly reminder that you have an outstanding credit balance of Rs.' + '%.2f'|format(job.inv_balance) + ' for your ' + job.device_model + ' repair (Job #' + job.id|string + ').' + (' Due date: ' + job.inv_due_date + '.' if job.inv_due_date else '') + ' Please settle the balance at your earliest convenience.' + '\n\n' + (user.shop_name or 'Our Shop') + '\n📞 ' + (user.phone or '') + ('\n📍 ' + user.address if user.address else '') + '\n\nThank you!' %}
