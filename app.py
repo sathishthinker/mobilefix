@@ -813,6 +813,59 @@ def admin_dashboard():
     month_start = date.today().replace(day=1).isoformat()
     new_this_month = db.execute(
         "SELECT COUNT(*) FROM users WHERE role='user' AND SUBSTRING(created_at FROM 1 FOR 10)>=%s", (month_start,)).fetchone()[0]
+
+    # Per-shop performance
+    shop_perf = db.execute("""
+        SELECT u.id, u.shop_name, u.phone,
+               COUNT(r.id) AS total_jobs,
+               COUNT(CASE WHEN r.status='Delivered' THEN 1 END) AS delivered,
+               COUNT(CASE WHEN r.status='Cancelled' THEN 1 END) AS cancelled,
+               COUNT(CASE WHEN r.status NOT IN ('Delivered','Cancelled') THEN 1 END) AS active_jobs,
+               ROUND(COALESCE(AVG(CASE WHEN r.status='Delivered'
+                   THEN EXTRACT(EPOCH FROM (r.updated_at::timestamp - r.created_at::timestamp))/86400.0 END),0)::numeric,1) AS avg_days,
+               COALESCE(SUM(CASE WHEN r.paid_status='Paid' THEN r.cost ELSE 0 END),0) AS total_revenue,
+               COUNT(CASE WHEN r.paid_status='Unpaid' AND r.status NOT IN ('Delivered','Cancelled') THEN 1 END) AS unpaid_active
+        FROM users u
+        LEFT JOIN repair_jobs r ON r.user_id=u.id
+        WHERE u.role='user'
+        GROUP BY u.id, u.shop_name, u.phone
+        ORDER BY total_jobs DESC
+    """).fetchall()
+    shop_perf = [dict(s) for s in shop_perf]
+
+    # Trial conversion tracker
+    trial_tracker = db.execute("""
+        SELECT u.id, u.shop_name, u.phone, u.subscription_plan,
+               SUBSTRING(u.trial_start FROM 1 FOR 10) AS trial_start,
+               COUNT(r.id) AS jobs_done,
+               COALESCE(SUM(CASE WHEN r.paid_status='Paid' THEN r.cost ELSE 0 END),0) AS revenue
+        FROM users u
+        LEFT JOIN repair_jobs r ON r.user_id=u.id
+        WHERE u.role='user'
+        GROUP BY u.id, u.shop_name, u.phone, u.subscription_plan, u.trial_start
+        ORDER BY jobs_done DESC
+    """).fetchall()
+    trial_tracker = [dict(t) for t in trial_tracker]
+
+    # Top device brands across all shops
+    brand_stats = db.execute("""
+        SELECT UPPER(TRIM(device_brand)) AS brand, COUNT(*) AS cnt
+        FROM repair_jobs
+        WHERE device_brand IS NOT NULL AND TRIM(device_brand) != ''
+        GROUP BY UPPER(TRIM(device_brand))
+        ORDER BY cnt DESC LIMIT 10
+    """).fetchall()
+    brand_stats = [dict(b) for b in brand_stats]
+
+    # Daily jobs last 30 days
+    daily_jobs = db.execute("""
+        SELECT SUBSTRING(created_at FROM 1 FOR 10) AS day, COUNT(*) AS cnt
+        FROM repair_jobs
+        WHERE created_at >= NOW() AT TIME ZONE 'UTC' - INTERVAL '30 days'
+        GROUP BY day ORDER BY day
+    """).fetchall()
+    daily_jobs = [dict(d) for d in daily_jobs]
+
     db.close()
 
     return render_template('admin_dashboard.html', users=enriched, total=total,
@@ -820,7 +873,9 @@ def admin_dashboard():
                            disabled_count=sum(1 for u in users if not u['enabled']),
                            expired_count=sum(1 for u in users if subscription_status(u) in ('trial_expired', 'expired')),
                            platform=platform, shop_activity=shop_activity,
-                           expiring=expiring, new_this_month=new_this_month)
+                           expiring=expiring, new_this_month=new_this_month,
+                           shop_perf=shop_perf, trial_tracker=trial_tracker,
+                           brand_stats=brand_stats, daily_jobs=daily_jobs)
 
 @app.route('/admin/toggle/<int:uid>', methods=['POST'])
 @admin_required

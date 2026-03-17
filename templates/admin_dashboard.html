@@ -1,6 +1,18 @@
 {% extends 'base.html' %}
 {% block title %}Admin — MobileFix Pro{% endblock %}
 {% block page_title %}Admin Panel{% endblock %}
+{% block extra_head %}
+<style>
+.rtab {
+  padding: 8px 16px; border: none; background: none; cursor: pointer;
+  font-size: 0.82rem; font-weight: 600; color: #94a3b8;
+  border-bottom: 2px solid transparent; margin-bottom: -2px;
+  font-family: inherit; transition: all 0.2s; white-space: nowrap;
+}
+.rtab.active { color: #00BCD4; border-bottom-color: #00BCD4; }
+.rtab:hover { color: #1a2332; }
+</style>
+{% endblock %}
 {% block content %}
 <div class="page-header">
   <div>
@@ -141,6 +153,172 @@
   </div>
 </div>
 
+<!-- Reports Section -->
+<div class="card" style="margin-top:24px;">
+  <div class="card-header" style="padding:20px 24px 0;">
+    <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:1rem;margin-bottom:16px;">
+      <i class="fas fa-chart-bar" style="color:#00BCD4;"></i> Platform Reports
+    </div>
+    <!-- Tabs -->
+    <div style="display:flex;gap:4px;border-bottom:2px solid #f1f5f9;margin:0 -24px;padding:0 24px;">
+      <button class="rtab active" onclick="showTab('perf',this)">📊 Shop Performance</button>
+      <button class="rtab" onclick="showTab('trial',this)">🎯 Trial Tracker</button>
+      <button class="rtab" onclick="showTab('brand',this)">📱 Top Brands</button>
+      <button class="rtab" onclick="showTab('activity',this)">📅 Daily Activity</button>
+    </div>
+  </div>
+  <div class="card-body" style="padding-top:20px;">
+
+    <!-- Tab: Shop Performance -->
+    <div id="tab-perf" class="rtab-panel">
+      {% if shop_perf %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Shop</th><th>Total Jobs</th><th>Delivered</th><th>Cancelled</th>
+              <th>Active</th><th>Unpaid Active</th><th>Avg Days</th><th>Revenue (Paid)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in shop_perf %}
+            <tr>
+              <td>
+                <strong style="font-size:0.85rem;">{{ s.shop_name or '—' }}</strong>
+                <div style="font-size:0.76rem;color:#94a3b8;">{{ s.phone }}</div>
+              </td>
+              <td style="text-align:center;">
+                <span style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.1rem;color:#1a2332;">{{ s.total_jobs }}</span>
+              </td>
+              <td style="text-align:center;">
+                <span style="background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">{{ s.delivered }}</span>
+              </td>
+              <td style="text-align:center;">
+                <span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">{{ s.cancelled }}</span>
+              </td>
+              <td style="text-align:center;">
+                <span style="background:#e0f2fe;color:#0369a1;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">{{ s.active_jobs }}</span>
+              </td>
+              <td style="text-align:center;">
+                {% if s.unpaid_active > 0 %}
+                <span style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">{{ s.unpaid_active }}</span>
+                {% else %}
+                <span style="color:#94a3b8;font-size:0.78rem;">—</span>
+                {% endif %}
+              </td>
+              <td style="text-align:center;font-size:0.82rem;color:#64748b;">
+                {% if s.total_jobs > 0 %}{{ s.avg_days }} days{% else %}—{% endif %}
+              </td>
+              <td style="text-align:right;">
+                <span style="font-family:'Exo 2',sans-serif;font-weight:800;color:#10b981;font-size:0.95rem;">
+                  ₹{{ '{:,.0f}'.format(s.total_revenue) }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:40px;color:#94a3b8;">No data yet</div>
+      {% endif %}
+    </div>
+
+    <!-- Tab: Trial Tracker -->
+    <div id="tab-trial" class="rtab-panel" style="display:none;">
+      {% if trial_tracker %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Shop</th><th>Phone</th><th>Trial Start</th><th>Plan</th><th>Jobs Done</th><th>Revenue</th><th>Conversion</th></tr>
+          </thead>
+          <tbody>
+            {% for t in trial_tracker %}
+            <tr>
+              <td><strong style="font-size:0.85rem;">{{ t.shop_name or '—' }}</strong></td>
+              <td style="font-size:0.82rem;color:#64748b;">{{ t.phone }}</td>
+              <td style="font-size:0.82rem;color:#64748b;">{{ t.trial_start or '—' }}</td>
+              <td>
+                {% if t.subscription_plan %}
+                <span style="background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">{{ t.subscription_plan }}</span>
+                {% else %}
+                <span style="background:#fef9c3;color:#a16207;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">Trial</span>
+                {% endif %}
+              </td>
+              <td style="text-align:center;">
+                <span style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1rem;
+                  color:{% if t.jobs_done >= 5 %}#10b981{% elif t.jobs_done >= 1 %}#f59e0b{% else %}#ef4444{% endif %}">
+                  {{ t.jobs_done }}
+                </span>
+              </td>
+              <td style="text-align:right;font-family:'Exo 2',sans-serif;font-weight:700;color:#10b981;">
+                ₹{{ '{:,.0f}'.format(t.revenue) }}
+              </td>
+              <td>
+                {% if t.subscription_plan %}
+                <span style="background:#d1fae5;color:#065f46;font-size:0.76rem;font-weight:700;padding:3px 10px;border-radius:999px;">✅ Converted</span>
+                {% elif t.jobs_done >= 5 %}
+                <span style="background:#dbeafe;color:#1d4ed8;font-size:0.76rem;font-weight:700;padding:3px 10px;border-radius:999px;">🔥 Hot Lead</span>
+                {% elif t.jobs_done >= 1 %}
+                <span style="background:#fef9c3;color:#a16207;font-size:0.76rem;font-weight:700;padding:3px 10px;border-radius:999px;">👀 Engaged</span>
+                {% else %}
+                <span style="background:#fee2e2;color:#991b1b;font-size:0.76rem;font-weight:700;padding:3px 10px;border-radius:999px;">❄️ No Activity</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:40px;color:#94a3b8;">No data yet</div>
+      {% endif %}
+    </div>
+
+    <!-- Tab: Top Brands -->
+    <div id="tab-brand" class="rtab-panel" style="display:none;">
+      {% if brand_stats %}
+      {% set max_cnt = brand_stats[0].cnt %}
+      <div style="display:flex;flex-direction:column;gap:12px;max-width:560px;">
+        {% for b in brand_stats %}
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+            <span style="font-weight:600;font-size:0.88rem;">{{ b.brand }}</span>
+            <span style="font-family:'Exo 2',sans-serif;font-weight:800;color:#00BCD4;">{{ b.cnt }} jobs</span>
+          </div>
+          <div style="background:#f1f5f9;border-radius:999px;height:10px;overflow:hidden;">
+            <div style="background:linear-gradient(90deg,#00BCD4,#0097A7);height:100%;border-radius:999px;width:{{ (b.cnt / max_cnt * 100)|round|int }}%;transition:width 0.6s ease;"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:40px;color:#94a3b8;">No brand data yet</div>
+      {% endif %}
+    </div>
+
+    <!-- Tab: Daily Activity -->
+    <div id="tab-activity" class="rtab-panel" style="display:none;">
+      {% if daily_jobs %}
+      {% set max_day = daily_jobs|map(attribute='cnt')|max %}
+      <div style="font-size:0.8rem;color:#94a3b8;margin-bottom:16px;">Jobs created per day (last 30 days)</div>
+      <div style="display:flex;align-items:flex-end;gap:4px;height:120px;overflow-x:auto;padding-bottom:8px;">
+        {% for d in daily_jobs %}
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;min-width:28px;">
+          <span style="font-size:0.68rem;color:#00BCD4;font-weight:700;">{{ d.cnt }}</span>
+          <div style="background:linear-gradient(180deg,#00BCD4,#0097A7);border-radius:4px 4px 0 0;width:22px;height:{{ (d.cnt / max_day * 90)|round|int }}px;min-height:4px;"></div>
+          <span style="font-size:0.62rem;color:#94a3b8;transform:rotate(-45deg);white-space:nowrap;margin-top:4px;">{{ d.day[5:] }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:40px;color:#94a3b8;">No activity in last 30 days</div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
 <!-- Subscription Modal -->
 <div class="modal-overlay" id="subModal">
   <div class="modal-box">
@@ -198,6 +376,14 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+function showTab(name, btn) {
+  document.querySelectorAll('.rtab-panel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).style.display = '';
+  btn.classList.add('active');
+}
+</script>
 <style>
 .action-dropdown { position:relative; display:inline-block; }
 .dd-trigger { background:white; border:1.5px solid #e2e8f0; border-radius:8px; padding:6px 12px; font-size:0.82rem; font-weight:600; color:#475569; cursor:pointer; font-family:inherit; white-space:nowrap; transition:all .15s; }
