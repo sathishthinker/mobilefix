@@ -7,11 +7,12 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
 IST = timezone(timedelta(hours=5, minutes=30))
-FAST2SMS_KEY = os.environ.get('FAST2SMS_KEY', '')
+FAST2SMS_KEY = os.environ.get('FAST2SMS_KEY', '').strip()
 
 def send_otp_sms(phone, otp):
     """Send OTP via Fast2SMS. Phone should be 10-digit Indian number."""
     phone = re.sub(r'^\+?91', '', str(phone).strip())[-10:]
+    print(f"[OTP] Sending to {phone}, key_len={len(FAST2SMS_KEY)}", flush=True)
     try:
         r = requests.post(
             'https://www.fast2sms.com/dev/bulkV2',
@@ -20,10 +21,10 @@ def send_otp_sms(phone, otp):
             timeout=8
         )
         data = r.json()
-        app.logger.info(f"Fast2SMS response: {data}")
+        print(f"[OTP] Fast2SMS response: {data}", flush=True)
         return data.get('return', False)
     except Exception as e:
-        app.logger.error(f"Fast2SMS error: {e}")
+        print(f"[OTP] Fast2SMS error: {e}", flush=True)
         return False
 
 # ── DB Wrapper ─────────────────────────────────────────────────────────────────
