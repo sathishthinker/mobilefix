@@ -1118,7 +1118,7 @@ def disable_2fa():
     return redirect(url_for('settings'))
 
 def _send_otp_email(to_email, otp):
-    api_key = os.environ.get('RESEND_API_KEY', '').strip()
+    api_key = os.environ.get('BREVO_API_KEY', '').strip()
     print(f"[OTP] Sending to {to_email}, key configured: {bool(api_key)}", flush=True)
     html = f"""
     <div style="font-family:sans-serif;max-width:420px;margin:0 auto;padding:32px 24px;background:#f0f4f8;border-radius:16px;">
@@ -1138,26 +1138,26 @@ def _send_otp_email(to_email, otp):
     </div>"""
     try:
         payload = json.dumps({
-            'from': 'MobileFix Pro <noreply@send.mobilefix.cloud>',
-            'to': [to_email],
+            'sender': {'name': 'MobileFix Pro', 'email': 'noreply@mobilefix.cloud'},
+            'to': [{'email': to_email}],
             'subject': f'MobileFix Pro — Your OTP is {otp}',
-            'html': html
+            'htmlContent': html
         }).encode('utf-8')
         req = urllib.request.Request(
-            'https://api.resend.com/emails',
+            'https://api.brevo.com/v3/smtp/email',
             data=payload,
-            headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'}
+            headers={'api-key': api_key, 'Content-Type': 'application/json'}
         )
         with urllib.request.urlopen(req, timeout=10) as resp:
             result = json.loads(resp.read())
-            print(f"[OTP] Resend response: {result}", flush=True)
+            print(f"[OTP] Brevo response: {result}", flush=True)
             return True
     except urllib.error.HTTPError as e:
         body = e.read().decode('utf-8', errors='replace')
-        print(f"[OTP] Resend HTTP {e.code}: {body}", flush=True)
+        print(f"[OTP] Brevo HTTP {e.code}: {body}", flush=True)
         return False
     except Exception as e:
-        print(f"[OTP] Resend error: {e}", flush=True)
+        print(f"[OTP] Brevo error: {e}", flush=True)
         return False
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
