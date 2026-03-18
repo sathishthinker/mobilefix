@@ -1120,8 +1120,9 @@ def disable_2fa():
     return redirect(url_for('settings'))
 
 def _send_otp_email(to_email, otp):
-    sender = os.environ.get('MAIL_' + 'EMAIL', '').strip()
-    password = os.environ.get('MAIL_' + 'PASSWORD', '').strip()
+    cfg = {k: v for k, v in os.environ.items()}
+    sender = cfg.get('MAIL_EMAIL', '').strip()
+    password = cfg.get('MAIL_PASSWORD', '').strip()
     print(f"[OTP] Sending to {to_email}, sender configured: {bool(sender)}", flush=True)
     try:
         msg = MIMEMultipart('alternative')
@@ -1145,8 +1146,7 @@ def _send_otp_email(to_email, otp):
           </div>
         </div>"""
         msg.attach(MIMEText(html, 'html'))
-        with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
-            smtp.starttls()
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
             smtp.login(sender, password)
             smtp.sendmail(sender, to_email, msg.as_string())
         print(f"[OTP] Email sent successfully", flush=True)
