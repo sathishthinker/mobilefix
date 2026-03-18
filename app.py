@@ -1138,7 +1138,7 @@ def _send_otp_email(to_email, otp):
     </div>"""
     try:
         payload = json.dumps({
-            'from': 'MobileFix Pro <noreply@mobilefix.cloud>',
+            'from': 'MobileFix Pro <noreply@send.mobilefix.cloud>',
             'to': [to_email],
             'subject': f'MobileFix Pro — Your OTP is {otp}',
             'html': html
