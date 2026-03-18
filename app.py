@@ -1123,8 +1123,13 @@ def _send_otp(phone, otp):
     try:
         r = requests.post(
             'https://www.fast2sms.com/dev/bulkV2',
-            headers={'authorization': key, 'Content-Type': 'application/json'},
-            json={'route': 'otp', 'variables_values': str(otp), 'numbers': phone10},
+            headers={'authorization': key},
+            json={
+                'route': 'q',
+                'message': f'Your MobileFix Pro password reset OTP is {otp}. Valid for 5 minutes. Do not share with anyone.',
+                'language': 'english',
+                'numbers': phone10,
+            },
             timeout=10
         )
         data = r.json()
