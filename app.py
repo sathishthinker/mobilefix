@@ -19,8 +19,11 @@ def send_otp_sms(phone, otp):
             json={'route': 'otp', 'variables_values': str(otp), 'numbers': phone},
             timeout=8
         )
-        return r.json().get('return', False)
-    except Exception:
+        data = r.json()
+        app.logger.info(f"Fast2SMS response: {data}")
+        return data.get('return', False)
+    except Exception as e:
+        app.logger.error(f"Fast2SMS error: {e}")
         return False
 
 # ── DB Wrapper ─────────────────────────────────────────────────────────────────
