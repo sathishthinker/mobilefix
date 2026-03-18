@@ -1,12 +1,27 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from functools import wraps
 from datetime import datetime, timedelta, timezone
-import psycopg2, psycopg2.extras, hashlib, os, re, json, random, string, base64, pyotp
+import psycopg2, psycopg2.extras, hashlib, os, re, json, random, string, base64, pyotp, requests, time
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
 IST = timezone(timedelta(hours=5, minutes=30))
+FAST2SMS_KEY = os.environ.get('FAST2SMS_KEY', '')
+
+def send_otp_sms(phone, otp):
+    """Send OTP via Fast2SMS. Phone should be 10-digit Indian number."""
+    phone = re.sub(r'^\+?91', '', str(phone).strip())[-10:]
+    try:
+        r = requests.post(
+            'https://www.fast2sms.com/dev/bulkV2',
+            headers={'authorization': FAST2SMS_KEY},
+            json={'route': 'otp', 'variables_values': str(otp), 'numbers': phone},
+            timeout=8
+        )
+        return r.json().get('return', False)
+    except Exception:
+        return False
 
 # ── DB Wrapper ─────────────────────────────────────────────────────────────────
 class DbWrapper:
@@ -1125,26 +1140,38 @@ def forgot_password():
         user = db.execute("SELECT * FROM users WHERE email=%s AND phone=%s AND role='user'", (email, phone)).fetchone()
         db.close()
         if user:
+            otp = str(random.randint(100000, 999999))
             session['fp_uid'] = user['id']
-            session['fp_2fa_done'] = True
-            return redirect(url_for('forgot_password_reset'))
+            session['fp_otp'] = otp
+            session['fp_otp_time'] = time.time()
+            session['fp_phone'] = phone[-10:] if len(phone) >= 10 else phone
+            session['fp_2fa_done'] = False
+            sent = send_otp_sms(phone, otp)
+            if sent:
+                return redirect(url_for('forgot_password_2fa'))
+            flash('Failed to send OTP. Please try again.', 'error')
+            return render_template('forgot_password.html', step=1)
         flash('No account found with that email and phone combination.', 'error')
     return render_template('forgot_password.html', step=1)
 
 @app.route('/forgot-password/2fa', methods=['GET', 'POST'])
 def forgot_password_2fa():
-    if 'fp_uid' not in session:
+    if 'fp_uid' not in session or 'fp_otp' not in session:
         return redirect(url_for('forgot_password'))
     if request.method == 'POST':
         code = request.form.get('code', '').strip().replace(' ', '')
-        db = get_db()
-        user = db.execute("SELECT * FROM users WHERE id=%s", (session['fp_uid'],)).fetchone()
-        db.close()
-        if user and user['totp_secret'] and pyotp.TOTP(user['totp_secret']).verify(code, valid_window=1):
+        expired = time.time() - session.get('fp_otp_time', 0) > 300
+        if not expired and code == session.get('fp_otp'):
             session['fp_2fa_done'] = True
+            session.pop('fp_otp', None)
+            session.pop('fp_otp_time', None)
             return redirect(url_for('forgot_password_reset'))
-        flash('Invalid or expired code. Please try again.', 'error')
-    return render_template('forgot_password.html', step='2fa')
+        if expired:
+            flash('OTP expired. Please request a new one.', 'error')
+            return redirect(url_for('forgot_password'))
+        flash('Invalid OTP. Please try again.', 'error')
+    masked = 'XXXXXX' + session.get('fp_phone', '')[-4:]
+    return render_template('forgot_password.html', step='2fa', masked_phone=masked)
 
 @app.route('/forgot-password/reset', methods=['GET', 'POST'])
 def forgot_password_reset():
