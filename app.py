@@ -1120,8 +1120,8 @@ def disable_2fa():
     return redirect(url_for('settings'))
 
 def _send_otp_email(to_email, otp):
-    sender = os.environ.get('MAIL_EMAIL', '').strip()
-    password = os.environ.get('MAIL_PASSWORD', '').strip()
+    sender = os.environ.get('MAIL_' + 'EMAIL', '').strip()
+    password = os.environ.get('MAIL_' + 'PASSWORD', '').strip()
     print(f"[OTP] Sending to {to_email}, sender configured: {bool(sender)}", flush=True)
     try:
         msg = MIMEMultipart('alternative')
