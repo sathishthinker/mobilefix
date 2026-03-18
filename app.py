@@ -283,13 +283,6 @@ def active_required(f):
                 return jsonify({'error': 'Subscription expired'}), 403
             reason = 'disabled' if status == 'inactive' else status
             return redirect(url_for('subscription_page', reason=reason))
-        # Enforce mandatory 2FA — redirect to setup if not yet enabled
-        _2fa_exempt = {'setup_2fa', 'verify_2fa_setup', 'logout', 'subscription_page', 'static'}
-        if not user.get('totp_enabled') and request.endpoint not in _2fa_exempt:
-            if request.is_json or request.headers.get('X-Requested-With'):
-                return jsonify({'error': '2FA setup required'}), 403
-            flash('Please set up Two-Factor Authentication to secure your account.', 'error')
-            return redirect(url_for('setup_2fa'))
         return f(*args, **kwargs)
     return decorated
 
@@ -324,10 +317,6 @@ def login():
                 flash('Your account has been disabled. Contact support.', 'error')
                 return render_template('login.html')
             _log_login(db, user['id'], identifier, 'success')
-            if user['totp_enabled'] and user['totp_secret']:
-                session['pending_2fa_uid'] = user['id']
-                db.close()
-                return redirect(url_for('login_2fa'))
             session['user_id'] = user['id']
             session['role'] = user['role']
             session['shop_name'] = user['shop_name'] or 'My Shop'
@@ -1137,9 +1126,6 @@ def forgot_password():
         db.close()
         if user:
             session['fp_uid'] = user['id']
-            session['fp_2fa_done'] = False
-            if user['totp_enabled'] and user['totp_secret']:
-                return redirect(url_for('forgot_password_2fa'))
             session['fp_2fa_done'] = True
             return redirect(url_for('forgot_password_reset'))
         flash('No account found with that email and phone combination.', 'error')
