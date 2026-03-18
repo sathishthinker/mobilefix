@@ -2,9 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, j
 from functools import wraps
 from datetime import datetime, timedelta, timezone
 import psycopg2, psycopg2.extras, hashlib, os, re, json, random, string, base64, pyotp, time
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import urllib.request
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
@@ -1120,39 +1118,42 @@ def disable_2fa():
     return redirect(url_for('settings'))
 
 def _send_otp_email(to_email, otp):
-    cfg = {k: v for k, v in os.environ.items()}
-    sender = cfg.get('MAIL_EMAIL', '').strip()
-    password = cfg.get('MAIL_PASSWORD', '').strip()
-    print(f"[OTP] Sending to {to_email}, sender configured: {bool(sender)}", flush=True)
+    api_key = os.environ.get('RESEND_API_KEY', '').strip()
+    print(f"[OTP] Sending to {to_email}, key configured: {bool(api_key)}", flush=True)
+    html = f"""
+    <div style="font-family:sans-serif;max-width:420px;margin:0 auto;padding:32px 24px;background:#f0f4f8;border-radius:16px;">
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="display:inline-block;background:linear-gradient(135deg,#00BCD4,#0097A7);border-radius:14px;padding:12px 20px;">
+          <span style="color:white;font-size:1.2rem;font-weight:900;">MobileFix Pro</span>
+        </div>
+      </div>
+      <div style="background:white;border-radius:12px;padding:28px 24px;text-align:center;">
+        <h2 style="color:#1a2332;margin-bottom:8px;">Password Reset OTP</h2>
+        <p style="color:#6b7c93;margin-bottom:24px;">Use the code below to reset your password. It expires in <strong>5 minutes</strong>.</p>
+        <div style="background:#e0f7fa;border-radius:12px;padding:20px;margin-bottom:24px;">
+          <span style="font-size:2.4rem;font-weight:900;letter-spacing:12px;color:#0097A7;">{otp}</span>
+        </div>
+        <p style="color:#94a3b8;font-size:0.8rem;">Do not share this code with anyone.<br>If you did not request a password reset, ignore this email.</p>
+      </div>
+    </div>"""
     try:
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = f'MobileFix Pro — Your OTP is {otp}'
-        msg['From'] = f'MobileFix Pro <{sender}>'
-        msg['To'] = to_email
-        html = f"""
-        <div style="font-family:sans-serif;max-width:420px;margin:0 auto;padding:32px 24px;background:#f0f4f8;border-radius:16px;">
-          <div style="text-align:center;margin-bottom:24px;">
-            <div style="display:inline-block;background:linear-gradient(135deg,#00BCD4,#0097A7);border-radius:14px;padding:12px 20px;">
-              <span style="color:white;font-size:1.2rem;font-weight:900;">MobileFix Pro</span>
-            </div>
-          </div>
-          <div style="background:white;border-radius:12px;padding:28px 24px;text-align:center;">
-            <h2 style="color:#1a2332;margin-bottom:8px;">Password Reset OTP</h2>
-            <p style="color:#6b7c93;margin-bottom:24px;">Use the code below to reset your password. It expires in <strong>5 minutes</strong>.</p>
-            <div style="background:#e0f7fa;border-radius:12px;padding:20px;margin-bottom:24px;">
-              <span style="font-size:2.4rem;font-weight:900;letter-spacing:12px;color:#0097A7;">{otp}</span>
-            </div>
-            <p style="color:#94a3b8;font-size:0.8rem;">Do not share this code with anyone.<br>If you did not request a password reset, ignore this email.</p>
-          </div>
-        </div>"""
-        msg.attach(MIMEText(html, 'html'))
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-            smtp.login(sender, password)
-            smtp.sendmail(sender, to_email, msg.as_string())
-        print(f"[OTP] Email sent successfully", flush=True)
-        return True
+        payload = json.dumps({
+            'from': 'MobileFix Pro <noreply@mobilefix.cloud>',
+            'to': [to_email],
+            'subject': f'MobileFix Pro — Your OTP is {otp}',
+            'html': html
+        }).encode('utf-8')
+        req = urllib.request.Request(
+            'https://api.resend.com/emails',
+            data=payload,
+            headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'}
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            result = json.loads(resp.read())
+            print(f"[OTP] Resend response: {result}", flush=True)
+            return True
     except Exception as e:
-        print(f"[OTP] Email error: {e}", flush=True)
+        print(f"[OTP] Resend error: {e}", flush=True)
         return False
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
