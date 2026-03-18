@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, j
 from functools import wraps
 from datetime import datetime, timedelta, timezone
 import psycopg2, psycopg2.extras, hashlib, os, re, json, random, string, base64, pyotp, time
-import urllib.request
+import urllib.request, urllib.error
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
@@ -1152,6 +1152,10 @@ def _send_otp_email(to_email, otp):
             result = json.loads(resp.read())
             print(f"[OTP] Resend response: {result}", flush=True)
             return True
+    except urllib.error.HTTPError as e:
+        body = e.read().decode('utf-8', errors='replace')
+        print(f"[OTP] Resend HTTP {e.code}: {body}", flush=True)
+        return False
     except Exception as e:
         print(f"[OTP] Resend error: {e}", flush=True)
         return False
