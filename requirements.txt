@@ -2,4 +2,3 @@ flask>=2.3.0
 gunicorn
 psycopg2-binary
 pyotp
-requests

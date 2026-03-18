@@ -1,7 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from functools import wraps
 from datetime import datetime, timedelta, timezone
-import psycopg2, psycopg2.extras, hashlib, os, re, json, random, string, base64, pyotp, requests, time
+import psycopg2, psycopg2.extras, hashlib, os, re, json, random, string, base64, pyotp, time
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
@@ -1116,27 +1119,40 @@ def disable_2fa():
     flash('Invalid code. 2FA was not disabled.', 'error')
     return redirect(url_for('settings'))
 
-def _send_otp(phone, otp):
-    key = os.environ.get('FAST2SMS_KEY', '').replace('\n','').replace('\r','').replace(' ','').strip()
-    phone10 = re.sub(r'^\+?91', '', str(phone).strip())[-10:]
-    print(f"[OTP] Sending {otp} to {phone10}, key_len={len(key)}", flush=True)
+def _send_otp_email(to_email, otp):
+    sender = os.environ.get('MAIL_EMAIL', '').strip()
+    password = os.environ.get('MAIL_PASSWORD', '').strip()
+    print(f"[OTP] Sending to {to_email}, sender configured: {bool(sender)}", flush=True)
     try:
-        r = requests.post(
-            'https://www.fast2sms.com/dev/bulkV2',
-            headers={'authorization': key},
-            json={
-                'route': 'q',
-                'message': f'Your MobileFix Pro password reset OTP is {otp}. Valid for 5 minutes. Do not share with anyone.',
-                'language': 'english',
-                'numbers': phone10,
-            },
-            timeout=10
-        )
-        data = r.json()
-        print(f"[OTP] Fast2SMS response: {data}", flush=True)
-        return data.get('return', False)
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f'MobileFix Pro — Your OTP is {otp}'
+        msg['From'] = f'MobileFix Pro <{sender}>'
+        msg['To'] = to_email
+        html = f"""
+        <div style="font-family:sans-serif;max-width:420px;margin:0 auto;padding:32px 24px;background:#f0f4f8;border-radius:16px;">
+          <div style="text-align:center;margin-bottom:24px;">
+            <div style="display:inline-block;background:linear-gradient(135deg,#00BCD4,#0097A7);border-radius:14px;padding:12px 20px;">
+              <span style="color:white;font-size:1.2rem;font-weight:900;">MobileFix Pro</span>
+            </div>
+          </div>
+          <div style="background:white;border-radius:12px;padding:28px 24px;text-align:center;">
+            <h2 style="color:#1a2332;margin-bottom:8px;">Password Reset OTP</h2>
+            <p style="color:#6b7c93;margin-bottom:24px;">Use the code below to reset your password. It expires in <strong>5 minutes</strong>.</p>
+            <div style="background:#e0f7fa;border-radius:12px;padding:20px;margin-bottom:24px;">
+              <span style="font-size:2.4rem;font-weight:900;letter-spacing:12px;color:#0097A7;">{otp}</span>
+            </div>
+            <p style="color:#94a3b8;font-size:0.8rem;">Do not share this code with anyone.<br>If you did not request a password reset, ignore this email.</p>
+          </div>
+        </div>"""
+        msg.attach(MIMEText(html, 'html'))
+        with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+            smtp.starttls()
+            smtp.login(sender, password)
+            smtp.sendmail(sender, to_email, msg.as_string())
+        print(f"[OTP] Email sent successfully", flush=True)
+        return True
     except Exception as e:
-        print(f"[OTP] Fast2SMS error: {e}", flush=True)
+        print(f"[OTP] Email error: {e}", flush=True)
         return False
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
@@ -1153,9 +1169,9 @@ def forgot_password():
             session['fp_otp']       = otp
             session['fp_otp_time']  = time.time()
             session['fp_2fa_done']  = False
-            if _send_otp(phone, otp):
+            if _send_otp_email(user['email'], otp):
                 return redirect(url_for('forgot_password_2fa'))
-            flash('Failed to send OTP. Please try again.', 'error')
+            flash('Failed to send OTP email. Please try again.', 'error')
             session.pop('fp_uid', None)
             return render_template('forgot_password.html', step=1)
         flash('No account found with that email and phone combination.', 'error')
