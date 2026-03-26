@@ -470,7 +470,13 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
   <div id="deliverInfo" style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:14px;font-size:0.875rem;"></div>
   <div id="imeiDeliverBox" style="background:#fff3cd;border:1.5px solid #ffc107;border-radius:10px;padding:12px;margin-bottom:14px;display:none;">
     <label class="form-label" style="color:#92400e;font-size:0.82rem;"><i class="fas fa-barcode"></i> IMEI / Serial Number <span style="color:#ef4444;">*</span></label>
-    <input type="text" id="deliverImei" class="form-control" placeholder="ENTER IMEI" maxlength="20" oninput="this.value=this.value.toUpperCase()">
+    <div style="display:flex;gap:8px;align-items:stretch;">
+      <input type="text" id="deliverImei" class="form-control" placeholder="ENTER IMEI" maxlength="20" oninput="this.value=this.value.toUpperCase()" style="flex:1;">
+      <button type="button" onclick="startImeiScan('deliverImei')"
+        style="background:linear-gradient(135deg,#00BCD4,#0097A7);color:white;border:none;border-radius:10px;padding:0 14px;cursor:pointer;font-size:0.82rem;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0;">
+        <i class="fas fa-barcode"></i> Scan
+      </button>
+    </div>
   </div>
   <div id="aadharDeliverBox" style="background:#fef3c7;border:1.5px solid #f59e0b;border-radius:10px;padding:12px;margin-bottom:14px;display:none;">
     <label class="form-label" style="color:#92400e;font-size:0.82rem;"><i class="fas fa-id-card"></i> Aadhar Card Number <span style="color:#ef4444;">*</span> <span style="font-weight:400;font-size:0.78rem;">— required for FRP/Flash invoice</span></label>
