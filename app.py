@@ -531,6 +531,16 @@ def set_reminder(job_id):
 @app.route('/jobs/<int:job_id>/deliver', methods=['POST'])
 @active_required
 def deliver_job(job_id):
+    db = get_db()
+    job = db.execute("SELECT quote_items, cost FROM repair_jobs WHERE id=%s AND user_id=%s", (job_id, session['user_id'])).fetchone()
+    if not job:
+        db.close()
+        return jsonify({'error': 'Job not found'}), 404
+    has_quote = job['quote_items'] and job['quote_items'] not in ('null', '[]', '')
+    has_cost  = float(job['cost'] or 0) > 0
+    if not has_quote and not has_cost:
+        db.close()
+        return jsonify({'error': 'Please diagnose and quote this job before delivering.'}), 400
     data = request.get_json(force=True)
     total          = float(data.get('total', 0))
     advance        = float(data.get('advance', 0))
@@ -543,7 +553,6 @@ def deliver_job(job_id):
     balance        = max(0, total - total_collected)
     paid = 'Paid' if balance < 0.01 else ('Partial' if total_collected > 0 else 'Unpaid')
     delivery_date  = datetime.now(IST).strftime('%Y-%m-%d')
-    db = get_db()
     imei = data.get('imei', '').strip().upper()
     if imei:
         db.execute("UPDATE repair_jobs SET imei_billing=%s WHERE id=%s AND user_id=%s AND (imei_billing IS NULL OR imei_billing='')",

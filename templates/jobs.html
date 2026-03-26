@@ -1088,8 +1088,15 @@ async function markReady(id) {
 }
 
 // ── Deliver ──
-function openDeliver(id) {
+async function openDeliver(id) {
   curId=id; const j=JOBS.find(x=>x.id==id); if(!j) return;
+  // Enforce: job must be diagnosed & quoted before invoice can be generated
+  const hasQuote = j.quote_items && j.quote_items !== 'null' && j.quote_items !== '[]' && j.quote_items.trim() !== '';
+  const hasCost  = parseFloat(j.cost || 0) > 0;
+  if (!hasQuote && !hasCost) {
+    await showAlert('⚠️ Cannot generate invoice yet.\n\nPlease use "Diagnose & Quote" to add parts/labour before delivering this job.');
+    return;
+  }
   const bookingAdv=parseFloat(j.advance_amount||0);
   document.getElementById('deliverInfo').innerHTML=`<strong>#${j.id}</strong> — ${j.customer_name} | ${j.device_model}`+(bookingAdv>0?` <span style="margin-left:10px;background:#e0f7fa;color:#006064;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">Advance: ₹${bookingAdv.toFixed(2)}</span>`:'');
   document.getElementById('invItemsContainer').innerHTML='';
