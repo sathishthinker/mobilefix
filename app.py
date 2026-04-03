@@ -135,6 +135,11 @@ def init_db():
             end_date TEXT,
             activated_at TEXT DEFAULT CURRENT_TIMESTAMP
         )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS app_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        )''')
+        db.execute("INSERT INTO app_settings (key,value) VALUES ('imei_override_code','IMEI2025') ON CONFLICT (key) DO NOTHING")
         db.commit()
 
         # Seed admin
@@ -171,7 +176,8 @@ def init_db():
 
         for col in ["logo TEXT", "google_review_link TEXT", "phone TEXT",
                     "door_no TEXT", "street TEXT", "city TEXT", "pincode TEXT",
-                    "totp_secret TEXT", "totp_enabled BOOLEAN DEFAULT FALSE"]:
+                    "totp_secret TEXT", "totp_enabled BOOLEAN DEFAULT FALSE",
+                    "imei_skip INTEGER DEFAULT 0"]:
             try:
                 db.execute(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col}")
                 db.commit()
@@ -417,7 +423,8 @@ def jobs():
     partial_jobs = [j for j in jobs_list if j.get('paid_status') == 'Partial' and j['status'] == 'Delivered']
     return render_template('jobs.html', jobs=all_jobs, jobs_json=json.dumps(jobs_list),
                            user=user, status=subscription_status(user), days_left=days_left(user),
-                           overdue_jobs=overdue_jobs, partial_jobs=partial_jobs)
+                           overdue_jobs=overdue_jobs, partial_jobs=partial_jobs,
+                           imei_skip=int(user['imei_skip'] or 0))
 
 @app.route('/jobs/add', methods=['GET', 'POST'])
 @active_required
@@ -450,7 +457,11 @@ def add_job():
         db.commit(); db.close()
         flash('Repair job added successfully!', 'success')
         return redirect(url_for('jobs'))
-    return render_template('add_job.html')
+    db = get_db()
+    user = db.execute("SELECT imei_skip FROM users WHERE id=%s", (session['user_id'],)).fetchone()
+    imei_skip = int(user['imei_skip'] or 0) if user else 0
+    db.close()
+    return render_template('add_job.html', imei_skip=imei_skip)
 
 @app.route('/jobs/<int:job_id>/update', methods=['POST'])
 @active_required
@@ -807,6 +818,58 @@ def settings():
         return redirect(url_for('settings'))
     db.close()
     return render_template('settings.html', user=user, status=subscription_status(user), days_left=days_left(user))
+
+@app.route('/settings/imei_unlock', methods=['POST'])
+@login_required
+def settings_imei_unlock():
+    code = request.form.get('code', '').strip().upper()
+    db = get_db()
+    row = db.execute("SELECT value FROM app_settings WHERE key='imei_override_code'").fetchone()
+    expected = (row['value'] or '').strip().upper() if row else 'IMEI2025'
+    if code == expected:
+        db.execute("UPDATE users SET imei_skip=1 WHERE id=%s", (session['user_id'],))
+        db.commit()
+        flash('IMEI capture is now optional for your shop.', 'success')
+    else:
+        flash('Invalid override code. Please contact your admin.', 'error')
+    db.close()
+    return redirect(url_for('settings'))
+
+@app.route('/settings/imei_relock', methods=['POST'])
+@login_required
+def settings_imei_relock():
+    db = get_db()
+    db.execute("UPDATE users SET imei_skip=0 WHERE id=%s", (session['user_id'],))
+    db.commit(); db.close()
+    flash('IMEI capture re-enabled for your shop.', 'success')
+    return redirect(url_for('settings'))
+
+@app.route('/admin/imei_settings', methods=['GET', 'POST'])
+@admin_required
+def admin_imei_settings():
+    db = get_db()
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == 'set_code':
+            new_code = request.form.get('code', '').strip().upper()
+            if new_code:
+                db.execute("UPDATE app_settings SET value=%s WHERE key='imei_override_code'", (new_code,))
+                db.commit()
+                flash('IMEI override code updated successfully.', 'success')
+            else:
+                flash('Code cannot be empty.', 'error')
+        elif action == 'revoke':
+            uid = request.form.get('uid')
+            db.execute("UPDATE users SET imei_skip=0 WHERE id=%s", (uid,))
+            db.commit()
+            flash('IMEI skip revoked for that shop.', 'success')
+        db.close()
+        return redirect(url_for('admin_imei_settings'))
+    row = db.execute("SELECT value FROM app_settings WHERE key='imei_override_code'").fetchone()
+    code = row['value'] if row else 'IMEI2025'
+    skip_shops = db.execute("SELECT id,shop_name,phone,email FROM users WHERE imei_skip=1 AND role='user' ORDER BY shop_name").fetchall()
+    db.close()
+    return render_template('admin_imei_settings.html', code=code, skip_shops=skip_shops)
 
 @app.route('/admin')
 @admin_required
