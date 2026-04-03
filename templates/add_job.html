@@ -354,11 +354,8 @@
 
         <!-- BILLING -->
         <div class="section-title"><i class="fas fa-rupee-sign" style="color:#00BCD4;"></i> Billing Details</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
-          <div class="form-group">
-            <label class="form-label">Estimated Cost (₹)</label>
-            <input type="number" name="cost" id="costInput" class="form-control" step="0.01" min="0" placeholder="0.00" oninput="updateAdvTotal()">
-          </div>
+        <input type="hidden" name="cost" value="0">
+        <div style="display:grid;grid-template-columns:1fr;gap:18px;margin-bottom:18px;">
           <div class="form-group">
             <label class="form-label"><i class="fas fa-calendar-check" style="color:#9C27B0;"></i> Expected Return Date <span style="color:#ef4444;">*</span></label>
             <input type="date" name="expected_return" id="expectedReturnField" class="form-control" required>
