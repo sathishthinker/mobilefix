@@ -1144,11 +1144,10 @@ async function openDeliver(id) {
   document.getElementById('deliverHappyResult').style.display='none';
   happyBox.style.display=j.happy_code?'block':'none';
   const hasImei=j.imei_billing||j.imei;
-  // If IMEI skip enabled for this shop, hide the box entirely; otherwise show only when IMEI missing
-  const showImeiBox = !hasImei && !USER_IMEI_SKIP;
-  document.getElementById('imeiDeliverBox').style.display=showImeiBox?'block':'none';
-  document.getElementById('deliverImei').value=hasImei?(j.imei_billing||j.imei):(USER_IMEI_SKIP?'SKIPPED':'');
-  document.getElementById('imeiSkipBtnWrap').style.display='none';
+  document.getElementById('imeiDeliverBox').style.display=hasImei?'none':'block';
+  document.getElementById('deliverImei').value=hasImei?(j.imei_billing||j.imei):'';
+  // Show skip button only when admin has made IMEI optional for this shop
+  document.getElementById('imeiSkipBtnWrap').style.display=(!hasImei&&USER_IMEI_SKIP)?'block':'none';
   const isFRP=j.issue&&j.issue.toLowerCase().includes('frp');
   const aadharBox=document.getElementById('aadharDeliverBox');
   document.getElementById('deliverAadhar').value='';
