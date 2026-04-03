@@ -829,7 +829,7 @@ def verify_imei_pin():
     db.close()
     if not user or not user['imei_skip_pin']:
         return jsonify({'error': 'No PIN configured. Contact your admin.'}), 400
-    if pin == user['imei_skip_pin']:
+    if pin.upper() == (user['imei_skip_pin'] or '').upper():
         return jsonify({'ok': True})
     return jsonify({'error': 'Incorrect PIN. Please check with your admin.'}), 400
 
