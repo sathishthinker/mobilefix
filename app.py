@@ -177,7 +177,7 @@ def init_db():
         for col in ["logo TEXT", "google_review_link TEXT", "phone TEXT",
                     "door_no TEXT", "street TEXT", "city TEXT", "pincode TEXT",
                     "totp_secret TEXT", "totp_enabled BOOLEAN DEFAULT FALSE",
-                    "imei_skip INTEGER DEFAULT 0"]:
+                    "imei_skip INTEGER DEFAULT 0", "imei_skip_pin TEXT"]:
             try:
                 db.execute(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col}")
                 db.commit()
@@ -819,57 +819,36 @@ def settings():
     db.close()
     return render_template('settings.html', user=user, status=subscription_status(user), days_left=days_left(user))
 
-@app.route('/settings/imei_unlock', methods=['POST'])
-@login_required
-def settings_imei_unlock():
-    code = request.form.get('code', '').strip().upper()
-    db = get_db()
-    row = db.execute("SELECT value FROM app_settings WHERE key='imei_override_code'").fetchone()
-    expected = (row['value'] or '').strip().upper() if row else 'IMEI2025'
-    if code == expected:
-        db.execute("UPDATE users SET imei_skip=1 WHERE id=%s", (session['user_id'],))
-        db.commit()
-        flash('IMEI capture is now optional for your shop.', 'success')
-    else:
-        flash('Invalid override code. Please contact your admin.', 'error')
-    db.close()
-    return redirect(url_for('settings'))
-
-@app.route('/settings/imei_relock', methods=['POST'])
-@login_required
-def settings_imei_relock():
-    db = get_db()
-    db.execute("UPDATE users SET imei_skip=0 WHERE id=%s", (session['user_id'],))
-    db.commit(); db.close()
-    flash('IMEI capture re-enabled for your shop.', 'success')
-    return redirect(url_for('settings'))
-
-@app.route('/admin/imei_settings', methods=['GET', 'POST'])
+@app.route('/admin/shops/<int:uid>/imei_toggle', methods=['POST'])
 @admin_required
-def admin_imei_settings():
+def admin_imei_toggle(uid):
+    data = request.get_json(force=True)
+    action = data.get('action')
     db = get_db()
-    if request.method == 'POST':
-        action = request.form.get('action')
-        if action == 'set_code':
-            new_code = request.form.get('code', '').strip().upper()
-            if new_code:
-                db.execute("UPDATE app_settings SET value=%s WHERE key='imei_override_code'", (new_code,))
-                db.commit()
-                flash('IMEI override code updated successfully.', 'success')
-            else:
-                flash('Code cannot be empty.', 'error')
-        elif action == 'revoke':
-            uid = request.form.get('uid')
-            db.execute("UPDATE users SET imei_skip=0 WHERE id=%s", (uid,))
-            db.commit()
-            flash('IMEI skip revoked for that shop.', 'success')
-        db.close()
-        return redirect(url_for('admin_imei_settings'))
-    row = db.execute("SELECT value FROM app_settings WHERE key='imei_override_code'").fetchone()
-    code = row['value'] if row else 'IMEI2025'
-    skip_shops = db.execute("SELECT id,shop_name,phone,email FROM users WHERE imei_skip=1 AND role='user' ORDER BY shop_name").fetchall()
+    if action == 'disable':
+        pin = data.get('pin', '').strip()
+        if not pin:
+            db.close()
+            return jsonify({'error': 'PIN is required to disable IMEI capture.'}), 400
+        db.execute("UPDATE users SET imei_skip=1, imei_skip_pin=%s WHERE id=%s AND role='user'", (pin, uid))
+        db.commit(); db.close()
+        return jsonify({'ok': True, 'imei_skip': 1})
+    elif action == 'enable':
+        db.execute("UPDATE users SET imei_skip=0, imei_skip_pin=NULL WHERE id=%s AND role='user'", (uid,))
+        db.commit(); db.close()
+        return jsonify({'ok': True, 'imei_skip': 0})
     db.close()
-    return render_template('admin_imei_settings.html', code=code, skip_shops=skip_shops)
+    return jsonify({'error': 'Invalid action'}), 400
+
+@app.route('/admin/shops/<int:uid>/imei_status')
+@admin_required
+def admin_imei_status(uid):
+    db = get_db()
+    row = db.execute("SELECT imei_skip, imei_skip_pin FROM users WHERE id=%s AND role='user'", (uid,)).fetchone()
+    db.close()
+    if not row:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'imei_skip': int(row['imei_skip'] or 0), 'pin': row['imei_skip_pin'] or ''})
 
 @app.route('/admin')
 @admin_required
