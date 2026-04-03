@@ -140,7 +140,6 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
     display: flex; justify-content: space-between; align-items: flex-start;
     padding: 6px 0; border: none !important; font-size: 0.88rem;
     min-height: 28px; gap: 12px; text-align: right;
-    word-break: break-word; overflow-wrap: break-word;
   }
 
   /* Expandable rows — show only Customer + Status by default */
@@ -296,15 +295,15 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
         <span style="background:#fee2e2;color:#b91c1c;border-radius:999px;padding:1px 8px;font-size:0.68rem;font-weight:700;white-space:nowrap;flex-shrink:0;">Due ₹{{ '%.2f'|format(due) }}</span>
       {% endif %}
     </div>
-    <small style="color:#94a3b8;">{{ job.customer_phone }}</small>
+    <small style="color:#94a3b8;white-space:nowrap;">{{ job.customer_phone }}</small>
   </td>
   <td data-label="Device/IMEI">
-    {{ job.device_model }}
+    <div style="text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">{{ job.device_model }}</div>
     {% if job.imei_billing or job.imei %}
-    <br><small style="color:#94a3b8;font-size:0.72rem;"><i class="fas fa-barcode"></i> {{ job.imei_billing or job.imei }}</small>
+    <div style="color:#94a3b8;font-size:0.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;"><i class="fas fa-barcode"></i> {{ job.imei_billing or job.imei }}</div>
     {% endif %}
     {% if job.happy_code %}
-    <br><span class="happy-badge" title="Happy Code">🔑 {{ job.happy_code }}</span>
+    <div><span class="happy-badge" title="Happy Code" style="white-space:nowrap;">🔑 {{ job.happy_code }}</span></div>
     {% endif %}
   </td>
   <td data-label="Issues" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.82rem;" title="{{ job.issue }}">{{ job.issue }}</td>
