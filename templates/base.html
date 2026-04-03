@@ -480,45 +480,44 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
 </div>
 <script>
-let _imeiTarget = null, _quaggaRunning = false;
+let _imeiTarget = null, _imeiTargetEl = null, _quaggaRunning = false, _quaggaDone = false;
 
 function _onQuaggaDetected(result) {
-  if (!_quaggaRunning) return;
+  if (!_quaggaRunning || _quaggaDone) return;
   const code = result.codeResult.code;
-  if (!code) return;
-  // Deduplicate: require same result twice to avoid false reads
-  if (_onQuaggaDetected._last === code) {
-    const digits = code.replace(/\D/g, '');
-    const imei = digits.length >= 14 ? digits.slice(0, 15) : code.trim().toUpperCase();
-    const el = document.getElementById(_imeiTarget);
-    if (el) { el.value = imei; el.dispatchEvent(new Event('input')); }
-    document.getElementById('imeiScanStatus').textContent = '✓ Captured: ' + imei;
-    _quaggaRunning = false;
-    Quagga.offDetected(_onQuaggaDetected);
-    setTimeout(stopImeiScan, 800);
+  if (!code || code.trim() === '') return;
+  _quaggaDone = true;
+  _quaggaRunning = false;
+
+  const digits = code.replace(/\D/g, '');
+  const imei = digits.length >= 14 ? digits.slice(0, 15) : code.trim().toUpperCase();
+
+  // Fill input — use stored reference captured at scan start, fallback to live lookup
+  const el = _imeiTargetEl || document.getElementById(_imeiTarget);
+  if (el) {
+    el.value = imei;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
   }
-  _onQuaggaDetected._last = code;
+  document.getElementById('imeiScanStatus').textContent = '\u2713 Captured: ' + imei;
+  setTimeout(stopImeiScan, 900);
 }
-_onQuaggaDetected._last = null;
 
 function startImeiScan(inputId) {
   _imeiTarget = inputId;
+  _imeiTargetEl = document.getElementById(inputId); // grab reference now while page is stable
   _quaggaRunning = false;
-  _onQuaggaDetected._last = null;
+  _quaggaDone = false;
   document.getElementById('imeiScanModal').style.display = 'flex';
-  document.getElementById('imeiScanStatus').textContent = 'Starting camera…';
+  document.getElementById('imeiScanStatus').textContent = 'Starting camera\u2026';
   document.getElementById('imeiPhotoFallback').style.display = 'none';
-  // Clear any previous Quagga-injected elements
-  const vf = document.getElementById('imeiScanViewfinder');
-  const oldVid = vf.querySelector('video');
-  const oldCvs = vf.querySelector('canvas');
-  if (oldVid) oldVid.remove();
-  if (oldCvs) oldCvs.remove();
+  // Remove any Quagga-injected video/canvas from previous session
+  document.getElementById('imeiScanViewfinder').querySelectorAll('video,canvas').forEach(function(n){ n.remove(); });
 
   Quagga.init({
     inputStream: {
       type: 'LiveStream',
-      target: vf,
+      target: document.getElementById('imeiScanViewfinder'),
       constraints: {
         facingMode: 'environment',
         width: { ideal: 1280 },
@@ -539,18 +538,17 @@ function startImeiScan(inputId) {
       return;
     }
     _quaggaRunning = true;
+    _quaggaDone = false;
     Quagga.start();
     Quagga.onDetected(_onQuaggaDetected);
-    document.getElementById('imeiScanStatus').textContent = 'Align IMEI barcode in the frame…';
+    document.getElementById('imeiScanStatus').textContent = 'Align IMEI barcode in the frame\u2026';
   });
 }
 
 function stopImeiScan() {
-  if (_quaggaRunning) {
-    try { Quagga.stop(); } catch(e) {}
-    Quagga.offDetected(_onQuaggaDetected);
-    _quaggaRunning = false;
-  }
+  _quaggaRunning = false;
+  try { Quagga.stop(); } catch(e) {}
+  try { Quagga.offDetected(_onQuaggaDetected); } catch(e) {}
   document.getElementById('imeiScanModal').style.display = 'none';
 }
 
