@@ -483,22 +483,22 @@ async function startImeiScan(inputId) {
     ]);
     hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
     _zxingReader = new ZXing.BrowserMultiFormatReader(hints);
-    // Pick back/environment camera
-    const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
-    const backCam = devices.find(d => /back|rear|env/i.test(d.label)) || devices[devices.length - 1] || null;
-    const deviceId = backCam ? backCam.deviceId : undefined;
     document.getElementById('imeiScanStatus').textContent = 'Scanning — align barcode in the frame…';
-    await _zxingReader.decodeFromVideoDevice(deviceId, 'imeiScanVideo', function(result, err) {
-      if (result) {
-        const text = result.getText();
-        const digits = text.replace(/\D/g, '');
-        const imei = digits.length >= 14 ? digits.slice(0, 15) : text.trim().toUpperCase();
-        const el = document.getElementById(_imeiTarget);
-        if (el) { el.value = imei; el.dispatchEvent(new Event('input')); }
-        document.getElementById('imeiScanStatus').textContent = '✓ Captured: ' + imei;
-        setTimeout(stopImeiScan, 700);
+    await _zxingReader.decodeFromConstraints(
+      { video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } },
+      'imeiScanVideo',
+      function(result, err) {
+        if (result) {
+          const text = result.getText();
+          const digits = text.replace(/\D/g, '');
+          const imei = digits.length >= 14 ? digits.slice(0, 15) : text.trim().toUpperCase();
+          const el = document.getElementById(_imeiTarget);
+          if (el) { el.value = imei; el.dispatchEvent(new Event('input')); }
+          document.getElementById('imeiScanStatus').textContent = '✓ Captured: ' + imei;
+          setTimeout(stopImeiScan, 700);
+        }
       }
-    });
+    );
   } catch(e) {
     document.getElementById('imeiScanStatus').textContent = 'Camera error: ' + (e.message || e);
   }
