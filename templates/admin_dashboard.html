@@ -133,6 +133,9 @@
                   <button onclick="openHistory({{ u.id }},'{{ u.shop_name|replace("'","\\'") }}');closeDd('{{ u.id }}')" class="dd-item teal">
                     <i class="fas fa-history"></i> History
                   </button>
+                  <button onclick="openImeiSettings({{ u.id }},'{{ u.shop_name|replace("'","\\'") }}',{{ u.imei_skip or 0 }});closeDd('{{ u.id }}')" class="dd-item" style="color:#FF9800;">
+                    <i class="fas fa-barcode"></i> IMEI Settings
+                  </button>
                   <button onclick="deleteUser({{ u.id }},'{{ u.shop_name }}');closeDd('{{ u.id }}')" class="dd-item danger">
                     <i class="fas fa-trash"></i> Delete
                   </button>
@@ -368,6 +371,67 @@
   </div>
 </div>
 
+<!-- IMEI Settings Modal -->
+<div class="modal-overlay" id="imeiModal">
+  <div class="modal-box" style="max-width:440px;">
+    <div class="modal-title"><i class="fas fa-barcode" style="color:#FF9800;"></i> IMEI Settings</div>
+    <p style="font-size:0.85rem;color:#94a3b8;margin-top:4px;">Shop: <strong id="imeiShopName"></strong></p>
+    <div class="modal-body" style="margin-top:18px;">
+
+      <!-- Status badge -->
+      <div id="imeiStatusBadge" style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+        <span id="imeiStatusIcon"></span>
+        <div>
+          <div id="imeiStatusText" style="font-weight:700;font-size:0.9rem;"></div>
+          <div id="imeiStatusSub" style="font-size:0.78rem;color:#94a3b8;margin-top:2px;"></div>
+        </div>
+      </div>
+
+      <!-- Disable panel -->
+      <div id="imeiDisablePanel">
+        <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:0.82rem;color:#92400e;">
+          <i class="fas fa-info-circle"></i> Set a unique PIN for this shop. This PIN is your reference — the shop owner will be able to skip IMEI without entering it.
+        </div>
+        <label style="font-size:0.78rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Set Shop PIN <span style="color:#ef4444;">*</span></label>
+        <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:14px;">
+          <input type="password" id="imeiPinInput" class="form-control"
+            placeholder="e.g. 1234 or SKIP01"
+            style="flex:1;letter-spacing:3px;font-weight:700;font-size:1rem;" maxlength="12">
+          <button type="button" onclick="toggleImeiPin()" id="imeiPinEye"
+            style="padding:0 12px;border:1.5px solid #e2e8f0;border-radius:10px;background:white;cursor:pointer;color:#94a3b8;">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+        <button onclick="submitImeiToggle('disable')" class="btn btn-primary" style="width:100%;background:linear-gradient(135deg,#FF9800,#F57C00);">
+          <i class="fas fa-unlock"></i> Disable IMEI Capture for this Shop
+        </button>
+      </div>
+
+      <!-- Enable panel -->
+      <div id="imeiEnablePanel" style="display:none;">
+        <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+          <div style="font-size:0.82rem;color:#166534;font-weight:600;margin-bottom:6px;"><i class="fas fa-key"></i> Shop PIN</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span id="imeiPinDisplay" style="font-family:'Exo 2',sans-serif;font-size:1.4rem;font-weight:900;letter-spacing:6px;color:#1a2332;">••••••</span>
+            <button type="button" onclick="toggleStoredPin()" id="storedPinBtn"
+              style="padding:4px 10px;border:1.5px solid #e2e8f0;border-radius:7px;background:white;cursor:pointer;font-size:0.75rem;font-weight:600;color:#64748b;font-family:inherit;">
+              <i class="fas fa-eye"></i> Show
+            </button>
+          </div>
+        </div>
+        <div style="font-size:0.8rem;color:#94a3b8;margin-bottom:14px;">This shop's IMEI field is currently optional. The owner can skip IMEI during delivery without any PIN.</div>
+        <button onclick="submitImeiToggle('enable')" style="width:100%;padding:11px;border-radius:10px;border:1.5px solid #ef4444;background:white;color:#ef4444;cursor:pointer;font-family:inherit;font-size:0.9rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <i class="fas fa-lock"></i> Re-enable Mandatory IMEI Capture
+        </button>
+      </div>
+
+      <div style="margin-top:14px;text-align:right;">
+        <button onclick="closeImeiModal()" style="background:#f1f5f9;border:none;border-radius:10px;cursor:pointer;font-family:inherit;color:#64748b;padding:10px 20px;font-size:0.875rem;">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div id="toast" style="position:fixed;bottom:24px;right:24px;background:#1a2332;color:white;padding:14px 20px;border-radius:12px;font-size:0.875rem;font-weight:500;z-index:9999;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.2);">
   <i class="fas fa-check-circle" style="color:#00BCD4;margin-right:8px;"></i>
@@ -531,6 +595,86 @@ async function openHistory(uid, name) {
 function closeHistory() {
   document.getElementById('historyModal').classList.remove('show');
 }
+// ── IMEI Settings ──
+let _imeiUid = null, _imeiSkip = 0, _storedPin = '', _pinVisible = false;
+function openImeiSettings(uid, name, imeiSkip) {
+  _imeiUid = uid; _imeiSkip = imeiSkip; _storedPin = ''; _pinVisible = false;
+  document.getElementById('imeiShopName').textContent = name;
+  document.getElementById('imeiPinInput').value = '';
+  document.getElementById('imeiPinInput').type = 'password';
+  document.getElementById('imeiPinEye').innerHTML = '<i class="fas fa-eye"></i>';
+  refreshImeiModal(imeiSkip, '');
+  document.getElementById('imeiModal').classList.add('show');
+  // Fetch current status (including stored pin for admin)
+  fetch(`/admin/shops/${uid}/imei_status`).then(r=>r.json()).then(d=>{
+    _storedPin = d.pin || '';
+    _imeiSkip = d.imei_skip;
+    refreshImeiModal(d.imei_skip, d.pin || '');
+  });
+}
+function refreshImeiModal(skip, pin) {
+  const badge = document.getElementById('imeiStatusIcon');
+  const statusText = document.getElementById('imeiStatusText');
+  const statusSub = document.getElementById('imeiStatusSub');
+  const disPanel = document.getElementById('imeiDisablePanel');
+  const enPanel = document.getElementById('imeiEnablePanel');
+  const pinDisp = document.getElementById('imeiPinDisplay');
+  if (skip) {
+    badge.innerHTML = '<span style="background:#d1fae5;color:#065f46;padding:5px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;"><i class="fas fa-unlock"></i> IMEI Optional</span>';
+    statusText.textContent = 'IMEI capture is disabled for this shop';
+    statusSub.textContent = 'Owner can skip IMEI freely during delivery.';
+    disPanel.style.display = 'none';
+    enPanel.style.display = 'block';
+    pinDisp.textContent = pin ? '••••••' : '(not set)';
+    _pinVisible = false;
+  } else {
+    badge.innerHTML = '<span style="background:#fee2e2;color:#991b1b;padding:5px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;"><i class="fas fa-lock"></i> IMEI Required</span>';
+    statusText.textContent = 'IMEI is mandatory for this shop';
+    statusSub.textContent = 'Set a PIN and disable to allow the owner to skip IMEI.';
+    disPanel.style.display = 'block';
+    enPanel.style.display = 'none';
+  }
+}
+function toggleImeiPin() {
+  const inp = document.getElementById('imeiPinInput');
+  const btn = document.getElementById('imeiPinEye');
+  if (inp.type === 'password') { inp.type = 'text'; btn.innerHTML = '<i class="fas fa-eye-slash"></i>'; }
+  else { inp.type = 'password'; btn.innerHTML = '<i class="fas fa-eye"></i>'; }
+}
+function toggleStoredPin() {
+  const disp = document.getElementById('imeiPinDisplay');
+  const btn = document.getElementById('storedPinBtn');
+  _pinVisible = !_pinVisible;
+  disp.textContent = _pinVisible ? (_storedPin || '(not set)') : '••••••';
+  btn.innerHTML = _pinVisible ? '<i class="fas fa-eye-slash"></i> Hide' : '<i class="fas fa-eye"></i> Show';
+}
+async function submitImeiToggle(action) {
+  const body = { action };
+  if (action === 'disable') {
+    const pin = document.getElementById('imeiPinInput').value.trim();
+    if (!pin) { document.getElementById('imeiPinInput').style.borderColor='#ef4444'; document.getElementById('imeiPinInput').focus(); return; }
+    body.pin = pin;
+  } else {
+    if (!confirm('Re-enable mandatory IMEI capture for this shop?')) return;
+  }
+  const res = await fetch(`/admin/shops/${_imeiUid}/imei_toggle`, {
+    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+  });
+  const d = await res.json();
+  if (d.ok) {
+    showToast(action === 'disable' ? 'IMEI capture disabled for this shop.' : 'IMEI capture re-enabled.');
+    closeImeiModal();
+  } else {
+    alert(d.error || 'Error. Please try again.');
+  }
+}
+function closeImeiModal() {
+  document.getElementById('imeiModal').classList.remove('show');
+}
+document.getElementById('imeiModal').addEventListener('click', function(e) {
+  if (e.target === this) closeImeiModal();
+});
+
 function filterShops() {
   const q = document.getElementById('adminSearch').value.toLowerCase().trim();
   document.querySelectorAll('#shopsTable tr:not(thead tr)').forEach(row => {

@@ -119,41 +119,22 @@
     </div>
   </div>
 
-  <!-- IMEI Capture Settings -->
+  <!-- IMEI Capture Status (read-only — controlled by admin) -->
   <div class="card" style="margin-bottom:20px;">
     <div class="card-body">
       <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
         <i class="fas fa-barcode"></i> IMEI Capture
       </div>
       {% if user.imei_skip %}
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-        <div>
-          <span style="background:#d1fae5;color:#065f46;padding:5px 14px;border-radius:999px;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;"><i class="fas fa-unlock"></i> IMEI Optional</span>
-          <div style="font-size:0.82rem;color:#64748b;margin-top:8px;">IMEI field can be skipped on New Job form and Deliver &amp; Invoice.</div>
-        </div>
-        <form method="POST" action="{{ url_for('settings_imei_relock') }}" onsubmit="return confirm('Re-enable mandatory IMEI capture for your shop?')">
-          <button type="submit" style="padding:8px 16px;border:1.5px solid #ef4444;border-radius:8px;background:white;color:#ef4444;cursor:pointer;font-size:0.82rem;font-weight:600;font-family:inherit;display:flex;align-items:center;gap:6px;">
-            <i class="fas fa-lock"></i> Re-enable IMEI Capture
-          </button>
-        </form>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="background:#d1fae5;color:#065f46;padding:5px 14px;border-radius:999px;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;"><i class="fas fa-unlock"></i> IMEI Optional</span>
+        <div style="font-size:0.82rem;color:#64748b;">You can skip the IMEI field during new jobs &amp; invoicing.</div>
       </div>
       {% else %}
-      <div style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;">
-        <i class="fas fa-lock" style="color:#ef4444;font-size:1rem;flex-shrink:0;"></i>
-        <div>
-          <div style="font-weight:700;font-size:0.85rem;color:#991b1b;">IMEI Capture — Required</div>
-          <div style="font-size:0.78rem;color:#94a3b8;margin-top:2px;">Contact your admin for an override code to make IMEI optional.</div>
-        </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="background:#fee2e2;color:#991b1b;padding:5px 14px;border-radius:999px;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;"><i class="fas fa-lock"></i> IMEI Required</span>
+        <div style="font-size:0.82rem;color:#64748b;">Contact your admin to make IMEI optional for your shop.</div>
       </div>
-      <form method="POST" action="{{ url_for('settings_imei_unlock') }}">
-        <div style="display:flex;gap:8px;align-items:stretch;">
-          <input type="text" name="code" class="form-control" placeholder="Enter admin override code"
-                 style="flex:1;text-transform:uppercase;letter-spacing:2px;font-weight:600;" maxlength="20" required>
-          <button type="submit" class="btn btn-primary" style="white-space:nowrap;padding:0 18px;display:flex;align-items:center;gap:6px;">
-            <i class="fas fa-unlock"></i> Unlock
-          </button>
-        </div>
-      </form>
       {% endif %}
     </div>
   </div>
