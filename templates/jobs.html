@@ -477,6 +477,12 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
         <i class="fas fa-barcode"></i> Scan
       </button>
     </div>
+    <div id="imeiSkipBtnWrap" style="display:none;margin-top:8px;">
+      <button type="button" onclick="skipDeliverImei()"
+        style="background:none;border:none;color:#92400e;font-size:0.78rem;cursor:pointer;padding:0;font-family:inherit;text-decoration:underline;display:flex;align-items:center;gap:4px;opacity:0.8;">
+        <i class="fas fa-forward"></i> Skip IMEI — generate invoice without it
+      </button>
+    </div>
   </div>
   <div id="aadharDeliverBox" style="background:#fef3c7;border:1.5px solid #f59e0b;border-radius:10px;padding:12px;margin-bottom:14px;display:none;">
     <label class="form-label" style="color:#92400e;font-size:0.82rem;"><i class="fas fa-id-card"></i> Aadhar Card Number <span style="color:#ef4444;">*</span> <span style="font-weight:400;font-size:0.78rem;">— required for FRP/Flash invoice</span></label>
@@ -631,6 +637,7 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
 <script>
 const JOBS = {{ jobs_json|safe }};
 const SHOP = { name:{{ user.shop_name|default('My Shop')|tojson }}, phone:{{ (user.phone or '')|tojson }}, address:{{ user.address|default('')|tojson }}, review:{{ (user.google_review_link or '')|tojson }} };
+const USER_IMEI_SKIP = {{ imei_skip }};
 let curId = null, waPendingMsg = '', waPendingPhone = '';
 
 // ── Overdue & Partial toggle ──
@@ -1139,11 +1146,16 @@ async function openDeliver(id) {
   const hasImei=j.imei_billing||j.imei;
   document.getElementById('imeiDeliverBox').style.display=hasImei?'none':'block';
   document.getElementById('deliverImei').value=hasImei?(j.imei_billing||j.imei):'';
+  document.getElementById('imeiSkipBtnWrap').style.display=(!hasImei&&USER_IMEI_SKIP)?'block':'none';
   const isFRP=j.issue&&j.issue.toLowerCase().includes('frp');
   const aadharBox=document.getElementById('aadharDeliverBox');
   document.getElementById('deliverAadhar').value='';
   aadharBox.style.display=(isFRP&&!j.aadhar_number)?'block':'none';
   updInvTotal(); openM('deliverModal');
+}
+function skipDeliverImei() {
+  document.getElementById('imeiDeliverBox').style.display='none';
+  document.getElementById('deliverImei').value='';
 }
 function formatDeliverAadhar(inp) {
   let v=inp.value.replace(/\D/g,'').slice(0,12);
@@ -1229,7 +1241,7 @@ function checkDeliverHappy() {
 async function confirmDeliver(doPrint) {
   const imeiBox=document.getElementById('imeiDeliverBox');
   const imeiInput=document.getElementById('deliverImei');
-  if(imeiBox.style.display!=='none'&&!imeiInput.value.trim()){
+  if(imeiBox.style.display!=='none'&&!imeiInput.value.trim()&&!USER_IMEI_SKIP){
     imeiInput.style.borderColor='#ef4444'; imeiInput.focus();
     await showAlert('IMEI / Serial Number is required to generate invoice.'); return;
   }
