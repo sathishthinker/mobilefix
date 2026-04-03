@@ -819,6 +819,20 @@ def settings():
     db.close()
     return render_template('settings.html', user=user, status=subscription_status(user), days_left=days_left(user))
 
+@app.route('/verify_imei_pin', methods=['POST'])
+@login_required
+def verify_imei_pin():
+    data = request.get_json(force=True)
+    pin = data.get('pin', '').strip()
+    db = get_db()
+    user = db.execute("SELECT imei_skip_pin FROM users WHERE id=%s", (session['user_id'],)).fetchone()
+    db.close()
+    if not user or not user['imei_skip_pin']:
+        return jsonify({'error': 'No PIN configured. Contact your admin.'}), 400
+    if pin == user['imei_skip_pin']:
+        return jsonify({'ok': True})
+    return jsonify({'error': 'Incorrect PIN. Please check with your admin.'}), 400
+
 @app.route('/admin/shops/<int:uid>/imei_toggle', methods=['POST'])
 @admin_required
 def admin_imei_toggle(uid):
