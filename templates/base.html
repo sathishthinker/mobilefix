@@ -306,7 +306,6 @@ tbody tr:last-child td { border-bottom: none; }
   <nav class="sidebar-nav">
     <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint=='admin_dashboard' %}active{% endif %}"><i class="fas fa-users-cog"></i> Manage Shops</a>
     <a href="{{ url_for('admin_login_activity') }}" class="nav-link {% if request.endpoint=='admin_login_activity' %}active{% endif %}"><i class="fas fa-shield-halved"></i> Login Activity</a>
-    <a href="{{ url_for('admin_imei_settings') }}" class="nav-link {% if request.endpoint=='admin_imei_settings' %}active{% endif %}"><i class="fas fa-barcode"></i> IMEI Settings</a>
   </nav>
   <div class="sidebar-footer">
     <a href="{{ url_for('logout') }}" class="nav-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
