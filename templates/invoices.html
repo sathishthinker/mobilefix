@@ -26,14 +26,6 @@ html,body{max-width:100vw;overflow-x:hidden;width:100%;}
   /* page header */
   .page-header{flex-direction:column;align-items:flex-start;gap:10px;}
   .page-header .btn{width:100%;justify-content:center;}
-  /* invoice table — show Customer + Status by default, expand on tap */
-  .mob-cards tbody tr td{display:none!important;}
-  .mob-cards tbody tr td[data-label="Customer"],
-  .mob-cards tbody tr td[data-label="Status"]{display:table-cell!important;}
-  .mob-cards tbody tr.expanded td{display:table-cell!important;}
-  .mob-cards tbody td[data-label="Customer"]{cursor:pointer;position:relative;}
-  .mob-cards tbody td[data-label="Customer"]::after{content:'▼';font-size:0.65rem;color:#94a3b8;margin-left:6px;}
-  .mob-cards tbody tr.expanded td[data-label="Customer"]::after{content:'▲';}
   /* action buttons wrap */
   td[data-label="Actions"]>div{flex-wrap:wrap;gap:5px;}
   /* pay method buttons */
@@ -57,7 +49,7 @@ html,body{max-width:100vw;overflow-x:hidden;width:100%;}
     <div class="table-wrap mob-cards">
       <table>
         <thead>
-          <tr><th>#</th><th>Customer</th><th>Total (₹)</th><th>Paid</th><th>Balance Due</th><th>Method</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+          <tr><th class="mob-hide">#</th><th>Customer</th><th>Total (₹)</th><th class="mob-hide">Paid</th><th>Balance Due</th><th class="mob-hide">Method</th><th>Status</th><th class="mob-hide">Date</th><th>Actions</th></tr>
         </thead>
         <tbody>
           {% for inv in invoices %}
@@ -65,16 +57,16 @@ html,body{max-width:100vw;overflow-x:hidden;width:100%;}
           {% set bal = [0.0, inv.total - adv]|max %}
           {% set pstatus = inv.paid or 'Unpaid' %}
           <tr id="inv-row-{{ inv.id }}">
-            <td data-label="#" style="color:#94a3b8;font-size:0.82rem;font-weight:700;">INV-{{ '%04d'|format(inv.id) }}</td>
-            <td data-label="Customer" onclick="this.closest('tr').classList.toggle('expanded')"><strong>{{ inv.customer_name }}</strong><br><small style="color:#94a3b8;">{{ inv.customer_phone }}</small></td>
+            <td data-label="#" class="mob-hide" style="color:#94a3b8;font-size:0.82rem;font-weight:700;">INV-{{ '%04d'|format(inv.id) }}</td>
+            <td data-label="Customer"><strong>{{ inv.customer_name }}</strong><br><small style="color:#94a3b8;">{{ inv.customer_phone }}</small></td>
             <td data-label="Total (₹)" style="font-weight:700;font-size:1rem;color:#1a2332;">₹{{ '%.2f'|format(inv.total) }}</td>
-            <td data-label="Paid" style="color:#64748b;" id="inv-adv-{{ inv.id }}">{% if adv > 0 %}₹{{ '%.2f'|format(adv) }}{% else %}—{% endif %}</td>
+            <td data-label="Paid" class="mob-hide" style="color:#64748b;" id="inv-adv-{{ inv.id }}">{% if adv > 0 %}₹{{ '%.2f'|format(adv) }}{% else %}—{% endif %}</td>
             <td data-label="Balance Due" style="font-weight:700;" id="inv-bal-{{ inv.id }}">
               {% if bal > 0 %}<span style="color:#ef4444;">₹{{ '%.2f'|format(bal) }}</span>
               {% if inv.due_date %}<br><small style="color:#f59e0b;font-size:0.72rem;"><i class="fas fa-calendar"></i> Due: {{ inv.due_date }}</small>{% endif %}
               {% else %}<span style="color:#16a34a;"><i class="fas fa-check"></i> Nil</span>{% endif %}
             </td>
-            <td data-label="Method" style="font-size:0.82rem;color:#64748b;">{{ inv.pay_method or '—' }}</td>
+            <td data-label="Method" class="mob-hide" style="font-size:0.82rem;color:#64748b;">{{ inv.pay_method or '—' }}</td>
             <td data-label="Status" id="inv-status-{{ inv.id }}">
               {% if pstatus == 'Paid' %}
                 <span style="background:#dcfce7;color:#16a34a;border:1.5px solid #86efac;padding:4px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;">✓ Paid</span>
@@ -84,7 +76,7 @@ html,body{max-width:100vw;overflow-x:hidden;width:100%;}
                 <span style="background:#fef2f2;color:#ef4444;border:1.5px solid #fca5a5;padding:4px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;">Unpaid</span>
               {% endif %}
             </td>
-            <td data-label="Date" style="color:#94a3b8;font-size:0.82rem;">{{ inv.created_at[:16].replace("T"," ") if inv.created_at else "—" }}</td>
+            <td data-label="Date" class="mob-hide" style="color:#94a3b8;font-size:0.82rem;">{{ inv.created_at[:16].replace("T"," ") if inv.created_at else "—" }}</td>
             <td data-label="Actions">
               <div style="display:flex;gap:6px;flex-wrap:wrap;">
                 <a href="{{ url_for('print_invoice', inv_id=inv.id) }}" target="_blank"
