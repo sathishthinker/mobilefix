@@ -22,14 +22,7 @@ html,body{max-width:100vw;overflow-x:hidden;width:100%;}
   div[style*="linear-gradient(135deg,#ef4444"] a{width:100%;text-align:center;box-sizing:border-box;}
   /* Quick Nav grid */
   div[style*="grid-template-columns:repeat(auto-fit,minmax(110px"]{grid-template-columns:repeat(3,1fr)!important;gap:10px!important;}
-  /* Recent jobs table — show Customer + Status, expandable */
-  .mob-cards tbody tr td{display:none!important;}
-  .mob-cards tbody tr td[data-label="Customer"],
-  .mob-cards tbody tr td[data-label="Status"]{display:table-cell!important;}
-  .mob-cards tbody tr.expanded td{display:table-cell!important;}
-  .mob-cards tbody td[data-label="Customer"]{cursor:pointer;}
-  .mob-cards tbody td[data-label="Customer"]::after{content:' ▼';font-size:0.6rem;color:#94a3b8;}
-  .mob-cards tbody tr.expanded td[data-label="Customer"]::after{content:' ▲';}
+  /* Recent jobs — let mob-cards handle layout, hide less-important cols */
 }
 </style>
 {% endblock %}
@@ -124,19 +117,19 @@ html,body{max-width:100vw;overflow-x:hidden;width:100%;}
     {% if recent_jobs %}
     <div class="table-wrap mob-cards">
       <table>
-        <thead><tr><th>ID</th><th>Customer</th><th>Device</th><th>Issue</th><th>Status</th><th>Date</th></tr></thead>
+        <thead><tr><th class="mob-hide">ID</th><th>Customer</th><th>Device</th><th class="mob-hide">Issue</th><th>Status</th><th class="mob-hide">Date</th></tr></thead>
         <tbody>
           {% for job in recent_jobs %}
           <tr>
-            <td data-label="ID" style="color:#94a3b8;font-size:0.8rem;">#{{ job.id }}</td>
-            <td data-label="Customer" onclick="this.closest('tr').classList.toggle('expanded')"><strong>{{ job.customer_name }}</strong><br><small style="color:#94a3b8;">{{ job.customer_phone }}</small></td>
-            <td data-label="Device">{{ job.device_model }}</td>
-            <td data-label="Issue" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ job.issue }}</td>
+            <td data-label="ID" class="mob-hide" style="color:#94a3b8;font-size:0.8rem;">#{{ job.id }}</td>
+            <td data-label="Customer"><strong>{{ job.customer_name }}</strong><br><small style="color:#94a3b8;white-space:nowrap;">{{ job.customer_phone }}</small></td>
+            <td data-label="Device" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">{{ job.device_model }}</td>
+            <td data-label="Issue" class="mob-hide" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ job.issue }}</td>
             <td data-label="Status">
               {% set sc = {'Received':'#00BCD4','Diagnosing':'#FFC107','Repairing':'#FF9800','Ready':'#9C27B0','Delivered':'#4CAF50','Cancelled':'#795548','Rework':'#03A9F4'} %}
               <span style="background:{{ sc.get(job.status,'#94a3b8') }};color:{% if job.status=='Diagnosing' %}#333{% else %}white{% endif %};padding:4px 10px;border-radius:999px;font-size:0.74rem;font-weight:700;">{{ job.status }}</span>
             </td>
-            <td data-label="Date" style="color:#94a3b8;font-size:0.8rem;">{{ job.created_at[:10] }}</td>
+            <td data-label="Date" class="mob-hide" style="color:#94a3b8;font-size:0.8rem;">{{ job.created_at[:10] }}</td>
           </tr>
           {% endfor %}
         </tbody>
