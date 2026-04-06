@@ -288,14 +288,16 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
 <tr data-status="{{ job.status }}" id="row-{{ job.id }}">
   <td data-label="ID" style="color:#94a3b8;font-size:0.8rem;font-weight:700;">#{{ job.id }}</td>
   <td data-label="Customer" onclick="this.closest('tr').classList.toggle('expanded')">
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;">
-      <strong style="white-space:nowrap;">{{ job.customer_name }}</strong>
-      {% set due = (job.cost or 0) - (job.advance_amount or 0) %}
-      {% if job.status not in ('Delivered', 'Cancelled') and job.cost and due > 0 %}
-        <span style="background:#fee2e2;color:#b91c1c;border-radius:999px;padding:1px 8px;font-size:0.68rem;font-weight:700;white-space:nowrap;flex-shrink:0;">Due ₹{{ '%.2f'|format(due) }}</span>
-      {% endif %}
+    <div style="text-align:right;">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;justify-content:flex-end;">
+        <strong style="white-space:nowrap;">{{ job.customer_name }}</strong>
+        {% set due = (job.cost or 0) - (job.advance_amount or 0) %}
+        {% if job.status not in ('Delivered', 'Cancelled') and job.cost and due > 0 %}
+          <span style="background:#fee2e2;color:#b91c1c;border-radius:999px;padding:1px 8px;font-size:0.68rem;font-weight:700;white-space:nowrap;flex-shrink:0;">Due ₹{{ '%.2f'|format(due) }}</span>
+        {% endif %}
+      </div>
+      <small style="color:#94a3b8;white-space:nowrap;display:block;">{{ job.customer_phone }}</small>
     </div>
-    <small style="color:#94a3b8;white-space:nowrap;">{{ job.customer_phone }}</small>
   </td>
   <td data-label="Device/IMEI">
     <div style="text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">{{ job.device_model }}</div>
@@ -1075,7 +1077,7 @@ function addDiagnoseRow(desc='',price=0) {
     <input type="text" class="form-control diag-desc" list="${uid}" value="${desc}" oninput="this.value=this.value.toUpperCase()">
     <datalist id="${uid}">${DIAG_SERVICES.map(s=>`<option value="${s}">`).join('')}</datalist></div>
     <div><label class="form-label" style="font-size:0.8rem;">Price (₹)</label>
-    <input type="number" class="form-control diag-price" value="${price.toFixed(2)}" min="0" oninput="updDiagTotal()"></div>
+    <input type="number" class="form-control diag-price" value="${price > 0 ? price.toFixed(2) : ''}" placeholder="0.00" min="0" autocomplete="off" oninput="updDiagTotal()"></div>
     <button onclick="this.parentElement.remove();updDiagTotal()" style="background:#E53935;color:white;border:none;border-radius:8px;width:34px;height:38px;margin-bottom:0;cursor:pointer;">✕</button>`;
   c.appendChild(d);
 }
