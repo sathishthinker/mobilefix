@@ -9,13 +9,27 @@
 <style>
 :root { --teal:#00BCD4;--teal-dark:#0097A7;--teal-glow:rgba(0,188,212,0.25); }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body { font-family:'DM Sans',sans-serif; background:#0d1b2a; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; overflow:hidden; }
+body {
+  font-family:'DM Sans',sans-serif; min-height:100vh;
+  display:flex; align-items:center; justify-content:center; padding:20px; overflow:hidden;
+  background: linear-gradient(-45deg, #0d1b2a, #003d4d, #0097A7, #004d40, #0d1b2a, #006064);
+  background-size: 400% 400%;
+  animation: gradientWave 10s ease infinite;
+}
+@keyframes gradientWave {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+/* Soft glowing orbs layered over gradient */
 .bg-circles { position:fixed; inset:0; pointer-events:none; overflow:hidden; }
-.circle { position:absolute; border-radius:50%; opacity:0.05; background:var(--teal); }
-.circle:nth-child(1){width:500px;height:500px;top:-200px;right:-150px;}
-.circle:nth-child(2){width:350px;height:350px;bottom:-120px;left:-100px;}
-.circle:nth-child(3){width:180px;height:180px;top:40%;left:60%;animation:float 6s ease-in-out infinite;}
-@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-20px);}}
+.circle { position:absolute; border-radius:50%; background:radial-gradient(circle, rgba(0,188,212,0.15), transparent 70%); }
+.circle:nth-child(1){width:600px;height:600px;top:-220px;right:-180px;animation:orb1 12s ease-in-out infinite;}
+.circle:nth-child(2){width:400px;height:400px;bottom:-140px;left:-120px;animation:orb2 15s ease-in-out infinite;}
+.circle:nth-child(3){width:220px;height:220px;top:35%;left:55%;animation:orb3 9s ease-in-out infinite;}
+@keyframes orb1{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-30px,20px) scale(1.08);}}
+@keyframes orb2{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(20px,-25px) scale(1.06);}}
+@keyframes orb3{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-15px,15px) scale(0.92);}}
 .auth-card { background:#ffffff; border-radius:24px; padding:44px 40px; width:100%; max-width:440px; box-shadow:0 30px 80px rgba(0,0,0,0.3); position:relative; z-index:1; }
 .logo-row { display:flex; align-items:center; gap:14px; margin-bottom:32px; }
 .logo-icon { width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:white;box-shadow:0 6px 20px var(--teal-glow);}
