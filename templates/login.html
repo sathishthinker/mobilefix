@@ -65,10 +65,22 @@ p.sub{color:#6b7c93;font-size:0.875rem;margin-bottom:28px;}
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Password</label>
+      <label class="form-label">Password
+        <button type="button" onclick="toggleLoginPwdInfo()" title="Password help"
+          style="background:none;border:none;cursor:pointer;color:#00BCD4;font-size:0.8rem;padding:0 4px;vertical-align:middle;">
+          <i class="fas fa-circle-info"></i>
+        </button>
+      </label>
+      <div id="loginPwdInfo" style="display:none;background:#e0f7fa;border-radius:8px;padding:9px 12px;margin-bottom:8px;font-size:0.78rem;color:#006064;">
+        <i class="fas fa-info-circle"></i> Enter the password you set during registration.
+        If you forgot it, use <strong>Forgot password?</strong> below to reset.
+      </div>
       <div class="input-wrap">
         <i class="fas fa-lock"></i>
-        <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+        <input type="password" name="password" id="loginPwd" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+        <span onclick="toggleLoginPwd()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:0.85rem;">
+          <i id="loginPwdEye" class="fas fa-eye"></i>
+        </span>
       </div>
     </div>
     <button type="submit" class="btn-block"><i class="fas fa-sign-in-alt"></i> Sign In</button>
@@ -86,5 +98,17 @@ p.sub{color:#6b7c93;font-size:0.875rem;margin-bottom:28px;}
     </a>
   </div>
 </div>
+<script>
+function toggleLoginPwdInfo() {
+  const el = document.getElementById('loginPwdInfo');
+  el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+function toggleLoginPwd() {
+  const inp = document.getElementById('loginPwd');
+  const eye = document.getElementById('loginPwdEye');
+  if (inp.type === 'password') { inp.type = 'text'; eye.className = 'fas fa-eye-slash'; }
+  else { inp.type = 'password'; eye.className = 'fas fa-eye'; }
+}
+</script>
 </body>
 </html>
