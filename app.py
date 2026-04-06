@@ -368,8 +368,8 @@ def register():
         session['user_id'] = new_user['id']
         session['role'] = 'user'
         session['shop_name'] = shop_name
-        flash('Welcome! Your 30-day free trial has started. Please set up Two-Factor Authentication to secure your account.', 'success')
-        return redirect(url_for('setup_2fa'))
+        flash('Welcome! Your 30-day free trial has started.', 'success')
+        return redirect(url_for('dashboard'))
     return render_template('register.html')
 
 @app.route('/logout')
