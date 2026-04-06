@@ -78,8 +78,8 @@
         <tbody>
           {% for u in users %}
           <tr id="row-{{ u.id }}">
-            <td data-label="Shop">
-              <strong>{{ u.shop_name or '(No name)' }}</strong>
+            <td data-label="Shop" onclick="openShopDetail({{ u.id }})" style="cursor:pointer;">
+              <strong style="color:#00BCD4;">{{ u.shop_name or '(No name)' }}</strong>
               <div style="font-size:0.78rem;color:#94a3b8;margin-top:2px;">{{ u.address or 'No address set' }}</div>
             </td>
             <td data-label="Contact">
@@ -682,5 +682,79 @@ function filterShops() {
   });
 }
 document.getElementById('adminSearch').addEventListener('input', filterShops);
+
+// ── Shop Detail Modal ──────────────────────────────────────────────
+const USERS_DETAIL = {{ users | tojson }};
+const SHOP_PERF    = {{ shop_perf | tojson }};
+
+function openShopDetail(uid) {
+  const u = USERS_DETAIL.find(x => x.id == uid);
+  if (!u) return;
+  const p = SHOP_PERF.find(x => x.id == uid) || {};
+  const statusColor = {trial:'#a16207',active:'#065f46',trial_expired:'#991b1b',expired:'#991b1b'}[u.status] || '#64748b';
+  const statusBg    = {trial:'#fef9c3',active:'#d1fae5',trial_expired:'#fee2e2',expired:'#fee2e2'}[u.status] || '#f1f5f9';
+  const statusLabel = {trial:'Trial',active:'Active',trial_expired:'Expired',expired:'Expired'}[u.status] || 'Disabled';
+  document.getElementById('shopDetailBody').innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px;">
+      <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#00BCD4,#0097A7);display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:white;flex-shrink:0;">
+        <i class="fas fa-store"></i>
+      </div>
+      <div>
+        <div style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.1rem;color:#1a2332;">${u.shop_name || '—'}</div>
+        <div style="font-size:0.8rem;color:#94a3b8;margin-top:2px;">${u.address || 'No address'}</div>
+        <span style="background:${statusBg};color:${statusColor};border-radius:999px;padding:2px 10px;font-size:0.75rem;font-weight:700;display:inline-block;margin-top:6px;">
+          ${statusLabel}${u.days_left > 0 ? ' · ' + u.days_left + 'd left' : ''}
+        </span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div style="background:#f8fafc;border-radius:10px;padding:12px;">
+        <div style="font-size:0.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Contact</div>
+        <div style="font-size:0.85rem;font-weight:600;color:#1a2332;"><i class="fas fa-phone" style="color:#00BCD4;width:14px;"></i> ${u.phone || '—'}</div>
+        <div style="font-size:0.8rem;color:#64748b;margin-top:4px;word-break:break-all;"><i class="fas fa-envelope" style="color:#94a3b8;width:14px;"></i> ${u.email || '—'}</div>
+      </div>
+      <div style="background:#f8fafc;border-radius:10px;padding:12px;">
+        <div style="font-size:0.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Subscription</div>
+        <div style="font-size:0.85rem;font-weight:600;color:#1a2332;">${u.subscription_plan ? 'Plan: ' + u.subscription_plan : 'Free Trial'}</div>
+        <div style="font-size:0.78rem;color:#64748b;margin-top:4px;">${u.subscription_end ? 'Ends: ' + u.subscription_end.slice(0,10) : (u.trial_start ? 'Started: ' + u.trial_start.slice(0,10) : '—')}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+      ${statBox('Total Jobs', p.total_jobs ?? '—', '#00BCD4', 'fa-wrench')}
+      ${statBox('Delivered', p.delivered ?? '—', '#16a34a', 'fa-check-circle')}
+      ${statBox('Active', p.active_jobs ?? '—', '#f59e0b', 'fa-clock')}
+      ${statBox('Cancelled', p.cancelled ?? '—', '#ef4444', 'fa-times-circle')}
+      ${statBox('Revenue ₹', p.total_revenue != null ? parseFloat(p.total_revenue).toFixed(0) : '—', '#7C3AED', 'fa-rupee-sign')}
+      ${statBox('Unpaid', p.unpaid_active ?? '—', '#dc2626', 'fa-exclamation-circle')}
+    </div>
+    <div style="background:#f8fafc;border-radius:10px;padding:12px;font-size:0.8rem;color:#64748b;display:flex;gap:20px;flex-wrap:wrap;">
+      <span><i class="fas fa-calendar-plus" style="color:#00BCD4;"></i> Joined: <strong>${(u.created_at||'').slice(0,10) || '—'}</strong></span>
+      <span><i class="fas fa-barcode" style="color:#FF9800;"></i> IMEI: <strong>${u.imei_skip ? 'Optional' : 'Required'}</strong></span>
+      <span><i class="fas fa-power-off" style="color:${u.enabled ? '#16a34a' : '#ef4444'};"></i> Account: <strong>${u.enabled ? 'Active' : 'Disabled'}</strong></span>
+    </div>`;
+  document.getElementById('shopDetailModal').classList.add('show');
+}
+function statBox(label, val, color, icon) {
+  return `<div style="background:white;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center;">
+    <i class="fas ${icon}" style="color:${color};font-size:1rem;margin-bottom:4px;display:block;"></i>
+    <div style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.1rem;color:#1a2332;">${val}</div>
+    <div style="font-size:0.68rem;color:#94a3b8;font-weight:600;text-transform:uppercase;">${label}</div>
+  </div>`;
+}
+document.getElementById('shopDetailModal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('show');
+});
 </script>
+
+<!-- Shop Detail Modal -->
+<div class="modal-overlay" id="shopDetailModal">
+  <div class="modal-box" style="max-width:520px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div class="modal-title" style="margin-bottom:0;"><i class="fas fa-store" style="color:#00BCD4;"></i> Shop Details</div>
+      <button onclick="document.getElementById('shopDetailModal').classList.remove('show')"
+        style="background:#f1f5f9;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;color:#64748b;font-size:1rem;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <div id="shopDetailBody"></div>
+  </div>
+</div>
 {% endblock %}
