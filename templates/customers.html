@@ -46,8 +46,11 @@ html,body{max-width:100vw;overflow-x:hidden;width:100%;}
 <div class="page-header">
   <div><div class="page-title">Customers</div><div class="page-subtitle">{{ customers|length }} unique customers</div></div>
 </div>
-<div class="card" style="margin-bottom:18px;"><div class="card-body" style="padding:14px 20px;">
-  <input type="text" id="custSearch" class="form-control" style="max-width:340px;" placeholder="Search by name or phone..." oninput="filterCust()">
+<div class="card" style="margin-bottom:18px;"><div class="card-body" style="padding:14px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+  <input type="text" id="custSearch" class="form-control" style="max-width:340px;flex:1;min-width:180px;" placeholder="Search by name or phone..." oninput="filterCust()">
+  <button id="dueFilterBtn" onclick="toggleDueFilter()" style="padding:9px 18px;border:2px solid #fee2e2;border-radius:10px;background:white;color:#b91c1c;font-size:0.85rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;transition:all 0.2s;">
+    <i class="fas fa-wallet"></i> Due Only
+  </button>
 </div></div>
 <div class="card"><div class="card-body">
   {% if customers %}
@@ -56,7 +59,7 @@ html,body{max-width:100vw;overflow-x:hidden;width:100%;}
     <thead><tr><th>Customer</th><th>Phone</th><th class="mob-hide">Total Jobs</th><th class="mob-hide">Total Business</th><th>Last Device</th><th>Actions</th></tr></thead>
     <tbody>
     {% for c in customers %}
-    <tr>
+    <tr{% if c.total_due > 0 %} data-due="1"{% endif %}>
       <td data-label="Customer">
         <strong>{{ c.name }}</strong>
         {% if c.total_due > 0 %}
@@ -228,10 +231,27 @@ function toggleHistory(phone, btn) {
     btn.textContent = 'Hide';
   }
 }
+let _dueOnly = false;
+function toggleDueFilter() {
+  _dueOnly = !_dueOnly;
+  const btn = document.getElementById('dueFilterBtn');
+  if (_dueOnly) {
+    btn.style.background = '#fee2e2';
+    btn.style.borderColor = '#b91c1c';
+    btn.style.color = '#b91c1c';
+  } else {
+    btn.style.background = 'white';
+    btn.style.borderColor = '#fee2e2';
+    btn.style.color = '#b91c1c';
+  }
+  filterCust();
+}
 function filterCust() {
   const q = document.getElementById('custSearch').value.toLowerCase();
   document.querySelectorAll('#custTable tbody tr:not([id^="hist-"])').forEach(row => {
-    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    const matchSearch = row.textContent.toLowerCase().includes(q);
+    const matchDue = !_dueOnly || row.dataset.due === '1';
+    row.style.display = (matchSearch && matchDue) ? '' : 'none';
   });
 }
 </script>
