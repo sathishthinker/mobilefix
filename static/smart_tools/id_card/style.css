@@ -1,0 +1,961 @@
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(180deg, #ecfeff 0%, #f5f3ff 42%, #ecfdf5 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ID Card Specific Styles */
+        .id-card {
+            width: 324px;
+            height: 516px; /* Exactly matched to 54x86mm ratio for perfect PDF scaling */
+            background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e5e7eb;
+            box-sizing: border-box;
+        }
+
+        .id-header {
+            background: linear-gradient(90deg, #00838F 0%, #00BCD4 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 4px solid #facc15;
+            height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .id-body {
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        .photo-container {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid #ffffff;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 15px;
+            background-color: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .photo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .employee-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 4px;
+            text-align: center;
+            width: 100%;
+            word-wrap: break-word;
+        }
+
+        .employee-title {
+            font-size: 0.875rem;
+            color: #4b5563;
+            font-weight: 500;
+            margin-bottom: 15px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .details-grid {
+            width: 240px;
+            margin: auto auto 15px auto;
+            display: grid;
+            grid-template-columns: 85px 1fr;
+            gap: 8px 10px;
+            font-size: 0.75rem;
+        }
+
+        .detail-label {
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            text-align: left;
+        }
+
+        .detail-value {
+            color: #111827;
+            font-weight: 500;
+            word-wrap: break-word;
+            text-align: left;
+        }
+
+        .id-footer {
+            background-color: #f8fafc;
+            padding: 10px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+            font-size: 0.65rem;
+            color: #94a3b8;
+        }
+
+        .barcode-placeholder {
+            height: 30px;
+            width: 80%;
+            margin: 0 auto 5px auto;
+            background-image: repeating-linear-gradient(
+                90deg,
+                #000,
+                #000 2px,
+                transparent 2px,
+                transparent 4px,
+                #000 4px,
+                #000 7px,
+                transparent 7px,
+                transparent 10px
+            );
+        }
+
+        .bg-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.03;
+            background-image: radial-gradient(#00838F 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        input[type="file"]::file-selector-button {
+            border: none;
+            background: #00BCD4;
+            padding: 8px 16px;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s ease-in-out;
+            margin-right: 10px;
+            font-size: 0.875rem;
+        }
+        input[type="file"]::file-selector-button:hover {
+            background: #00ACC1;
+        }
+
+        /* Fixed Overlay and Rendering System */
+        #loadingOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            background-color: rgba(255, 255, 255, 0.99); /* 0.99 prevents occlusion culling */
+        }
+
+        /* The container sits permanently off-screen to guarantee the browser computes its layout without hiding it */
+        #batchRenderContainer {
+            position: absolute;
+            top: 0;
+            left: -9999px;
+            width: 324px;
+            background: white;
+        }
+
+        .overlay-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.98); /* Opaque white to hide the render container from user */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10; /* Above the render container */
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #00BCD4;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Print Media Styles for Native Browser Printing */
+        #printArea {
+            display: none;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 0 !important;
+            }
+            body > *:not(#printArea) {
+                display: none !important;
+            }
+            body {
+                background-color: white;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            #printArea {
+                display: block !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 210mm;
+                background: white;
+            }
+            .print-page {
+                width: 210mm !important;
+                height: 297mm !important;
+                display: flex !important;
+                flex-wrap: wrap;
+                gap: 6mm 8mm;
+                justify-content: center;
+                align-content: center;
+                box-sizing: border-box;
+                padding: 10mm 15mm;
+                page-break-after: always !important;
+                break-after: always !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                background: white;
+            }
+            .print-page * {
+                page-break-inside: avoid;
+            }
+            .id-card {
+                box-shadow: none !important;
+                border: 1px dashed #9ca3af !important; /* Cut-out lines */
+                border-radius: 0 !important;
+                margin: 0;
+            }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+        /* --- Custom Multi-Template Style System --- */
+
+        /* 1. Base CSS Variables default fallback */
+        .id-card {
+            --theme-primary: #00838F;
+            --theme-secondary: #00BCD4;
+        }
+
+        /* 2. MODERN MINIMALIST TEMPLATE */
+        .id-card.template-modern {
+            background: #ffffff !important;
+            border-color: #e2e8f0 !important;
+        }
+        .id-card.template-modern .id-header {
+            background: #ffffff !important;
+            color: #1e293b !important;
+            border-bottom: 3px solid var(--theme-primary, #00BCD4) !important;
+            height: 80px;
+        }
+        .id-card.template-modern .id-header p {
+            color: #64748b !important;
+        }
+        .id-card.template-modern .photo-container {
+            border-color: var(--theme-primary, #00BCD4) !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.12);
+        }
+        .id-card.template-modern .employee-name {
+            color: #0f172a !important;
+        }
+        .id-card.template-modern .employee-title {
+            color: #475569 !important;
+            border-bottom: 1px dashed #e2e8f0;
+            padding-bottom: 4px;
+            width: 100%;
+        }
+
+        /* 3. NEON DARK TEMPLATE */
+        .id-card.template-dark {
+            background: #0f172a !important;
+            border-color: #1e293b !important;
+            color: #ffffff !important;
+        }
+        .id-card.template-dark .id-header {
+            background: #1e293b !important;
+            color: #ffffff !important;
+            border-bottom: 3px solid var(--theme-secondary, #00BCD4) !important;
+        }
+        .id-card.template-dark .id-body {
+            background: #0f172a !important;
+        }
+        .id-card.template-dark .employee-name {
+            color: #ffffff !important;
+        }
+        .id-card.template-dark .employee-title {
+            color: #94a3b8 !important;
+        }
+        .id-card.template-dark .detail-label {
+            color: var(--theme-secondary, #38bdf8) !important;
+        }
+        .id-card.template-dark .detail-value {
+            color: #f1f5f9 !important;
+        }
+        .id-card.template-dark .photo-container {
+            border-color: var(--theme-primary, #00838F) !important;
+            background-color: #1e293b !important;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+        }
+        .id-card.template-dark .id-footer {
+            background: #1e293b !important;
+            border-top: 1px solid #334155 !important;
+            color: #64748b !important;
+        }
+        .id-card.template-dark .id-body h4 {
+            color: var(--theme-secondary, #38bdf8) !important;
+        }
+        .id-card.template-dark .id-body p {
+            color: #e2e8f0 !important;
+        }
+        .id-card.template-dark .id-body p.text-gray-400 {
+            color: #94a3b8 !important;
+        }
+        .id-card.template-dark .id-footer p {
+            color: #94a3b8 !important;
+        }
+        /* Scannable wrappers for QR and barcode under dark mode */
+        .id-card.template-dark .id-footer img,
+        .id-card.template-dark #previewQRCode,
+        .id-card.template-dark #previewBarcode,
+        .id-card.template-dark img[alt="QR Code"],
+        .id-card.template-dark img[alt="Barcode"] {
+            background: white !important;
+            padding: 3px;
+            border-radius: 6px;
+            mix-blend-mode: normal !important;
+        }
+
+        /* 4. GLASS GRADIENT TEMPLATE */
+        .id-card.template-gradient {
+            background: linear-gradient(135deg, var(--theme-primary, #00838F) 0%, var(--theme-secondary, #00BCD4) 100%) !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
+        }
+        .id-card.template-gradient .id-header {
+            background: transparent !important;
+            border-bottom: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+            color: #ffffff !important;
+        }
+        .id-card.template-gradient .id-body {
+            background: transparent !important;
+        }
+        .id-card.template-gradient .employee-name {
+            color: #ffffff !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+        .id-card.template-gradient .employee-title {
+            color: rgba(255, 255, 255, 0.9) !important;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            display: inline-block;
+            text-shadow: none;
+        }
+        .id-card.template-gradient .detail-label {
+            color: rgba(255, 255, 255, 0.75) !important;
+        }
+        .id-card.template-gradient .detail-value {
+            color: #ffffff !important;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .id-card.template-gradient .photo-container {
+            border-color: rgba(255, 255, 255, 0.6) !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+        .id-card.template-gradient .id-footer {
+            background: rgba(0, 0, 0, 0.18) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: rgba(255, 255, 255, 0.65) !important;
+        }
+        .id-card.template-gradient .id-body h4 {
+            color: rgba(255, 255, 255, 0.85) !important;
+        }
+        .id-card.template-gradient .id-body p {
+            color: #ffffff !important;
+        }
+        .id-card.template-gradient .id-body p.text-gray-400 {
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+        .id-card.template-gradient .id-footer p {
+            color: rgba(255, 255, 255, 0.65) !important;
+        }
+        .id-card.template-gradient .id-footer img,
+        .id-card.template-gradient #previewQRCode,
+        .id-card.template-gradient #previewBarcode,
+        .id-card.template-gradient img[alt="QR Code"],
+        .id-card.template-gradient img[alt="Barcode"] {
+            background: white !important;
+            padding: 3px;
+            border-radius: 6px;
+            mix-blend-mode: normal !important;
+        }
+
+        /* 5. LUXURY GOLD TEMPLATE */
+        .id-card.template-luxury {
+            background: linear-gradient(135deg, #161a22 0%, #0d0f14 100%) !important;
+            border: 2px solid #BF953F !important;
+            color: #ffffff !important;
+        }
+        .id-card.template-luxury .id-header {
+            background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 25%, #B38728 50%, #FBF5B7 75%, #AA771C 100%) !important;
+            color: #0d0f14 !important;
+            border-bottom: 2px solid #BF953F !important;
+            height: 80px;
+        }
+        .id-card.template-luxury .id-header h2 {
+            font-weight: 800 !important;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3) !important;
+        }
+        .id-card.template-luxury .id-header p {
+            color: #1a1e27 !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.1em !important;
+        }
+        .id-card.template-luxury .id-body {
+            background: transparent !important;
+        }
+        .id-card.template-luxury .employee-name {
+            color: #FCF6BA !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            font-family: 'Inter', sans-serif !important;
+            letter-spacing: 0.02em;
+        }
+        .id-card.template-luxury .employee-title {
+            color: #d4af37 !important;
+            background: rgba(191, 149, 63, 0.15) !important;
+            border: 1px solid rgba(191, 149, 63, 0.4) !important;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            display: inline-block;
+        }
+        .id-card.template-luxury .detail-label {
+            color: #BF953F !important;
+            font-weight: 700 !important;
+        }
+        .id-card.template-luxury .detail-value {
+            color: #ffffff !important;
+            font-weight: 500 !important;
+        }
+        .id-card.template-luxury .photo-container {
+            border: 4px solid #BF953F !important;
+            box-shadow: 0 4px 20px rgba(191, 149, 63, 0.25);
+            background-color: #161a22 !important;
+        }
+        .id-card.template-luxury .id-footer {
+            background: #0d0f14 !important;
+            border-top: 1px solid rgba(191, 149, 63, 0.3) !important;
+            color: #BF953F !important;
+        }
+        .id-card.template-luxury .id-body h4 {
+            color: #FCF6BA !important;
+        }
+        .id-card.template-luxury .id-body p {
+            color: #f3f4f6 !important;
+        }
+        .id-card.template-luxury .id-body p.text-gray-400 {
+            color: #9ca3af !important;
+        }
+        .id-card.template-luxury .id-footer p {
+            color: #BF953F !important;
+            opacity: 0.8;
+        }
+        .id-card.template-luxury .id-footer img,
+        .id-card.template-luxury #previewQRCode,
+        .id-card.template-luxury #previewBarcode,
+        .id-card.template-luxury img[alt="QR Code"],
+        .id-card.template-luxury img[alt="Barcode"] {
+            background: white !important;
+            padding: 3px;
+            border-radius: 6px;
+            mix-blend-mode: normal !important;
+        }
+
+        /* 6. AURORA HOLOGRAPHIC TEMPLATE */
+        .id-card.template-aurora {
+            background: linear-gradient(135deg, #00ACC1 0%, #7c3aed 50%, #db2777 100%) !important;
+            border-color: rgba(255, 255, 255, 0.25) !important;
+            color: #ffffff !important;
+        }
+        .id-card.template-aurora .id-header {
+            background: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(10px) !important;
+            border-bottom: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+            color: #ffffff !important;
+            height: 80px;
+        }
+        .id-card.template-aurora .id-body {
+            background: rgba(15, 23, 42, 0.15) !important;
+            backdrop-filter: blur(10px) !important;
+        }
+        .id-card.template-aurora .employee-name {
+            color: #ffffff !important;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        .id-card.template-aurora .employee-title {
+            color: #ffffff !important;
+            background: linear-gradient(90deg, rgba(219, 39, 119, 0.35) 0%, rgba(124, 58, 237, 0.35) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            padding: 2px 12px;
+            border-radius: 9999px;
+            font-size: 0.65rem;
+            letter-spacing: 0.08em;
+            display: inline-block;
+            text-shadow: none;
+        }
+        .id-card.template-aurora .detail-label {
+            color: rgba(255, 255, 255, 0.8) !important;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .id-card.template-aurora .detail-value {
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+        .id-card.template-aurora .photo-container {
+            border: 4px solid rgba(255, 255, 255, 0.8) !important;
+            box-shadow: 0 0 20px rgba(219, 39, 119, 0.4);
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        .id-card.template-aurora .id-footer {
+            background: rgba(15, 23, 42, 0.3) !important;
+            backdrop-filter: blur(10px) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+            color: rgba(255, 255, 255, 0.75) !important;
+        }
+        .id-card.template-aurora .id-body h4 {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .id-card.template-aurora .id-body p {
+            color: #ffffff !important;
+        }
+        .id-card.template-aurora .id-body p.text-gray-400 {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+        .id-card.template-aurora .id-footer p {
+            color: rgba(255, 255, 255, 0.75) !important;
+        }
+        .id-card.template-aurora .id-footer img,
+        .id-card.template-aurora #previewQRCode,
+        .id-card.template-aurora #previewBarcode,
+        .id-card.template-aurora img[alt="QR Code"],
+        .id-card.template-aurora img[alt="Barcode"] {
+            background: white !important;
+            padding: 3px;
+            border-radius: 6px;
+            mix-blend-mode: normal !important;
+        }
+
+        /* 7. ROYAL EMERALD TEMPLATE */
+        .id-card.template-emerald {
+            background: linear-gradient(135deg, #032b1d 0%, #01140e 100%) !important;
+            border: 2px solid #d4af37 !important;
+            color: #ffffff !important;
+        }
+        .id-card.template-emerald .id-header {
+            background: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #aa771c 100%) !important;
+            color: #01140e !important;
+            border-bottom: 2px solid #d4af37 !important;
+            height: 80px;
+        }
+        .id-card.template-emerald .id-header h2 {
+            font-weight: 800 !important;
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+        }
+        .id-card.template-emerald .id-header p {
+            color: #01140e !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.1em !important;
+        }
+        .id-card.template-emerald .id-body {
+            background: transparent !important;
+        }
+        .id-card.template-emerald .employee-name {
+            color: #f3e5ab !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .id-card.template-emerald .employee-title {
+            color: #d4af37 !important;
+            background: rgba(212, 175, 55, 0.15) !important;
+            border: 1px solid rgba(212, 175, 55, 0.4) !important;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            display: inline-block;
+        }
+        .id-card.template-emerald .detail-label {
+            color: #d4af37 !important;
+            font-weight: 700 !important;
+        }
+        .id-card.template-emerald .detail-value {
+            color: #ffffff !important;
+            font-weight: 500 !important;
+        }
+        .id-card.template-emerald .photo-container {
+            border: 4px solid #d4af37 !important;
+            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.25);
+            background-color: #032b1d !important;
+        }
+        .id-card.template-emerald .id-footer {
+            background: #01140e !important;
+            border-top: 1px solid rgba(212, 175, 55, 0.3) !important;
+            color: #d4af37 !important;
+        }
+        .id-card.template-emerald .id-body h4 {
+            color: #f3e5ab !important;
+        }
+        .id-card.template-emerald .id-body p {
+            color: #f3f4f6 !important;
+        }
+        .id-card.template-emerald .id-body p.text-gray-400 {
+            color: #a7f3d0 !important;
+        }
+        .id-card.template-emerald .id-footer p {
+            color: #d4af37 !important;
+            opacity: 0.8;
+        }
+        .id-card.template-emerald .id-footer img,
+        .id-card.template-emerald #previewQRCode,
+        .id-card.template-emerald #previewBarcode,
+        .id-card.template-emerald img[alt="QR Code"],
+        .id-card.template-emerald img[alt="Barcode"] {
+            background: white !important;
+            padding: 3px;
+            border-radius: 6px;
+            mix-blend-mode: normal !important;
+        }
+
+        /* 8. CARBON EXECUTIVE TEMPLATE */
+        .id-card.template-carbon {
+            background-color: #0f172a !important;
+            background-image: radial-gradient(rgba(56, 189, 248, 0.15) 1px, transparent 1px), linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+            background-repeat: repeat, no-repeat !important;
+            background-size: 8px 8px, 100% 100% !important;
+            border: 2px solid #38bdf8 !important;
+            color: #ffffff !important;
+        }
+        .id-card.template-carbon .id-header {
+            background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%) !important;
+            color: #ffffff !important;
+            border-bottom: 3px solid #38bdf8 !important;
+            height: 80px;
+        }
+        .id-card.template-carbon .id-header h2 {
+            font-weight: 700 !important;
+            text-shadow: 0 0 8px rgba(56, 189, 248, 0.4) !important;
+        }
+        .id-card.template-carbon .id-header p {
+            color: #38bdf8 !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.1em !important;
+        }
+        .id-card.template-carbon .id-body {
+            background: transparent !important;
+        }
+        .id-card.template-carbon .employee-name {
+            color: #ffffff !important;
+            text-shadow: 0 0 6px rgba(56, 189, 248, 0.3);
+        }
+        .id-card.template-carbon .employee-title {
+            color: #38bdf8 !important;
+            background: rgba(56, 189, 248, 0.1) !important;
+            border: 1px solid rgba(56, 189, 248, 0.3) !important;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            display: inline-block;
+        }
+        .id-card.template-carbon .detail-label {
+            color: #94a3b8 !important;
+            font-weight: 600 !important;
+        }
+        .id-card.template-carbon .detail-value {
+            color: #38bdf8 !important;
+            font-weight: 500 !important;
+        }
+        .id-card.template-carbon .photo-container {
+            border: 3px solid #38bdf8 !important;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+            background-color: #0f172a !important;
+        }
+        .id-card.template-carbon .id-footer {
+            background: #090d16 !important;
+            border-top: 1px solid #1e293b !important;
+            color: #94a3b8 !important;
+        }
+        .id-card.template-carbon .id-body h4 {
+            color: #38bdf8 !important;
+        }
+        .id-card.template-carbon .id-body p {
+            color: #e2e8f0 !important;
+        }
+        .id-card.template-carbon .id-body p.text-gray-400 {
+            color: #94a3b8 !important;
+        }
+        .id-card.template-carbon .id-footer p {
+            color: #94a3b8 !important;
+        }
+        .id-card.template-carbon .id-footer img,
+        .id-card.template-carbon #previewQRCode,
+        .id-card.template-carbon #previewBarcode,
+        .id-card.template-carbon img[alt="QR Code"],
+        .id-card.template-carbon img[alt="Barcode"] {
+            background: white !important;
+            padding: 3px;
+            border-radius: 6px;
+            mix-blend-mode: normal !important;
+        /* --- Premium Colorful UI Redesign Styles --- */
+
+        /* Main Glassmorphic Container */
+        .main-app-container {
+            background: rgba(255, 255, 255, 0.72) !important;
+            backdrop-filter: blur(25px) !important;
+            -webkit-backdrop-filter: blur(25px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.7) !important;
+            box-shadow: 0 25px 60px -15px rgba(99, 102, 241, 0.12), 0 0 40px rgba(255, 255, 255, 0.5) inset !important;
+            position: relative;
+            z-index: 10;
+            border-radius: 24px !important;
+            overflow: hidden;
+        }
+
+        .main-app-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #6366f1 0%, #a855f7 35%, #ec4899 70%, #06b6d4 100%);
+            z-index: 20;
+        }
+
+        /* Glassmorphic Form Group Accordions */
+        .bg-slate-50\/50 {
+            background: rgba(248, 250, 252, 0.45) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(226, 232, 240, 0.8) !important;
+            border-radius: 14px !important;
+            transition: all 0.3s ease !important;
+        }
+        .bg-slate-50\/50:hover {
+            border-color: rgba(99, 102, 241, 0.3) !important;
+            background: rgba(255, 255, 255, 0.6) !important;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.03) !important;
+        }
+
+        /* Sleek Glassmorphic Inputs */
+        input[type="text"], input[type="tel"], textarea, select {
+            background: rgba(255, 255, 255, 0.7) !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 10px !important;
+            color: #334155 !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.01) !important;
+        }
+        input[type="text"]:focus, input[type="tel"]:focus, textarea:focus, select:focus {
+            background: #ffffff !important;
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12), 0 4px 10px rgba(99, 102, 241, 0.05) !important;
+            outline: none !important;
+        }
+        label {
+            color: #475569 !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.02em;
+        }
+
+        /* Showcase Preview Container */
+        .preview-showcase-container {
+            background: rgba(248, 250, 252, 0.55) !important;
+            border-radius: 20px !important;
+            border: 1px solid rgba(226, 232, 240, 0.8) !important;
+            padding: 30px 24px !important;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.01), 0 10px 30px rgba(99, 102, 241, 0.02) !important;
+            position: relative;
+        }
+
+        /* Glowing lift-on-hover effect for ID Cards */
+        #idCardPreview, #idCardPreviewBack {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        #idCardPreview:hover, #idCardPreviewBack:hover {
+            transform: translateY(-6px) scale(1.01) !important;
+            box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.18), 0 0 25px rgba(99, 102, 241, 0.08) !important;
+        }
+
+        /* Template Selector Buttons */
+        .template-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            border: 1px solid rgba(226, 232, 240, 0.8) !important;
+            position: relative;
+            overflow: hidden;
+        }
+        .template-btn:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.08) !important;
+        }
+        .template-btn[data-template="classic"] { border-left: 4px solid #00838F !important; }
+        .template-btn[data-template="modern"] { border-left: 4px solid #475569 !important; }
+        .template-btn[data-template="dark"] { border-left: 4px solid #38bdf8 !important; }
+        .template-btn[data-template="gradient"] { border-left: 4px solid #db2777 !important; }
+        .template-btn[data-template="luxury"] { border-left: 4px solid #BF953F !important; }
+        .template-btn[data-template="aurora"] { border-left: 4px solid #7c3aed !important; }
+        .template-btn[data-template="emerald"] { border-left: 4px solid #059669 !important; }
+        .template-btn[data-template="carbon"] { border-left: 4px solid #06b6d4 !important; }
+
+        /* Custom Modern Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(241, 245, 249, 0.5);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.4);
+        }
+
+        /* Print Media Style Suppression */
+        @media print {
+            body {
+                background: white !important;
+            }
+            .main-app-container, .preview-showcase-container {
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+            }
+            #printArea .id-card {
+                box-shadow: none !important;
+                border: 1px dashed #9ca3af !important;
+            }
+        }
+
+        /* Premium macOS-Style Form Inputs */
+        .main-app-container input[type="text"],
+        .main-app-container input[type="tel"],
+        .main-app-container textarea,
+        .main-app-container select {
+            background-color: rgba(255, 255, 255, 0.8) !important;
+            border: 1.5px solid #d1d5db !important;
+            border-radius: 6px !important;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+            font-size: 0.875rem !important;
+            padding: 0.5rem 0.875rem !important;
+            color: #1f2937 !important;
+            outline: none !important;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+
+        .main-app-container input[type="text"]:hover,
+        .main-app-container input[type="tel"]:hover,
+        .main-app-container textarea:hover,
+        .main-app-container select:hover,
+        .main-app-container input[type="color"]:hover {
+            border-color: #a3a3a3 !important;
+        }
+
+        .main-app-container input[type="text"]:focus,
+        .main-app-container input[type="tel"]:focus,
+        .main-app-container textarea:focus,
+        .main-app-container select:focus {
+            background-color: #ffffff !important;
+            border-color: #00BCD4 !important;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05), 0 0 0 3px rgba(59, 130, 246, 0.3) !important;
+        }
+
+        /* Customize select arrows and dropdown appearance for macOS feel */
+        .main-app-container select {
+            appearance: none !important;
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M7 9l3 3 3-3' stroke='%234b5563' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+            background-position: right 0.65rem center !important;
+            background-repeat: no-repeat !important;
+            background-size: 1.15rem !important;
+            padding-right: 2.25rem !important;
+        }
+
+        /* Color inputs matching macOS details */
+        .main-app-container input[type="color"] {
+            border: 1.5px solid #d1d5db !important;
+            border-radius: 6px !important;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+            background-color: rgba(255, 255, 255, 0.8) !important;
+            padding: 0.2rem !important;
+            cursor: pointer !important;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+
+        .main-app-container input[type="color"]:focus {
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 3px rgba(59, 130, 246, 0.3) !important;
+            border-color: #00BCD4 !important;
+        }
+
+        /* macOS-style file upload button styling */
+        .main-app-container input[type="file"]::file-selector-button {
+            border: 1.5px solid #d1d5db !important;
+            border-radius: 6px !important;
+            background: linear-gradient(to bottom, #ffffff, #f3f4f6) !important;
+            color: #374151 !important;
+            font-weight: 500 !important;
+            font-size: 0.8125rem !important;
+            padding: 0.4rem 0.875rem !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+            cursor: pointer !important;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+
+        .main-app-container input[type="file"]::file-selector-button:hover {
+            background: linear-gradient(to bottom, #f9fafb, #e5e7eb) !important;
+            border-color: #c3c6cc !important;
+        }
+
+        .main-app-container input[type="file"]::file-selector-button:active {
+            background: #e5e7eb !important;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+        }
+    

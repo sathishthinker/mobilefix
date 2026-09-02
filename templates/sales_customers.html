@@ -1,0 +1,894 @@
+{% extends 'base.html' %}
+{% block title %}Sales Customers{% endblock %}
+{% block page_title %}Sales Customers{% endblock %}
+{% block extra_head %}
+<style>
+.pay-method-btn{flex:1;padding:10px;border-radius:10px;border:2px solid #e2e8f0;background:white;cursor:pointer;font-size:0.85rem;font-weight:600;color:#475569;}
+.pay-method-btn.active{border-color:#00BCD4;background:#e0f7fa;color:#006064;}
+.hist-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9998;overflow-y:auto;align-items:flex-start;justify-content:center;padding:24px 16px;backdrop-filter:blur(3px);}
+.hist-modal.show{display:flex;}
+.hist-modal-box{background:white;border-radius:16px;padding:22px;max-width:720px;width:100%;position:relative;margin:auto;max-height:88vh;overflow:auto;box-sizing:border-box;}
+.hist-close{position:absolute;top:12px;right:12px;background:#475569;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;color:#fff;z-index:2;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(15,23,42,.18);}
+.hist-close:hover{background:#334155;color:#fff;}
+.hist-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding-right:40px;margin-bottom:12px;flex-wrap:wrap;}
+.hist-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto;position:relative;}
+.hist-tools .form-control{max-width:180px;min-width:0;}
+.hist-ico-btn{width:40px;height:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hist-filter-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:white;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 10px 28px rgba(15,23,42,.12);padding:6px;z-index:4;min-width:160px;}
+.hist-filter-menu.show{display:block;}
+.hist-filter-menu button{display:block;width:100%;text-align:left;border:none;background:transparent;padding:8px 10px;border-radius:8px;font-size:.82rem;font-weight:700;color:#334155;cursor:pointer;}
+.hist-filter-menu button.active,.hist-filter-menu button:hover{background:#e0f7fa;color:#006064;}
+.hist-shop,.hist-cust,.hist-min-card,.hist-bill-head,.hist-line{border:1px solid #e2e8f0;border-radius:14px;box-sizing:border-box;}
+.hist-shop{display:flex;align-items:center;gap:12px;background:#f0fbfd;border-color:#b2ebf2;padding:12px 14px;margin-bottom:10px;}
+.hist-shop-logo{width:52px;height:52px;object-fit:contain;border-radius:10px;border:1px solid #b2ebf2;background:white;padding:4px;flex-shrink:0;}
+.hist-shop-name{font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.05rem;color:#0f172a;}
+.hist-shop-meta{color:#475569;font-size:.8rem;line-height:1.45;margin-top:2px;}
+.hist-cust{background:white;padding:12px 14px;margin-bottom:12px;}
+.hist-min-card{display:flex;flex-direction:column;align-items:stretch;gap:8px;background:#f8fafc;padding:10px;margin-bottom:10px;}
+.hist-bill-head{background:white;padding:10px 12px;}
+.hist-bill-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.hist-bill-id{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:nowrap;}
+.hist-min-body{flex:1;min-width:0;}
+.hist-acts{display:flex;gap:6px;flex-wrap:nowrap;flex-shrink:0;}
+.hist-sum{margin-top:6px;font-size:.8rem;color:#64748b;}
+.hist-sum-l1,.hist-sum-l2,.hist-line-name,.hist-line-sku,.hist-line-qty{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hist-sum-l2{color:#7f1d1d;font-size:.72rem;margin-top:2px;}
+.hist-line{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:10px;row-gap:2px;padding:10px 12px;background:white;font-size:.8rem;align-items:center;}
+.hist-line-name{font-weight:700;color:#0f172a;}
+.hist-line-sku{color:#94a3b8;font-size:.72rem;}
+.hist-line-qty{text-align:right;color:#64748b;font-size:.75rem;}
+.hist-line-amt{text-align:right;font-weight:800;color:#0f172a;font-size:.82rem;white-space:nowrap;}
+.hist-line-empty{color:#94a3b8;font-size:.78rem;padding:10px 12px;background:white;border:1px dashed #e2e8f0;border-radius:14px;}
+.qty-btn{width:32px;height:32px;border-radius:8px;border:1.5px solid #cbd5e1;background:#fff;font-weight:800;cursor:pointer;flex-shrink:0;}
+.ret-line{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:.82rem;}
+.ret-line:last-child{border-bottom:none;}
+.ret-qty{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.pay-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+.sale-act-call{background:#2563eb;}
+.sale-act-view{background:#0ea5e9;}
+.cv-stat{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center;}
+.cv-stat b{display:block;font-family:'Exo 2',sans-serif;font-size:1.1rem;font-weight:800;color:#0f172a;}
+.cv-stat span{display:block;font-size:.68rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-top:2px;}
+.cv-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.cv-acts .sale-act{width:auto;height:36px;padding:0 12px;gap:6px;font-size:.78rem;font-weight:800;}
+.cv-bill{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;margin-bottom:8px;}
+#payModal,#returnModal{z-index:10120;}
+.modal-ded-nav { display: none; }
+@media(max-width:768px){
+  .page-header{flex-direction:column;align-items:center;text-align:center;}
+  .page-header .btn{width:100%;justify-content:center;}
+  .hist-modal{padding:0!important;align-items:flex-end!important;}
+  .hist-modal-box{border-radius:20px 20px 0 0!important;max-height:92vh;padding:16px 14px calc(90px + env(safe-area-inset-bottom,0px))!important;width:100%!important;margin:0!important;}
+  #custViewModal .hist-modal-box::before{
+    content:"";display:block;width:40px;height:4px;border-radius:999px;background:#cbd5e1;margin:2px auto 14px;
+  }
+  .hist-top{flex-direction:column;align-items:stretch;padding-right:40px;}
+  .hist-tools{width:100%;margin-left:0;}
+  .hist-tools .form-control{max-width:none;flex:1;}
+  .hist-min-card{flex-direction:column;align-items:stretch;}
+  .hist-bill-top{flex-wrap:wrap;}
+  .hist-acts{justify-content:flex-end;}
+  .pay-row{grid-template-columns:1fr 1fr;}
+  .cv-acts{justify-content:center;}
+  .hist-close { display: none !important; }
+  .modal-ded-nav { 
+    display: flex; gap: 10px; 
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: #fff; padding: 12px 10px calc(12px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid #e2e8f0; z-index: 1010;
+  }
+  .modal-ded-nav a, .modal-ded-nav button {
+    flex: 1; padding: 8px 10px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; text-align: center; border: none; cursor: pointer; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: #f1f5f9; color: #475569; font-family: inherit;
+  }
+  .modal-ded-nav button.nav-exit { background: #fee2e2; color: #dc2626; }
+  .modal-ded-nav a.nav-home { background: #e0f2fe; color: #0284c7; }
+  .modal-ded-nav a.nav-teams { background: #f3e8ff; color: #9333ea; }
+  .cust-cards tbody tr{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:"name hist" "phone hist";
+    align-items:center;column-gap:10px;row-gap:2px;
+    padding:12px 14px;
+  }
+  .cust-cards tbody td{
+    display:block!important;padding:0!important;border:none!important;
+    min-height:0;justify-content:unset!important;gap:0;
+  }
+  .cust-cards tbody td::before{display:none!important;}
+  .cust-cards tbody td[data-label="Customer"]{grid-area:name;}
+  .cust-cards tbody td[data-label="Phone"]{grid-area:phone;}
+  .cust-cards tbody td[data-label="Points"],
+  .cust-cards tbody td[data-label="Bills"],
+  .cust-cards tbody td[data-label="Business"],
+  .cust-cards tbody td[data-label="Credit"]{display:none!important;}
+  .cust-cards tbody td[data-label="Actions"]{
+    grid-area:hist;margin:0!important;padding:0!important;
+    border:none!important;width:auto;
+  }
+  .cust-cards .cust-val{display:block;text-align:left;}
+  .cust-cards .cust-name{font-size:0.95rem;font-weight:800;color:#1a2332;}
+  .cust-cards .cust-due{margin-left:6px;font-size:0.68rem;padding:1px 7px;}
+  .cust-cards .cust-phone{font-size:0.82rem;color:#64748b;}
+  .cust-desk-act{display:none!important;}
+  .cust-actions{width:auto;justify-content:flex-end;}
+  .cust-actions a,.cust-actions button{flex:none;padding:0!important;}
+  .hist-open-btn{
+    width:40px;height:40px;padding:0!important;border-radius:11px;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  .hist-open-btn i{font-size:0.95rem;}
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Sales Customers</div>
+    <div class="page-subtitle">{{ customers|length }} Sales Customers</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button type="button" class="btn btn-outline" onclick="openNewCust()"><i class="fas fa-user-plus"></i> New Customer</button>
+    <a href="{{ url_for('sale_new') }}" class="btn btn-primary"><i class="fas fa-plus"></i> New Sale</a>
+  </div>
+</div>
+<div class="card" style="margin-bottom:18px;"><div class="card-body" style="padding:14px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+  <input type="search" id="custSearch" class="form-control" style="max-width:340px;flex:1;" placeholder="Search Name Or Phone" oninput="filterCust()"
+         autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
+  <button type="button" id="dueFilterBtn" onclick="toggleDueFilter()" style="padding:9px 18px;border:2px solid #fee2e2;border-radius:10px;background:white;color:#b91c1c;font-size:0.85rem;font-weight:700;cursor:pointer;">
+    <i class="fas fa-wallet"></i> Credit Due
+  </button>
+</div></div>
+<div class="card"><div class="card-body">
+  {% if customers %}
+  <div class="table-wrap mob-cards">
+    <table id="custTable" class="cust-cards">
+      <thead><tr><th>Customer</th><th>Phone</th><th>Points</th><th class="mob-hide">Bills</th><th class="mob-hide">Business</th><th>Credit</th><th>Actions</th></tr></thead>
+      <tbody>
+      {% for c in customers %}
+      {% set tb = c.total_business or 0 %}
+      {% set tj = c.bills|length %}
+      {% if tb >= 50000 or tj >= 20 %}{% set badge="PLATINUM" %}{% set bstyle="background:linear-gradient(135deg,#6366f1,#4f46e5);color:white;" %}
+      {% elif tb >= 20000 or tj >= 10 %}{% set badge="GOLD" %}{% set bstyle="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;" %}
+      {% elif tb >= 5000 or tj >= 3 %}{% set badge="SILVER" %}{% set bstyle="background:linear-gradient(135deg,#94a3b8,#64748b);color:white;" %}
+      {% else %}{% set badge="NEW" %}{% set bstyle="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;" %}{% endif %}
+      <tr{% if c.total_due > 0.01 %} data-due="1"{% endif %} data-badge="{{ badge }}">
+        <td data-label="Customer">
+          <div class="cust-val">
+            <strong class="cust-name">{{ c.name }} <span style="{{ bstyle }}padding:2px 8px;border-radius:999px;font-size:0.6rem;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;margin-left:6px;vertical-align:middle;box-shadow:0 2px 4px rgba(0,0,0,0.1);">{{ badge }}</span></strong>
+            {% if c.total_due > 0.01 %}
+            <span class="cust-due" {% if is_owner or can_collect %}onclick="openCollectAll({{ c.phone|tojson }}, {{ c.name|tojson }}, {{ c.total_due }})" style="background:#fee2e2;color:#b91c1c;border-radius:999px;padding:2px 9px;font-size:0.7rem;font-weight:700;display:inline-block;cursor:pointer;" title="Collect all due"{% else %}style="background:#fee2e2;color:#b91c1c;border-radius:999px;padding:2px 9px;font-size:0.7rem;font-weight:700;display:inline-block;"{% endif %}>Due ₹{{ '%.2f'|format(c.total_due) }}</span>
+            {% endif %}
+          </div>
+        </td>
+        <td data-label="Phone"><span class="cust-val cust-phone"><i class="fas fa-phone" style="color:#00BCD4;font-size:0.75rem;"></i> {{ c.phone }}</span></td>
+        <td data-label="Points"><span style="background:#fef3c7;color:#92400e;border-radius:999px;padding:2px 9px;font-size:0.75rem;font-weight:800;">{{ c.points or 0 }} pts</span></td>
+        <td data-label="Bills" class="mob-hide"><span style="font-family:'Exo 2',sans-serif;font-weight:700;color:#00BCD4;">{{ c.bills|length }}</span></td>
+        <td data-label="Business" class="mob-hide" style="font-weight:700;">₹{{ '%.2f'|format(c.total_business) }}</td>
+        <td data-label="Credit">{% if c.total_due > 0.01 %}<span style="color:#ef4444;font-weight:800;">₹{{ '%.2f'|format(c.total_due) }}</span>{% else %}<span style="color:#16a34a;">Nil</span>{% endif %}</td>
+        <td data-label="Actions">
+          <div class="cust-actions" style="display:flex;gap:6px;flex-wrap:wrap;">
+            <a class="sale-act sale-act-sale cust-desk-act" href="{{ url_for('sale_new', phone=c.phone, name=c.name) }}" title="New Sale" aria-label="New Sale" style="padding:6px 12px;border-radius:7px;display:inline-block;font-size:0.85rem;font-weight:600;"><i class="fas fa-plus"></i></a>
+            {% if c.total_due > 0.01 and (is_owner or can_collect) %}
+            <button type="button" class="sale-act sale-act-collect cust-desk-act" onclick="openCollectAll({{ c.phone|tojson }}, {{ c.name|tojson }}, {{ c.total_due }})" title="Collect all due" aria-label="Collect all due"><i class="fas fa-rupee-sign"></i></button>
+            {% endif %}
+            <button type="button" class="sale-act sale-act-view hist-open-btn" data-view-phone="{{ c.phone }}" data-view-name="{{ c.name }}" data-view-points="{{ c.points or 0 }}" title="View" aria-label="View" style="background:#00BCD4;color:white;border:none;"><i class="fas fa-history"></i></button>
+            <button type="button" class="sale-act sale-act-wa cust-desk-act" onclick="openWA('{{ c.phone }}',{kind:'sale_general',vars:{name:{{ c.name|tojson }},shop:{{ (user.shop_name or 'our shop')|tojson }}}})" title="Send message" aria-label="Send message" style="padding:6px 12px;border-radius:7px;font-size:0.85rem;font-weight:600;"><i class="fab fa-whatsapp"></i></button>
+          </div>
+        </td>
+      </tr>
+      <template id="hist-data-{{ c.phone }}">
+        <div class="hist-pack" data-name="{{ c.name }}" data-phone="{{ c.phone }}" data-points="{{ c.points or 0 }}">
+          <div class="hist-cust">
+            <div style="font-size:.72rem;font-weight:800;color:#00BCD4;text-transform:uppercase;">Sale history</div>
+            <h3 style="margin:4px 0;font-family:'Exo 2',sans-serif;">{{ c.name }}</h3>
+            <div style="color:#64748b;font-size:.85rem;">{{ c.phone }} · {{ c.bills|length }} bill{{ 's' if c.bills|length != 1 else '' }} · <strong style="color:#b45309;">{{ c.points or 0 }} pts</strong> (₹{{ '%.2f'|format(((c.points or 0)/4)) }})</div>
+            {% if c.total_due > 0.01 %}
+            <div style="margin-top:8px;background:#fee2e2;border-radius:10px;padding:8px 12px;color:#991b1b;font-weight:800;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+              <span>Credit due ₹{{ '%.2f'|format(c.total_due) }}</span>
+              {% if is_owner or can_collect %}
+              <button type="button" class="sale-act sale-act-collect" onclick="openCollectAll({{ c.phone|tojson }}, {{ c.name|tojson }}, {{ c.total_due }})" title="Collect all due" style="height:32px;padding:0 10px;">Collect all due</button>
+              {% endif %}
+            </div>
+            {% endif %}
+          </div>
+        {% for b in c.bills %}
+        {% set item_q = (b.lines or []) | map(attribute='name') | join(' ') %}
+        <div class="hist-min-card hist-bill" data-st="{{ b.paid_status or 'Paid' }}" data-q="SAL-{{ '%04d'|format(b.bill_no) }} {{ b.paid_status or '' }} {{ b.return_reason or '' }} {{ b.created_at or '' }} {{ item_q }}">
+          <div class="hist-bill-head">
+            <div class="hist-bill-top">
+              <div class="hist-min-body">
+                <div class="hist-bill-id">
+                  <span style="font-weight:800;">SAL-{{ '%04d'|format(b.bill_no) }}</span>
+                  <span style="color:#94a3b8;font-size:.75rem;">{{ b.created_at | to_ist }}</span>
+                </div>
+              </div>
+              <div class="hist-acts">
+                <button type="button" class="sale-act sale-act-view" onclick="toggleExtendedView(this)" title="Toggle Details" aria-label="Toggle Details"><i class="fas fa-eye"></i></button>
+                <a class="sale-act sale-act-print" href="{{ url_for('print_sale', bill_id=b.id) }}" target="_blank" title="Print" aria-label="Print"><i class="fas fa-print"></i></a>
+                <button type="button" class="sale-act sale-act-share" onclick="shareSalePDF({{ b.id }})" title="Share PDF" aria-label="Share PDF"><i class="fas fa-share-alt"></i></button>
+                {% if is_owner and b.paid_status != 'Returned' %}
+                <button type="button" class="sale-act sale-act-return" onclick="openReturn({{ b.id }})" title="Return" aria-label="Return"><i class="fas fa-undo"></i></button>
+                {% endif %}
+                {% if b.paid_status == 'Returned' or (b.refund_amount or 0)|float > 0.009 %}
+                <a class="sale-act sale-act-return" href="{{ url_for('print_sale_refund', bill_id=b.id) }}" target="_blank" title="Refund receipt" aria-label="Refund receipt"><i class="fas fa-file-invoice-dollar"></i></a>
+                {% endif %}
+                {% if b.balance > 0.01 and (is_owner or can_collect) %}
+                <button type="button" class="sale-act sale-act-collect" onclick="openCollect({{ b.id }})" title="Collect" aria-label="Collect"><i class="fas fa-rupee-sign"></i></button>
+                {% endif %}
+              </div>
+            </div>
+            <div class="hist-sum">
+              <div class="hist-sum-l1">Total ₹{{ '%.2f'|format(b.total or 0) }} · Paid ₹{{ '%.2f'|format(b.collected) }}{% if (b.discount or 0) > 0.009 %} · Disc ₹{{ '%.2f'|format(b.discount) }}{% endif %} · {% if b.paid_status == 'Returned' %}<span style="color:#991b1b;font-weight:800;">Returned</span>{% elif b.balance > 0.01 %}<span style="color:#ef4444;font-weight:800;">Due ₹{{ '%.2f'|format(b.balance) }}</span>{% else %}<span style="color:#16a34a;font-weight:800;">Settled</span>{% endif %}</div>
+              <div class="hist-sum-l2">{% if b.paid_status == 'Returned' %}{{ b.return_reason or 'Returned' }}{% if (b.refund_amount or 0) > 0 %} · Refund ₹{{ '%.2f'|format(b.refund_amount) }}{% endif %}{% elif (b.refund_amount or 0) > 0 %}{{ b.return_reason or 'Partial return' }} · Refund ₹{{ '%.2f'|format(b.refund_amount) }}{% elif b.balance > 0.01 %}Due ₹{{ '%.2f'|format(b.balance) }}{% if b.due_date %} · {{ b.due_date }}{% endif %}{% else %}&nbsp;{% endif %}</div>
+            </div>
+          </div>
+          <div class="hist-bill-extended" style="display:none;">
+          {% for ln in b.lines or [] %}
+          {% set left = (ln.qty or 0)|float - (ln.returned_qty or 0)|float %}
+          <div class="hist-line">
+            <div class="hist-line-name">{{ ln.name }}</div>
+            <div class="hist-line-qty">{{ '%g'|format(left) }} × ₹{{ '%.2f'|format(ln.price or 0) }}{% if (ln.returned_qty or 0)|float > 0 %} · ret {{ '%g'|format(ln.returned_qty|float) }}{% endif %}</div>
+            <div class="hist-line-sku">{{ ln.sku or '' }}</div>
+            <div class="hist-line-amt">₹{{ '%.2f'|format(left * (ln.price or 0)) }}</div>
+          </div>
+          {% else %}
+          <div class="hist-line-empty">No product details on this bill</div>
+          {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+        </div>
+      </template>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:48px;color:#94a3b8;">No sales customers yet. Add a customer or complete a sale with a mobile number.</div>
+  {% endif %}
+</div></div>
+
+<div id="custViewModal" class="hist-modal" style="z-index:10060;">
+  <div class="hist-modal-box" style="margin-bottom: 70px;">
+    <button type="button" onclick="closeCustView()" class="hist-close" title="Exit" aria-label="Exit">✕</button>
+    <div id="custViewBody"></div>
+  </div>
+  <div class="modal-ded-nav">
+    <a href="{{ url_for('dashboard') }}" class="nav-home"><i class="fas fa-home"></i> Home</a>
+    <a href="{{ url_for('shop_team') }}" class="nav-teams"><i class="fas fa-users"></i> Teams</a>
+    <button type="button" class="nav-exit" onclick="closeCustView()"><i class="fas fa-times"></i> Exit</button>
+  </div>
+</div>
+<div id="custHistModal" class="hist-modal">
+  <div class="hist-modal-box" style="margin-bottom: 70px;">
+    <button type="button" class="modal-exit hist-close" onclick="closeHistory()" title="Exit" aria-label="Exit">✕</button>
+    <div class="hist-top">
+      <div class="hist-tools">
+        <input type="search" id="histSearch" class="form-control" placeholder="Search" autocomplete="off"
+               readonly onfocus="this.removeAttribute('readonly')" oninput="filterHist()">
+        <button type="button" class="btn btn-outline hist-ico-btn" id="histFilterBtn" onclick="toggleHistFilterMenu()" title="Filter" aria-label="Filter"><i class="fas fa-filter"></i></button>
+        <button type="button" class="btn btn-outline" id="histReturnBtn" onclick="clickHistReturn()" style="color:#991b1b;border-color:#fecaca;"><i class="fas fa-undo"></i> Return</button>
+        <button type="button" class="btn btn-outline hist-ico-btn" onclick="downloadHistPDF()" title="Download PDF" aria-label="Download PDF"><i class="fas fa-download"></i></button>
+        <button type="button" class="btn btn-outline hist-ico-btn" onclick="shareHistPDF()" title="Share PDF" aria-label="Share PDF" style="color:#16a34a;border-color:#bbf7d0;"><i class="fas fa-share-alt"></i></button>
+        <div id="histFilterMenu" class="hist-filter-menu">
+          <button type="button" data-f="All" onclick="setHistFilter('All')">All</button>
+          <button type="button" data-f="Sales" onclick="setHistFilter('Sales')">Sales</button>
+          <button type="button" data-f="Credit" onclick="setHistFilter('Credit')">Credit Due</button>
+          <button type="button" data-f="Returned" onclick="setHistFilter('Returned')">Returned</button>
+        </div>
+      </div>
+    </div>
+    <div id="custHistContent"></div>
+  </div>
+  <div class="modal-ded-nav">
+    <a href="{{ url_for('dashboard') }}" class="nav-home"><i class="fas fa-home"></i> Home</a>
+    <a href="{{ url_for('shop_team') }}" class="nav-teams"><i class="fas fa-users"></i> Teams</a>
+    <button type="button" class="nav-exit" onclick="closeHistory()"><i class="fas fa-times"></i> Exit</button>
+  </div>
+</div>
+<div class="modal-overlay" id="newCustModal">
+  <div class="modal-box" style="max-width:400px;">
+    <button type="button" class="modal-exit" onclick="document.getElementById('newCustModal').classList.remove('show')" title="Exit" aria-label="Exit">✕</button>
+    <div class="modal-title">New Customer</div>
+    <form method="POST" class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Name *</label>
+        <input class="form-control" name="name" required style="text-transform:uppercase" autocomplete="off"
+               readonly onfocus="this.removeAttribute('readonly')">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mobile *</label>
+        <input class="form-control" name="phone" id="newCustPhone" required maxlength="10" inputmode="numeric" placeholder="10-digit mobile"
+               autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-primary" type="submit" style="flex:1;">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="modal-overlay" id="payModal">
+  <div class="modal-box" style="max-width:440px;">
+    <button type="button" class="modal-exit" onclick="document.getElementById('payModal').classList.remove('show')" title="Exit" aria-label="Exit">✕</button>
+    <div class="modal-title">Collect Payment</div>
+    <div id="payModalInfo" style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:14px;font-size:0.875rem;"></div>
+    <div class="form-group">
+      <label class="form-label">Amount Received (₹)</label>
+      <input type="number" id="payAmount" class="form-control" min="0" step="0.01" oninput="updatePayBalance()">
+    </div>
+    <div id="dueAmountCard" style="background:#fff7ed;border:1.5px solid #fbbf24;border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;">
+      <span style="font-size:.75rem;font-weight:800;color:#92400e;">CREDIT REMAINING</span>
+      <strong id="payRemaining" style="color:#ef4444;">—</strong>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      {% for m in ['Cash','UPI','Card','Bank'] %}
+      <button type="button" class="pay-method-btn {% if m=='Cash' %}active{% endif %}" onclick="selectPayMethod(this,'{{ m }}')">{{ m }}</button>
+      {% endfor %}
+    </div>
+    <input type="hidden" id="selectedPayMethod" value="Cash">
+    <div id="collectTxnBox" class="form-group" style="display:none;">
+      <label class="form-label">Transaction ID <span style="color:#94a3b8;font-weight:600;">(optional)</span></label>
+      <input class="form-control" id="collectTxnEl" maxlength="80" placeholder="UPI / Card / Bank reference"
+             autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
+    </div>
+    <div id="dueDateBox" style="display:none;margin-bottom:14px;">
+      <label class="form-label">Due date</label>
+      <input type="date" id="payDueDate" class="form-control" min="{{ due_min }}" max="{{ due_max }}">
+      <small style="color:#64748b;font-size:.75rem;">Today through {{ due_max }} (15 days).</small>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button type="button" class="btn btn-primary" style="flex:1;" onclick="confirmCollect()">Confirm</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="returnModal">
+  <div class="modal-box" style="max-width:480px;">
+    <button type="button" class="modal-exit" onclick="document.getElementById('returnModal').classList.remove('show')" title="Exit" aria-label="Exit">✕</button>
+    <div class="modal-title"><i class="fas fa-undo" style="color:#ef4444;"></i> Return sale</div>
+    <div id="returnInfo" style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:14px;font-size:0.875rem;"></div>
+    <div class="form-group">
+      <label class="form-label">Return quantity</label>
+      <div id="returnLines" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:4px 12px;"></div>
+      <small style="color:#64748b;font-size:.75rem;">Use − / + to return part of a line. 0 skips that item.</small>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Return reason *</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+        {% for r in ['Defective','Wrong item','Customer changed mind','Damaged'] %}
+        <button type="button" class="pay-method-btn" style="flex:0 0 auto;padding:6px 10px;font-size:.78rem;" onclick="setReturnReason('{{ r }}')">{{ r }}</button>
+        {% endfor %}
+      </div>
+      <textarea id="returnReason" class="form-control" rows="2" placeholder="Why is this sale being returned?" style="resize:vertical;"></textarea>
+    </div>
+    <div id="refundAmtBox">
+      <div class="form-group">
+        <label class="form-label">Refund amount ₹ *</label>
+        <input class="form-control" id="returnRefundAmt" inputmode="decimal" placeholder="0.00" autocomplete="off" oninput="clampRefundAmt(true)" onblur="clampRefundAmt(false)">
+        <small id="returnRefundHint" style="color:#64748b;font-size:.75rem;"></small>
+      </div>
+    </div>
+    <p id="noRefundNote" style="display:none;font-size:.82rem;color:#64748b;margin-bottom:12px;">No amount was collected on this bill, so refund amount is ₹0.</p>
+    <label class="form-label">Refund method *</label>
+    <div class="pay-row" style="margin-bottom:14px;">
+      {% for m in ['Cash','UPI','Card','Bank'] %}
+      <button type="button" class="pay-method-btn {% if m=='Cash' %}active{% endif %}" data-refund="{{ m }}" onclick="selectRefundMethod(this,'{{ m }}')">{{ m }}</button>
+      {% endfor %}
+    </div>
+    <input type="hidden" id="returnRefundMethod" value="Cash">
+    <div style="display:flex;gap:10px;">
+      <button type="button" class="btn btn-primary" style="flex:1;background:linear-gradient(135deg,#ef4444,#dc2626);" onclick="confirmReturn()">Confirm Return</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const BILLS = JSON.parse({{ bills_json|tojson }});
+const CAN_COLLECT = {{ 1 if (is_owner or can_collect) else 0 }};
+const IS_OWNER = {{ 1 if is_owner else 0 }};
+const SHOP_NAME = {{ (user.shop_name or 'our shop')|tojson }};
+const SHOP = { name:{{ user.shop_name|default('My Shop')|tojson }}, phone:{{ (user.phone or '')|tojson }}, address:{{ user.address|default('')|tojson }} };
+function closeCustView(){
+  const m=document.getElementById('custViewModal');
+  if(!m) return;
+  m.classList.remove('show');
+  m.style.display='';
+}
+function phoneKey(p){ return String(p||'').replace(/\D/g,'').slice(-10); }
+function money0(n){ return '₹'+Math.round(parseFloat(n||0)); }
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function collectedOf(b){
+  const p=parseFloat(b.paid_amount||b.collected||0);
+  if(p<=0 && (b.paid_status||'')==='Paid') return parseFloat(b.total||0);
+  return p;
+}
+function openCustView(phone, name, points){
+  const modal=document.getElementById('custViewModal');
+  const body=document.getElementById('custViewBody');
+  if(!modal || !body){ alert('Customer view is missing. Refresh the page.'); return; }
+  const ph=phoneKey(phone);
+  const bills=(Array.isArray(BILLS)?BILLS:[]).filter(b=>phoneKey(b.customer_phone)===ph);
+  const tpl=document.getElementById('hist-data-'+ph);
+  const pack=tpl && tpl.content ? tpl.content.querySelector('.hist-pack') : null;
+  name = name || (pack && pack.getAttribute('data-name')) || (bills[0] && bills[0].customer_name) || 'Customer';
+  points = parseInt(points != null ? points : ((pack && pack.getAttribute('data-points')) || 0), 10) || 0;
+  let business=0, paid=0, due=0, retN=0;
+  bills.forEach(function(b){
+    const st=b.paid_status||'';
+    if(st==='Returned'){ retN+=1; return; }
+    business+=parseFloat(b.total||0);
+    paid+=collectedOf(b);
+    due+=Math.max(0, parseFloat(b.total||0)-collectedOf(b));
+    if(parseFloat(b.refund_amount||0)>0.009) retN+=1;
+  });
+  const dueBills=bills.filter(function(b){
+    return (b.paid_status||'')!=='Returned' && (parseFloat(b.total||0)-collectedOf(b))>0.01;
+  });
+  const rest=bills.filter(function(b){ return dueBills.indexOf(b)<0; });
+  const recent=dueBills.concat(rest).slice(0, Math.max(dueBills.length, 5));
+  const saleUrl='/sales/new?phone='+encodeURIComponent(ph)+'&name='+encodeURIComponent(name);
+  const waOnclick='openWA("'+ph+'",{kind:"sale_general",vars:{name:'+JSON.stringify(name)+',shop:SHOP_NAME}})';
+  let billsHtml='<div style="color:#94a3b8;font-size:.82rem;padding:12px 0;">No bills yet</div>';
+  if(recent.length){
+    billsHtml=recent.map(function(b){
+      const bal=Math.max(0, parseFloat(b.total||0)-collectedOf(b));
+      const st=b.paid_status||'Paid';
+      const no='SAL-'+String(b.bill_no||0).padStart(4,'0');
+      const extra=[];
+      extra.push('<a class="sale-act sale-act-print" href="/sales/'+b.id+'/print" target="_blank" title="Print"><i class="fas fa-print"></i></a>');
+      extra.push('<button type="button" class="sale-act sale-act-share" onclick="shareSalePDF('+b.id+')" title="Share PDF"><i class="fas fa-share-alt"></i></button>');
+      if(CAN_COLLECT && bal>0.01 && st!=='Returned') extra.push('<button type="button" class="sale-act sale-act-collect" data-cv-collect="'+b.id+'" title="Collect"><i class="fas fa-rupee-sign"></i></button>');
+      if(IS_OWNER && st!=='Returned') extra.push('<button type="button" class="sale-act sale-act-return" data-cv-return="'+b.id+'" title="Return"><i class="fas fa-undo"></i></button>');
+      return '<div class="cv-bill"><div><div style="font-weight:800;color:#0f172a;">'+no+'</div><div style="font-size:.75rem;color:#64748b;">₹'+parseFloat(b.total||0).toFixed(2)+' · '+(st==='Returned'?'Returned':(bal>0.01?('Due ₹'+bal.toFixed(2)+(b.due_date?' · '+b.due_date:'')):'Settled'))+'</div></div><div style="display:flex;gap:6px;">'+extra.join('')+'</div></div>';
+    }).join('');
+  }
+  let badgeHtml = '';
+  if (business >= 50000 || bills.length >= 20) {
+      badgeHtml = '<span style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:white;padding:2px 8px;border-radius:999px;font-size:0.65rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;box-shadow:0 2px 4px rgba(0,0,0,0.15);">PLATINUM</span>';
+  } else if (business >= 20000 || bills.length >= 10) {
+      badgeHtml = '<span style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;padding:2px 8px;border-radius:999px;font-size:0.65rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;box-shadow:0 2px 4px rgba(0,0,0,0.15);">GOLD</span>';
+  } else if (business >= 5000 || bills.length >= 3) {
+      badgeHtml = '<span style="background:linear-gradient(135deg,#94a3b8,#64748b);color:white;padding:2px 8px;border-radius:999px;font-size:0.65rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;box-shadow:0 2px 4px rgba(0,0,0,0.15);">SILVER</span>';
+  } else {
+      badgeHtml = '<span style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:2px 8px;border-radius:999px;font-size:0.65rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;box-shadow:0 2px 4px rgba(0,0,0,0.15);">NEW</span>';
+  }
+
+  let dueHtml = '';
+  if (due > 0.01) {
+      dueHtml = '<div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.05);">' +
+                '<div style="background: #ef4444; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;"><i class="fas fa-exclamation"></i></div>' +
+                '<div><div style="font-size:0.65rem; font-weight:800; color: #b91c1c; text-transform: uppercase;">Total Due</div>' +
+                '<div style="font-size: 1rem; color: #991b1b; font-weight: 800;">₹' + due.toFixed(2) + '</div></div></div>';
+  }
+
+  body.innerHTML =
+    '<div class="hist-head" style="background: linear-gradient(135deg, #00BCD4 0%, #3b82f6 100%); border: none; border-radius: 12px; padding: 14px 44px 14px 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0, 188, 212, 0.2); display: block;">' +
+      '<div style="display:flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">' +
+        '<div>' +
+          '<div style="font-size:0.7rem;font-weight:800;color:rgba(255,255,255,0.85);text-transform:uppercase;margin-bottom:4px; letter-spacing: 1px;">Customer Profile</div>' +
+          '<h3 style="display:flex;align-items:center;gap:10px;flex-wrap:wrap; font-size: 1.25rem; color: white; margin: 0 0 4px 0;">' +
+            escHtml(name) + ' ' + badgeHtml +
+          '</h3>' +
+          '<div style="font-size:0.85rem;color:rgba(255,255,255,0.95);font-weight:600;"><i class="fas fa-phone-alt" style="color:white; margin-right:4px;"></i> ' + ph + '</div>' +
+        '</div>' + dueHtml +
+      '</div>' +
+      '<div class="hist-metrics-wrap" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px;">' +
+        '<div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 8px;">' +
+          '<div style="font-size: 0.65rem; font-weight: 900; color: #1e293b; text-transform: uppercase;">Total Bills</div>' +
+          '<div style="font-size: 1rem; font-weight: 900; color: #0f172a;">' + bills.length + '</div>' +
+        '</div>' +
+        '<div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 8px;">' +
+          '<div style="font-size: 0.65rem; font-weight: 900; color: #1e293b; text-transform: uppercase;">Reward Points</div>' +
+          '<div style="font-size: 1rem; font-weight: 900; color: #d97706;">' + points + ' <span style="font-size:0.75rem;color:#92400e;font-weight:900;">(₹' + (points/4).toFixed(2) + ')</span></div>' +
+        '</div>' +
+        '<div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 8px;">' +
+          '<div style="font-size: 0.65rem; font-weight: 900; color: #1e293b; text-transform: uppercase;">Total Business</div>' +
+          '<div style="font-size: 1rem; font-weight: 900; color: #059669;">' + money0(business) + '</div>' +
+        '</div>' +
+        '<div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 8px;">' +
+          '<div style="font-size: 0.65rem; font-weight: 900; color: #1e293b; text-transform: uppercase;">Collected</div>' +
+          '<div style="font-size: 1rem; font-weight: 900; color: #0f172a;">' + money0(paid) + '</div>' +
+        '</div>' +
+        '<div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 8px;">' +
+          '<div style="font-size: 0.65rem; font-weight: 900; color: #1e293b; text-transform: uppercase;">Credit Due</div>' +
+          '<div style="font-size: 1rem; font-weight: 900; color: ' + (due>0.01?'#dc2626':'#16a34a') + ';">' + (due>0.01?money0(due):'Nil') + '</div>' +
+        '</div>' +
+        '<div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 8px;">' +
+          '<div style="font-size: 0.65rem; font-weight: 900; color: #1e293b; text-transform: uppercase;">Returns</div>' +
+          '<div style="font-size: 1rem; font-weight: 900; color: #0f172a;">' + retN + '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="font-size:.72rem;font-weight:800;color:#94a3b8;text-transform:uppercase;margin-bottom:8px;">Recent bills</div>' +
+    '<div id="cvBills">' + billsHtml + '</div>' +
+    '<div class="cv-acts">' +
+      '<a class="sale-act sale-act-sale" href="' + saleUrl + '"><i class="fas fa-plus"></i> New Sale</a>' +
+      '<button type="button" class="sale-act sale-act-hist" data-cv-hist="' + String(phone).replace(/"/g, '&quot;') + '"><i class="fas fa-history"></i> History</button>' +
+      '<a class="sale-act sale-act-call" href="tel:' + ph + '"><i class="fas fa-phone"></i> Call</a>' +
+      '<button type="button" class="sale-act sale-act-wa" onclick=\'' + waOnclick.replace(/'/g, "&#39;") + '\'><i class="fab fa-whatsapp"></i> WhatsApp</button>' +
+      (due > 0.01 && CAN_COLLECT ? '<button type="button" class="sale-act sale-act-collect" data-cv-collect-all="' + ph + '" data-cv-name="' + String(name).replace(/"/g, '&quot;') + '" data-cv-due="' + due + '"><i class="fas fa-rupee-sign"></i> Collect all due</button>' : '') +
+    '</div>';
+  modal.classList.add('show');
+  modal.style.display='flex';
+}
+window.openCustView = openCustView;
+document.addEventListener('click', function(e){
+  const viewBtn=e.target.closest('[data-view-phone]');
+  if(viewBtn && viewBtn.closest('#custTable')){
+    e.preventDefault();
+    openCustView(viewBtn.getAttribute('data-view-phone'), viewBtn.getAttribute('data-view-name'), viewBtn.getAttribute('data-view-points'));
+    return;
+  }
+  const modal=document.getElementById('custViewModal');
+  if(e.target===modal){ closeCustView(); return; }
+  const hist=e.target.closest('[data-cv-hist]');
+  if(hist){ closeCustView(); openHistory(hist.getAttribute('data-cv-hist')); return; }
+  const colAll=e.target.closest('[data-cv-collect-all]');
+  if(colAll){
+    closeCustView();
+    openCollectAll(colAll.getAttribute('data-cv-collect-all'), colAll.getAttribute('data-cv-name'), parseFloat(colAll.getAttribute('data-cv-due')||0));
+    return;
+  }
+  const col=e.target.closest('[data-cv-collect]');
+  if(col){ closeCustView(); openCollect(parseInt(col.getAttribute('data-cv-collect'),10)); return; }
+  const ret=e.target.closest('[data-cv-return]');
+  if(ret){ closeCustView(); openReturn(parseInt(ret.getAttribute('data-cv-return'),10)); }
+});
+function openNewCust(){ document.getElementById('newCustModal').classList.add('show'); }
+document.getElementById('newCustPhone').addEventListener('input', function(){ this.value=this.value.replace(/\D/g,'').slice(0,10); });
+let _dueOnly=false, curBillId=null, curTotal=0, curPaid=0, histKind='All', returnQtys=[], collectMode='one', collectPhone='';
+function findBill(id){ return BILLS.find(x => x.id==id); }
+function parseItems(b){ try { const x=JSON.parse(b.items||'[]'); return Array.isArray(x)?x:[]; } catch(e){ return []; } }
+function openHistory(phone){
+  const tpl=document.getElementById('hist-data-'+phone);
+  if(!tpl) return;
+  document.getElementById('custHistContent').replaceChildren(tpl.content.cloneNode(true));
+  const hs=document.getElementById('histSearch');
+  if(hs) hs.value='';
+  setHistFilter('All');
+  const m = document.getElementById('custHistModal');
+  m.classList.add('show');
+  m.style.display='flex';
+}
+function closeHistory(){
+  const m = document.getElementById('custHistModal');
+  m.classList.remove('show');
+  m.style.display='';
+  const menu=document.getElementById('histFilterMenu');
+  if(menu) menu.classList.remove('show');
+}
+function toggleHistFilterMenu(){
+  document.getElementById('histFilterMenu').classList.toggle('show');
+}
+function clickHistReturn(){
+  setHistFilter(histKind==='Returned' ? 'All' : 'Returned');
+}
+function setHistFilter(kind){
+  histKind=kind||'All';
+  const menu=document.getElementById('histFilterMenu');
+  if(menu){
+    menu.classList.remove('show');
+    menu.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b.getAttribute('data-f')===histKind));
+  }
+  const fb=document.getElementById('histFilterBtn');
+  const rb=document.getElementById('histReturnBtn');
+  if(fb) fb.style.background = (histKind!=='All' && histKind!=='Returned') ? '#e0f7fa' : 'white';
+  if(rb) rb.style.background = histKind==='Returned' ? '#fee2e2' : 'white';
+  filterHist();
+}
+function filterHist(){
+  const q=(document.getElementById('histSearch').value||'').toLowerCase();
+  document.querySelectorAll('#custHistContent .hist-bill').forEach(card=>{
+    const hay=(card.getAttribute('data-q')||card.textContent||'').toLowerCase();
+    const st=card.getAttribute('data-st')||'';
+    const textOk=!q || hay.includes(q);
+    let kindOk=true;
+    if(histKind==='Sales') kindOk = st!=='Returned';
+    else if(histKind==='Returned') kindOk = st==='Returned';
+    else if(histKind==='Credit') kindOk = st==='Unpaid' || st==='Partial' || st==='Credit';
+    card.style.display=(textOk && kindOk) ? '' : 'none';
+  });
+}
+function histPdfName(){
+  const el=document.querySelector('#custHistContent .hist-pack, #custHistContent .hist-cust');
+  const name=(el&&el.getAttribute('data-name')||'customer').replace(/[\\/:*?"<>|]+/g,' ').replace(/\s+/g,' ').trim();
+  const phone=(el&&el.getAttribute('data-phone')||'').replace(/\D/g,'').slice(-10);
+  return ('sale-history-'+name+(phone?'-'+phone:'')+'.pdf');
+}
+function histPdfWrap(){
+  const src=document.getElementById('custHistContent');
+  if(!src) return null;
+  const wrap=document.createElement('div');
+  wrap.style.cssText='padding:18px;font-family:DM Sans,sans-serif;color:#0f172a;background:#fff;';
+  wrap.innerHTML=src.innerHTML;
+  wrap.querySelectorAll('.hist-acts,.sale-act').forEach(el=>el.remove());
+  return wrap;
+}
+async function shareHistPDF(){
+  const wrap=histPdfWrap();
+  if(!wrap) return;
+  document.body.appendChild(wrap);
+  const filename=histPdfName();
+  try{
+    await window.shareHtmlAsPdf(wrap, filename, 'Customer Statement', 'Customer statement from '+(SHOP.name||''), {
+      margin:0.4,
+      jsPDF:{unit:'in',format:'a4',orientation:'portrait'}
+    });
+  }catch(e){
+    if(!(e && e.name==='AbortError') && typeof showAlert==='function') showAlert('Could not share statement PDF.');
+  }finally{
+    wrap.remove();
+  }
+}
+function downloadHistPDF(){
+  const wrap=histPdfWrap();
+  if(!wrap) return;
+  const filename=histPdfName();
+  const go=()=>{
+    html2pdf().set({
+      margin:0.4,
+      filename:filename,
+      image:{type:'jpeg',quality:0.98},
+      html2canvas:{scale:2,useCORS:true},
+      jsPDF:{unit:'in',format:'a4',orientation:'portrait'}
+    }).from(wrap).save();
+  };
+  if(window.html2pdf){ go(); return; }
+  const s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+  s.onload=go;
+  s.onerror=()=>window.print();
+  document.head.appendChild(s);
+}
+async function shareSalePDF(id){
+  try{
+    await window.sharePrintPagePdf('/sales/'+id+'/print', { wait:1200 });
+  }catch(e){
+    if(e && e.name==='AbortError') return;
+    if(typeof showAlert==='function') showAlert('Could not share PDF. Try Print instead.');
+  }
+}
+function toggleDueFilter(){
+  _dueOnly=!_dueOnly;
+  const btn=document.getElementById('dueFilterBtn');
+  btn.style.background=_dueOnly?'#fee2e2':'white';
+  filterCust();
+}
+function filterCust(){
+  const q=document.getElementById('custSearch').value.toLowerCase();
+  document.querySelectorAll('#custTable tbody tr').forEach(row=>{
+    const match=row.textContent.toLowerCase().includes(q);
+    const due=!_dueOnly || row.dataset.due==='1';
+    row.style.display=(match&&due)?'':'none';
+  });
+}
+function selectPayMethod(btn,m){
+  document.querySelectorAll('#payModal .pay-method-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('selectedPayMethod').value=m;
+  const box=document.getElementById('collectTxnBox');
+  if(box) box.style.display=['UPI','Card','Bank'].includes(m)?'':'none';
+}
+function toggleExtendedView(btn){
+  const card=btn.closest('.hist-bill');
+  if(!card) return;
+  const details=card.querySelector('.hist-bill-extended');
+  if(details){
+    if(details.style.display==='none'){
+      details.style.display='block';
+      btn.innerHTML='<i class="fas fa-eye-slash"></i>';
+    }else{
+      details.style.display='none';
+      btn.innerHTML='<i class="fas fa-eye"></i>';
+    }
+  }
+}
+function openCollect(id){
+  if(!{{ (is_owner or can_collect)|tojson }}){ if(typeof showAlert==='function') showAlert('Collect is not allowed for this login.'); return; }
+  const b=findBill(id); if(!b) return;
+  collectMode='one'; collectPhone='';
+  curBillId=id; curTotal=parseFloat(b.total||0); curPaid=collectedOf(b);
+  const bal=Math.max(0,curTotal-curPaid);
+  document.getElementById('payModalInfo').innerHTML=`<strong>SAL-${String(b.bill_no).padStart(4,'0')}</strong><br>Balance ₹${bal.toFixed(2)}`;
+  document.getElementById('payAmount').value=bal.toFixed(2);
+  const dueEl=document.getElementById('payDueDate');
+  let due=b.due_date||'';
+  if(!due || due<dueEl.min || due>dueEl.max) due=dueEl.min;
+  dueEl.value=due;
+  updatePayBalance();
+  document.getElementById('payModal').classList.add('show');
+}
+function openCollectAll(phone, name, due){
+  if(!{{ (is_owner or can_collect)|tojson }}){ if(typeof showAlert==='function') showAlert('Collect is not allowed for this login.'); return; }
+  due=parseFloat(due||0);
+  if(!(due>0.01)){ if(typeof showAlert==='function') showAlert('No due on this customer.'); return; }
+  collectMode='all'; collectPhone=String(phone||'').replace(/\D/g,'').slice(-10);
+  curBillId=null; curTotal=due; curPaid=0;
+  document.getElementById('payModalInfo').innerHTML=`<strong>Collect all due</strong><br>${escHtml(name||'Customer')} · ${collectPhone}<br>Total due ₹${due.toFixed(2)} <span style="color:#64748b;font-weight:600;">(oldest bills first)</span>`;
+  document.getElementById('payAmount').value=due.toFixed(2);
+  const dueEl=document.getElementById('payDueDate');
+  dueEl.value=dueEl.min||'';
+  updatePayBalance();
+  document.getElementById('payModal').classList.add('show');
+}
+function updatePayBalance(){
+  const bal=Math.max(0,curTotal-curPaid);
+  let amt=parseFloat(document.getElementById('payAmount').value||0);
+  if(amt>bal+0.005){document.getElementById('payAmount').value=bal.toFixed(2);amt=bal;}
+  const remaining=Math.max(0,bal-amt);
+  document.getElementById('payRemaining').textContent='₹'+remaining.toFixed(2);
+  document.getElementById('dueDateBox').style.display=remaining>0.01?'block':'none';
+}
+async function confirmCollect(){
+  const amt=parseFloat(document.getElementById('payAmount').value||0);
+  const bal=Math.max(0,curTotal-curPaid);
+  if(amt<=0){showAlert('Enter an amount greater than 0.');return;}
+  const remaining=Math.max(0,bal-amt);
+  const dueDate=document.getElementById('payDueDate').value;
+  if(remaining>0.01 && !dueDate){showAlert('Set a due date for remaining credit.');return;}
+  const dueEl=document.getElementById('payDueDate');
+  if(remaining>0.01 && (dueDate<dueEl.min || dueDate>dueEl.max)){showAlert('Due date must be within 15 days from today.');return;}
+  const method=document.getElementById('selectedPayMethod').value;
+  const txn=(document.getElementById('collectTxnEl')||{}).value||'';
+  const url = collectMode==='all' ? '/sales/collect-all' : ('/sales/'+curBillId+'/collect');
+  const body = collectMode==='all'
+    ? new URLSearchParams({phone:collectPhone,amount_received:amt,pay_method:method,due_date:dueDate,txn_id:txn})
+    : new URLSearchParams({amount_received:amt,pay_method:method,due_date:dueDate,txn_id:txn});
+  const res=await fetch(url,{
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:body
+  });
+  const data=await res.json();
+  if(data.ok){
+    const now=new Date();
+    const b=collectMode==='all' ? {customer_name:data.customer,bill_no:''} : findBill(curBillId);
+    if(amt>0 && window.sharePaymentReceiptPdf){
+      const refs=(data.items||[]).map(function(x){ return x.label; }).join(', ');
+      await window.sharePaymentReceiptPdf({
+        customer:(b && b.customer_name) || data.customer || '',
+        refLabel: collectMode==='all' ? 'Collect all due' : 'Bill',
+        refValue: collectMode==='all' ? (refs || collectPhone) : ('SAL-'+String(b.bill_no).padStart(4,'0')),
+        date:now.getDate()+'/'+(now.getMonth()+1)+'/'+now.getFullYear(),
+        amount:amt,
+        method:method,
+        billTotal:curTotal,
+        totalPaid:curPaid+amt,
+        balance:remaining,
+        dueDate:remaining>0.01?dueDate:'',
+        filename: collectMode==='all' ? 'Receipt_collect_all.pdf' : ('Receipt_SAL-'+String(b.bill_no).padStart(4,'0')+'.pdf'),
+        text:'Payment receipt from '+(SHOP.name||SHOP_NAME||'')
+      });
+    }
+    location.reload();
+  }
+  else showAlert(data.error||'Could not save payment');
+}
+async function openReturn(id){
+  const b=findBill(id); if(!b) return;
+  if((b.paid_status||'')==='Returned'){ showAlert('This sale is already returned'); return; }
+  curBillId=id;
+  const items=parseItems(b);
+  returnQtys=items.map(i=>Math.max(0, parseFloat(i.qty||0)-parseFloat(i.returned_qty||0)));
+  if(!returnQtys.some(q=>q>0.0001)){ showAlert('Nothing left to return on this bill'); return; }
+  document.getElementById('returnInfo').innerHTML=
+    `<strong>SAL-${String(b.bill_no).padStart(4,'0')}</strong> · ${(b.customer_name||'')}<br>Collected <strong>₹${collectedOf(b).toFixed(2)}</strong>`;
+  renderReturnLines();
+  document.getElementById('returnReason').value='';
+  const methods=['Cash','UPI','Card','Bank'];
+  const pref=methods.includes(b.pay_method)?b.pay_method:'Cash';
+  document.getElementById('returnRefundMethod').value=pref;
+  document.querySelectorAll('#returnModal .pay-method-btn[data-refund]').forEach(btn=>{
+    btn.classList.toggle('active', btn.getAttribute('data-refund')===pref);
+  });
+  syncReturnRefund();
+  document.getElementById('returnModal').classList.add('show');
+}
+function remainOf(i){ return Math.max(0, parseFloat(i.qty||0)-parseFloat(i.returned_qty||0)); }
+function fmtQty(n){ return Number.isInteger(n)?String(n):String(n); }
+function returnGoodsValue(){
+  const b=findBill(curBillId); if(!b) return 0;
+  const items=parseItems(b);
+  const origSub=items.reduce((s,i)=>s+parseFloat(i.qty||0)*parseFloat(i.price||0),0);
+  const retSub=items.reduce((s,i,idx)=>s+(returnQtys[idx]||0)*parseFloat(i.price||0),0);
+  const disc=parseFloat(b.orig_discount!=null?b.orig_discount:b.discount||0);
+  const net=origSub>0.0001?retSub*(1-disc/origSub):retSub;
+  return Math.round(net*100)/100;
+}
+function renderReturnLines(){
+  const b=findBill(curBillId); if(!b) return;
+  const items=parseItems(b);
+  const box=document.getElementById('returnLines');
+  if(!box) return;
+  let html='';
+  items.forEach((i,idx)=>{
+    const avail=remainOf(i);
+    if(avail<=0.0001) return;
+    const q=returnQtys[idx]||0;
+    html+=`<div class="ret-line"><div style="min-width:0;"><div style="font-weight:800;">${(i.name||'')}</div>
+      <div style="color:#94a3b8;font-size:.72rem;">Sold ${fmtQty(parseFloat(i.qty||0))}${parseFloat(i.returned_qty||0)>0?' · already returned '+fmtQty(parseFloat(i.returned_qty)):''}</div></div>
+      <div class="ret-qty"><button type="button" class="qty-btn" onclick="chgReturnQty(${idx},-1)">-</button>
+      <strong style="min-width:1.4em;text-align:center;">${fmtQty(q)}</strong>
+      <button type="button" class="qty-btn" onclick="chgReturnQty(${idx},1)">+</button></div></div>`;
+  });
+  box.innerHTML=html||'<div style="padding:10px 0;color:#94a3b8;font-size:.82rem;">Nothing left to return.</div>';
+}
+function chgReturnQty(i,d){
+  const b=findBill(curBillId); if(!b) return;
+  const items=parseItems(b);
+  const avail=remainOf(items[i]||{});
+  let n=(returnQtys[i]||0)+d;
+  if(n<0) n=0;
+  if(n>avail) n=avail;
+  returnQtys[i]=n;
+  renderReturnLines();
+  syncReturnRefund();
+}
+function refundMax(){
+  const b=findBill(curBillId);
+  if(!b) return 0;
+  return Math.min(collectedOf(b), returnGoodsValue());
+}
+function syncReturnRefund(){
+  const max=refundMax();
+  const paid=collectedOf(findBill(curBillId)||{});
+  const el=document.getElementById('returnRefundAmt');
+  if(el) el.value=max.toFixed(2);
+  const hint=document.getElementById('returnRefundHint');
+  if(hint) hint.textContent='Returned value ₹'+returnGoodsValue().toFixed(2)+' · maximum refund ₹'+max.toFixed(2);
+  document.getElementById('refundAmtBox').style.display=paid>0.01?'':'none';
+  document.getElementById('noRefundNote').style.display=paid>0.01?'none':'';
+}
+function clampRefundAmt(fromTyping){
+  const el=document.getElementById('returnRefundAmt');
+  if(!el) return;
+  const max=refundMax();
+  const raw=String(el.value||'').trim().replace(/,/g,'');
+  let v=parseFloat(raw);
+  if(fromTyping){
+    if(raw===''||raw==='.') return;
+    if(isFinite(v)&&v>max+0.005) el.value=max.toFixed(2);
+    return;
+  }
+  if(!isFinite(v)||v<max-0.005||v>max+0.005) el.value=max.toFixed(2);
+}
+function setReturnReason(txt){ document.getElementById('returnReason').value=txt; }
+function selectRefundMethod(btn,m){
+  document.querySelectorAll('#returnModal .pay-method-btn[data-refund]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('returnRefundMethod').value=m;
+}
+async function confirmReturn(){
+  const b=findBill(curBillId); if(!b) return;
+  const reason=(document.getElementById('returnReason').value||'').trim();
+  if(reason.length<3){ showAlert('Enter a return reason'); return; }
+  const paid=collectedOf(b);
+  clampRefundAmt(false);
+  let refundAmt=parseFloat(document.getElementById('returnRefundAmt').value||0);
+  const maxRf=refundMax();
+  if(maxRf<=0.01) refundAmt=0; else refundAmt=maxRf;
+  if(!returnQtys.some(q=>q>0.0001)){ showAlert('Select a quantity to return'); return; }
+  const method=document.getElementById('returnRefundMethod').value;
+  if(!['Cash','UPI','Card','Bank'].includes(method)){ showAlert('Select refund method: Cash, UPI, Card, or Bank'); return; }
+  const ok=await showConfirm('Return selected quantity'+(refundAmt>0.01?', and refund ₹'+refundAmt.toFixed(2)+' via '+method:'')+'?');
+  if(!ok) return;
+  const res=await fetch('/sales/'+curBillId+'/return',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
+    body:JSON.stringify({reason, refund_amount:refundAmt, refund_method:method, lines:returnQtys.map((qty,index)=>({index, qty}))})
+  });
+  const data=await res.json();
+  if(!data.ok){ showAlert(data.error||'Could not return sale'); return; }
+  document.getElementById('returnModal').classList.remove('show');
+  window.open('/sales/'+curBillId+'/print-refund','_blank');
+  location.reload();
+}
+document.addEventListener('click', e=>{
+  const menu=document.getElementById('histFilterMenu');
+  const btn=document.getElementById('histFilterBtn');
+  if(!menu||!menu.classList.contains('show')) return;
+  if(menu.contains(e.target)||(btn&&btn.contains(e.target))) return;
+  menu.classList.remove('show');
+});
+</script>
+{% endblock %}

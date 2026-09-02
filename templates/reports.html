@@ -1,70 +1,215 @@
 {% extends 'base.html' %}
 {% block title %}Reports & Dashboard{% endblock %}
 {% block page_title %}Reports{% endblock %}
+{% block extra_head %}
+<style>
+.rpt-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:24px;}
+.rpt-kpi{background:linear-gradient(180deg,#fff,#ecfeff);border-radius:14px;padding:18px 16px;box-shadow:0 8px 24px rgba(8,145,178,.1);border:1.5px solid #a5f3fc;border-left:5px solid #06b6d4;}
+.rpt-kpi:nth-child(2){background:linear-gradient(180deg,#fff,#f0fdf4);border-color:#bbf7d0;border-left-color:#16a34a;}
+.rpt-kpi:nth-child(3){background:linear-gradient(180deg,#fff,#fffbeb);border-color:#fde68a;border-left-color:#f59e0b;}
+.rpt-kpi:nth-child(4){background:linear-gradient(180deg,#fff,#f5f3ff);border-color:#ddd6fe;border-left-color:#7c3aed;}
+.rpt-kpi:nth-child(5){background:linear-gradient(180deg,#fff,#fdf2f8);border-color:#fbcfe8;border-left-color:#ec4899;}
+.rpt-kpi:nth-child(6){background:linear-gradient(180deg,#fff,#eff6ff);border-color:#bfdbfe;border-left-color:#2563eb;}
+.rpt-kpi-top{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.rpt-kpi-label{font-size:.78rem;font-weight:700;color:#475569;}
+.rpt-kpi-num{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.9rem;line-height:1;}
+.rpt-rev{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.rpt-rev-card{border-radius:16px;padding:22px;color:#fff;}
+.rpt-rev-label{font-size:.8rem;font-weight:700;opacity:.9;margin-bottom:6px;}
+.rpt-rev-num{font-family:'Exo 2',sans-serif;font-weight:900;font-size:2.2rem;line-height:1.15;word-break:break-all;}
+.rpt-rev-note{font-size:.75rem;opacity:.8;margin-top:6px;font-weight:600;}
+.rpt-filters{background:linear-gradient(180deg,#fff,#f5f3ff);border-radius:16px;padding:16px 18px;box-shadow:0 8px 24px rgba(124,58,237,.08);margin-bottom:18px;border:1.5px solid #ddd6fe;}
+.rpt-filters h3{margin:0 0 12px;font-family:'Exo 2',sans-serif;font-size:.95rem;font-weight:800;color:#0f172a;}
+.rpt-filters h3 span{color:#dc2626;}
+.rpt-fgrid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;}
+.rpt-presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center;}
+.rpt-chip{display:inline-flex;align-items:center;padding:6px 12px;border-radius:999px;border:1.5px solid #cbd5e1;background:#f8fafc;color:#0f172a;font-weight:700;font-size:.75rem;text-decoration:none;}
+.rpt-chip:hover{border-color:#7c3aed;color:#6d28d9;background:#f5f3ff;}
+.rpt-actions{display:flex;gap:8px;flex-wrap:wrap;}
+@media(max-width:768px){
+  .rpt-page-header{text-align:center;margin-bottom:14px;}
+  .rpt-page-header .page-title{font-size:1.25rem;}
+  .rpt-page-header .page-subtitle{font-size:.82rem;font-weight:600;}
+  .rpt-fgrid{grid-template-columns:1fr 1fr;gap:10px;}
+  .rpt-fgrid .rpt-status{grid-column:1 / -1;}
+  .rpt-actions{grid-column:1 / -1;}
+  .rpt-actions .btn{flex:1;justify-content:center;}
+  .rpt-kpis{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  .rpt-kpi{
+    text-align:center;
+    padding:14px 10px 16px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    border-left-width:4px;
+    min-height:108px;
+  }
+  .rpt-kpi-top{
+    flex-direction:column;
+    gap:6px;
+    margin-bottom:6px;
+    align-items:center;
+    justify-content:center;
+  }
+  .rpt-kpi-top i{font-size:1.2rem;}
+  .rpt-kpi-label{font-size:.74rem;font-weight:800;text-align:center;line-height:1.2;}
+  .rpt-kpi-num{font-size:1.9rem;text-align:center;width:100%;}
+  .rpt-rev{grid-template-columns:1fr;gap:10px;margin-bottom:16px;width:100%;}
+  .rpt-rev-card{
+    width:100%;
+    max-width:100%;
+    box-sizing:border-box;
+    text-align:center;
+    padding:20px 16px 18px;
+    border-radius:16px;
+  }
+  .rpt-rev-label{font-size:.88rem;font-weight:800;margin-bottom:8px;}
+  .rpt-rev-num{font-size:2rem;word-break:normal;}
+  .rpt-rev-note{font-size:.78rem;font-weight:700;opacity:.95;margin-top:8px;line-height:1.35;}
+  .rpt-delivered .card-body{padding:14px 14px 10px;}
+  .rpt-delivered .rpt-del-title{font-size:.95rem;margin-bottom:10px;text-align:center;}
+  .rpt-delivered.mob-cards tbody tr{padding:10px 12px;}
+  .rpt-delivered.mob-cards tbody td{font-size:.82rem;min-height:24px;padding:4px 0;}
+}
+</style>
+{% endblock %}
 {% block content %}
-<div class="page-header">
-  <div><div class="page-title">Reports & Dashboard</div><div class="page-subtitle">Business analytics overview</div></div>
+<div class="page-header rpt-page-header">
+  <div>
+    <div class="page-title">{% if app_area=='sales' %}Sales Reports{% else %}Service Reports{% endif %}</div>
+    <div class="page-subtitle">{% if app_area=='sales' %}Counter Sales Totals By Date And Pay Method{% else %}Filter By Date And Job Status, Then Download PDF{% endif %}</div>
+  </div>
 </div>
 
-<!-- KPI Grid (matches reference design) -->
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:24px;">
+<form class="rpt-filters" method="GET" action="{{ url_for('reports') }}" id="rptFilterForm">
+  <h3>Report Filters <span>*</span></h3>
+  <div class="rpt-fgrid">
+    <div class="form-group" style="margin:0;">
+      <label class="form-label">From Date <span style="color:#dc2626;">*</span></label>
+      <input type="date" name="from" class="form-control" value="{{ from_date }}" required>
+    </div>
+    <div class="form-group" style="margin:0;">
+      <label class="form-label">To Date <span style="color:#dc2626;">*</span></label>
+      <input type="date" name="to" class="form-control" value="{{ to_date }}" required>
+    </div>
+    {% if app_area != 'sales' %}
+    <div class="form-group rpt-status" style="margin:0;">
+      <label class="form-label">Job status <span style="color:#dc2626;">*</span></label>
+      <select name="job_status" class="form-control" required>
+        {% for st in statuses %}
+        <option value="{{ st }}" {% if job_status==st %}selected{% endif %}>{{ st }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% else %}
+    <input type="hidden" name="job_status" value="{{ job_status }}">
+    {% endif %}
+    <div class="rpt-actions">
+      <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Apply</button>
+      <a class="btn btn-success" id="rptPdfBtn" href="{{ url_for('reports_print', **{'from': from_date, 'to': to_date, 'job_status': job_status, 'download': 1}) }}"><i class="fas fa-file-pdf"></i> PDF</a>
+    </div>
+  </div>
+  <div class="rpt-presets">
+    <a class="rpt-chip" href="{{ url_for('reports', **{'from': today, 'to': today, 'job_status': job_status}) }}">Today</a>
+    <a class="rpt-chip" href="{{ url_for('reports', **{'from': week_start, 'to': today, 'job_status': job_status}) }}">This Week</a>
+    <a class="rpt-chip" href="{{ url_for('reports', **{'from': month_start, 'to': today, 'job_status': job_status}) }}">This Month</a>
+    <a class="rpt-chip" href="{{ url_for('reports', **{'from': year_start, 'to': today, 'job_status': job_status}) }}">This Year</a>
+  </div>
+</form>
+
+{% if app_area == 'sales' %}
+<div class="rpt-kpis">
+  <div class="rpt-kpi" style="border-left:5px solid #00BCD4;">
+    <div class="rpt-kpi-top"><i class="fas fa-receipt" style="color:#00BCD4;"></i><div class="rpt-kpi-label">Sales Bills</div></div>
+    <div class="rpt-kpi-num" style="color:#00BCD4;">{{ sales.bills }}</div>
+  </div>
+  <div class="rpt-kpi" style="border-left:5px solid #43A047;">
+    <div class="rpt-kpi-top"><i class="fas fa-rupee-sign" style="color:#43A047;"></i><div class="rpt-kpi-label">Sales Total</div></div>
+    <div class="rpt-kpi-num" style="color:#43A047;">₹{{ '%.2f'|format(sales.amount) }}</div>
+  </div>
+  <div class="rpt-kpi" style="border-left:5px solid #ef4444;">
+    <div class="rpt-kpi-top"><i class="fas fa-boxes-stacked" style="color:#ef4444;"></i><div class="rpt-kpi-label">Low stock</div></div>
+    <div class="rpt-kpi-num" style="color:#ef4444;">{{ sales.low_stock }}</div>
+  </div>
+</div>
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-body">
+    <div style="font-family:'Exo 2',sans-serif;font-weight:800;margin-bottom:12px;">Pay Method ({{ from_date }} – {{ to_date }})</div>
+    {% if sales.by_method %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Pay Method</th><th>Bills</th><th>Amount</th></tr></thead>
+        <tbody>
+        {% for m in sales.by_method %}
+        <tr><td>{{ m.method }}</td><td>{{ m.n }}</td><td>₹{{ '%.2f'|format(m.amt) }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="color:#94a3b8;font-size:.85rem;">No paid counter sales in this date range.</div>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<div class="rpt-kpis">
   {% set kpis = [
-    ('Total Jobs',      stats.total,         '#FF5722', 'fa-tools'),
-    ('Pending',         stats.pending,       '#FF9800', 'fa-hourglass-half'),
-    ('Delivered',       stats.delivered,     '#4CAF50', 'fa-check-circle'),
-    ('Cancelled',       stats.cancelled,     '#795548', 'fa-times-circle'),
-    ('Rework',          stats.rework,        '#03A9F4', 'fa-redo'),
-    ("Today's New",     stats.today_new,     '#9C27B0', 'fa-calendar-day'),
-    ('Week New',        stats.week_new,      '#1E88E5', 'fa-calendar-week'),
-    ('Month New',       stats.month_new,     '#00BCD4', 'fa-calendar-alt'),
+    ('Total Jobs',  stats.total,     '#FF5722', 'fa-tools'),
+    ('Pending',     stats.pending,   '#FF9800', 'fa-hourglass-half'),
+    ('Delivered',   stats.delivered, '#4CAF50', 'fa-check-circle'),
+    ('Cancelled',   stats.cancelled, '#795548', 'fa-times-circle'),
+    ('Rework',      stats.rework,    '#03A9F4', 'fa-redo'),
+    ('Ready',       stats.ready,     '#9C27B0', 'fa-box-open'),
+    ('Partial Pay', stats.partial,   '#1E88E5', 'fa-coins'),
+    ('Overdue',     stats.overdue,   '#E53935', 'fa-exclamation-circle'),
   ] %}
   {% for label, value, color, icon in kpis %}
-  <div style="background:white;border-radius:14px;padding:18px 16px;box-shadow:0 4px 14px rgba(0,0,0,0.07);border-left:5px solid {{ color }};">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-      <i class="fas {{ icon }}" style="color:{{ color }};font-size:1rem;"></i>
-      <div style="font-size:0.78rem;font-weight:600;color:#6b7c93;">{{ label }}</div>
+  <div class="rpt-kpi" style="border-left:5px solid {{ color }};">
+    <div class="rpt-kpi-top">
+      <i class="fas {{ icon }}" style="color:{{ color }};"></i>
+      <div class="rpt-kpi-label">{{ label }}</div>
     </div>
-    <div style="font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.9rem;color:{{ color }};">{{ value }}</div>
+    <div class="rpt-kpi-num" style="color:{{ color }};">{{ value }}</div>
   </div>
   {% endfor %}
 </div>
 
-<!-- Revenue Cards -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
-  <div style="background:linear-gradient(135deg,#00BCD4,#4DD0E1);border-radius:16px;padding:22px;color:white;">
-    <div style="font-size:0.8rem;font-weight:600;opacity:0.85;margin-bottom:6px;"><i class="fas fa-rupee-sign"></i> This Month Revenue</div>
-    <div style="font-family:'Exo 2',sans-serif;font-weight:900;font-size:2.2rem;">₹{{ '%.2f'|format(stats.month_revenue) }}</div>
-    <div style="font-size:0.75rem;opacity:0.75;margin-top:4px;">Delivered jobs this month</div>
+<div class="rpt-rev">
+  <div class="rpt-rev-card" style="background:linear-gradient(135deg,#00BCD4,#4DD0E1);">
+    <div class="rpt-rev-label"><i class="fas fa-rupee-sign"></i> Period Revenue</div>
+    <div class="rpt-rev-num">₹{{ '%.2f'|format(stats.period_revenue) }}</div>
+    <div class="rpt-rev-note">Delivered Jobs In {{ from_date }} – {{ to_date }}</div>
   </div>
-  <div style="background:linear-gradient(135deg,#FF5722,#FF8A65);border-radius:16px;padding:22px;color:white;">
-    <div style="font-size:0.8rem;font-weight:600;opacity:0.85;margin-bottom:6px;"><i class="fas fa-rupee-sign"></i> Total Revenue (All Time)</div>
-    <div style="font-family:'Exo 2',sans-serif;font-weight:900;font-size:2.2rem;">₹{{ '%.2f'|format(stats.total_revenue) }}</div>
-    <div style="font-size:0.75rem;opacity:0.75;margin-top:4px;">All delivered jobs</div>
+  <div class="rpt-rev-card" style="background:linear-gradient(135deg,#FF5722,#FF8A65);">
+    <div class="rpt-rev-label"><i class="fas fa-clipboard-list"></i> Booked Value</div>
+    <div class="rpt-rev-num">₹{{ '%.2f'|format(stats.booked_value) }}</div>
+    <div class="rpt-rev-note">Job Value Booked In This Filter</div>
   </div>
 </div>
 
-<!-- Recent Delivered -->
-<div class="card"><div class="card-body">
-  <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:1rem;margin-bottom:16px;">Recently Delivered Jobs</div>
-  {% if recent_delivered %}
-  <div class="table-wrap mob-cards">
+<div class="card rpt-delivered"><div class="card-body">
+  <div class="rpt-del-title" style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:1rem;margin-bottom:16px;">Jobs In Filter ({{ report_jobs|length }})</div>
+  {% if report_jobs %}
+  <div class="table-wrap mob-cards rpt-delivered">
   <table>
-    <thead><tr><th>Job ID</th><th>Customer</th><th>Device</th><th>Services</th><th>Amount</th><th>Delivered On</th></tr></thead>
+    <thead><tr><th>Job ID</th><th>Customer</th><th>Device</th><th>Status</th><th>Amount</th><th>Date</th></tr></thead>
     <tbody>
-    {% for job in recent_delivered %}
+    {% for job in report_jobs %}
     <tr>
       <td data-label="Job ID" style="color:#94a3b8;font-size:0.8rem;">#{{ job.id }}</td>
       <td data-label="Customer"><strong>{{ job.customer_name }}</strong><br><small style="color:#94a3b8;">{{ job.customer_phone }}</small></td>
       <td data-label="Device">{{ job.device_model }}</td>
-      <td data-label="Services" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.82rem;">{{ job.issue }}</td>
-      <td data-label="Amount" style="font-weight:700;">{% if job.cost %}₹{{ '%.2f'|format(job.cost) }}{% else %}—{% endif %}</td>
-      <td data-label="Delivered On" style="font-size:0.8rem;color:#94a3b8;">{{ job.delivery_date or job.updated_at[:10] }}</td>
+      <td data-label="Status">{{ job.status }}</td>
+      <td data-label="Amount" style="font-weight:700;">{% if job.cost %}₹{{ '%.2f'|format(job.cost|float) }}{% else %}—{% endif %}</td>
+      <td data-label="Date" style="font-size:0.8rem;color:#94a3b8;">{{ (job.created_at or '')[:10] }}</td>
     </tr>
     {% endfor %}
     </tbody>
   </table></div>
   {% else %}
-  <div style="text-align:center;padding:40px;color:#94a3b8;"><i class="fas fa-chart-line" style="font-size:2rem;opacity:0.2;display:block;margin-bottom:12px;"></i>No delivered jobs yet.</div>
+  <div style="text-align:center;padding:40px;color:#94a3b8;"><i class="fas fa-chart-line" style="font-size:2rem;opacity:0.2;display:block;margin-bottom:12px;"></i>No Jobs In This Filter. Choose Dates And Apply.</div>
   {% endif %}
 </div></div>
+{% endif %}
 {% endblock %}

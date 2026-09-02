@@ -1,0 +1,990 @@
+{% extends 'base.html' %}
+{% block title %}Team{% endblock %}
+{% block page_title %}Team{% endblock %}
+
+{% block extra_head %}
+<style>
+.team-wrap{max-width:1080px;margin:0 auto;}
+.team-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px;}
+.team-kpi{background:linear-gradient(180deg,#fff,#ecfeff);border-radius:16px;padding:16px 18px;box-shadow:0 8px 24px rgba(8,145,178,.1);border:1.5px solid #a5f3fc;border-left:5px solid #06b6d4;}
+.team-kpi:nth-child(2){background:linear-gradient(180deg,#fff,#fdf2f8);border-color:#fbcfe8;border-left-color:#ec4899;}
+.team-kpi:nth-child(3){background:linear-gradient(180deg,#fff,#fff7ed);border-color:#fed7aa;border-left-color:#f59e0b;}
+.team-kpi .l{font-size:.72rem;font-weight:800;color:#0e7490;text-transform:uppercase;letter-spacing:.04em;}
+.team-kpi:nth-child(2) .l{color:#9d174d;}
+.team-kpi:nth-child(3) .l{color:#c2410c;}
+.team-kpi .n{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.45rem;color:#0f172a;margin-top:4px;}
+.team-kpi .s{font-size:.78rem;font-weight:600;color:#64748b;margin-top:2px;}
+.team-sec{margin:18px 0 8px;display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+.team-sec h2{margin:0;font-family:'Exo 2',sans-serif;font-size:1.05rem;font-weight:800;color:#6d28d9;}
+.team-sec p{margin:0;font-size:.8rem;font-weight:600;color:#64748b;}
+.team-acc{background:linear-gradient(180deg,#fff,#f5f3ff);border-radius:16px;border:1.5px solid #ddd6fe;box-shadow:0 8px 24px rgba(124,58,237,.08);margin-bottom:12px;overflow:hidden;}
+.team-acc>summary{list-style:none;cursor:pointer;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;user-select:none;background:linear-gradient(90deg,#ecfeff,#f5f3ff);}
+.team-acc>summary::-webkit-details-marker{display:none;}
+.team-acc>summary:after{content:'';flex-shrink:0;width:7px;height:7px;border-right:2px solid #7c3aed;border-bottom:2px solid #7c3aed;transform:rotate(45deg);transition:transform .15s;}
+.team-acc[open]>summary:after{transform:rotate(-135deg);margin-top:4px;}
+.team-acc[open]>summary{border-bottom:1px solid #ddd6fe;}
+.team-acc>summary .t{font-family:'Exo 2',sans-serif;font-weight:800;font-size:1rem;color:#5b21b6;}
+.team-acc>summary .hint{font-size:.78rem;font-weight:700;color:#0e7490;margin-left:auto;}
+.team-acc-body{padding:16px 18px 18px;}
+.owner-acc{background:linear-gradient(135deg,#0891b2,#7c3aed);color:#fff;border:none;box-shadow:0 12px 28px rgba(8,145,178,.28);}
+.owner-acc>summary{background:transparent;}
+.owner-acc>summary .t,.owner-acc>summary .hint{color:#fff;}
+.owner-acc>summary .hint{opacity:.8;}
+.owner-acc>summary:after{border-color:rgba(255,255,255,.65);}
+.owner-acc[open]>summary{border-bottom-color:rgba(255,255,255,.12);}
+.owner-card{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.owner-ava{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#22c55e,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:1.35rem;flex-shrink:0;}
+.owner-card h3{margin:0;font-family:'Exo 2',sans-serif;font-size:1.15rem;font-weight:800;}
+.owner-card .meta{margin-top:4px;font-size:.82rem;opacity:.82;font-weight:600;}
+.owner-you{background:#fff;color:#6d28d9;border:none;border-radius:999px;padding:6px 14px;font-size:.78rem;font-weight:800;white-space:nowrap;box-shadow:0 4px 12px rgba(15,23,42,.16);}
+.owner-acc .btn-outline{background:#fff;color:#6d28d9;border:none;font-weight:800;}
+.owner-acc .btn-outline:hover{background:#f5f3ff;color:#5b21b6;border:none;}
+.owner-acc>summary:after{border-color:#fff;border-width:2.5px;opacity:1;}
+.sp-grid{display:flex;flex-direction:column;gap:10px;}
+.sp-card{background:#fff;border-radius:16px;border:1.5px solid #c4b5fd;box-shadow:0 10px 28px rgba(124,58,237,.12);overflow:hidden;}
+.sp-card>summary.sp-top{list-style:none;cursor:pointer;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;user-select:none;background:linear-gradient(135deg,#0891b2,#7c3aed);}
+.sp-card>summary.sp-top::-webkit-details-marker{display:none;}
+.sp-card>summary.sp-top:after{content:'';flex-shrink:0;width:7px;height:7px;border-right:2px solid rgba(255,255,255,.85);border-bottom:2px solid rgba(255,255,255,.85);transform:rotate(45deg);transition:transform .15s;}
+.sp-card[open]>summary.sp-top:after{transform:rotate(-135deg);margin-top:4px;}
+.sp-card[open]>summary.sp-top{border-bottom:1px solid rgba(255,255,255,.2);}
+.sp-name{font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.02rem;color:#fff;}
+.sp-role{font-size:.72rem;font-weight:800;color:#fce7f3;text-transform:uppercase;letter-spacing:.04em;margin-top:2px;}
+.sp-meta{font-size:.8rem;font-weight:600;color:#64748b;margin-top:6px;line-height:1.4;}
+.sp-badge{border-radius:999px;padding:4px 10px;font-size:.7rem;font-weight:800;flex-shrink:0;margin-right:8px;}
+.sp-on{background:#d1fae5;color:#065f46;}
+.sp-off{background:#fee2e2;color:#991b1b;}
+.sp-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 18px 12px;}
+.sp-stat{background:linear-gradient(180deg,#fff,#ecfeff);border:1.5px solid #a5f3fc;border-radius:12px;padding:10px 8px;text-align:center;}
+.sp-stat:nth-child(2){background:linear-gradient(180deg,#fff,#f5f3ff);border-color:#ddd6fe;}
+.sp-stat:nth-child(3){background:linear-gradient(180deg,#fff,#fff7ed);border-color:#fed7aa;}
+.sp-stat b{display:block;font-family:'Exo 2',sans-serif;font-size:.95rem;color:#0f172a;}
+.sp-stat span{font-size:.68rem;font-weight:800;color:#0e7490;text-transform:uppercase;}
+.sp-devs{display:flex;flex-direction:column;gap:8px;}
+.sp-dev{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;}
+.sp-dev span{font-size:.75rem;font-weight:600;color:#1e40af;min-width:0;}
+.sp-fold{border-top:none;}
+.sp-fold>summary{list-style:none;cursor:pointer;padding:12px 18px;display:grid;grid-template-columns:11rem minmax(0,1fr) 10px;align-items:center;column-gap:12px;font-size:.78rem;font-weight:800;color:#0f172a;text-transform:uppercase;letter-spacing:.03em;user-select:none;}
+.sp-fold>summary::-webkit-details-marker{display:none;}
+.sp-fold>summary:after{content:'';width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .15s;justify-self:end;opacity:.7;}
+.sp-fold[open]>summary:after{transform:rotate(-135deg);margin-top:4px;}
+.sp-card>.sp-fold:nth-of-type(1)>summary{background:#ecfeff;color:#0e7490;}
+.sp-card>.sp-fold:nth-of-type(2)>summary{background:#f5f3ff;color:#6d28d9;}
+.sp-card>.sp-fold:nth-of-type(3)>summary{background:#fdf2f8;color:#be185d;}
+.sp-card>.sp-fold:nth-of-type(4)>summary{background:#eff6ff;color:#1d4ed8;}
+.sp-card>.sp-fold:nth-of-type(5)>summary{background:#fff7ed;color:#c2410c;}
+.sp-card>.sp-fold:nth-of-type(6)>summary{background:#f0fdf4;color:#15803d;}
+.sp-fold[open]>summary{filter:brightness(.97);}
+.sp-fold>summary .sp-k{font:inherit;margin:0;min-width:0;}
+.sp-fold>summary span{font-size:.8rem;font-weight:800;color:inherit;opacity:1;text-transform:none;letter-spacing:0;text-align:left;justify-self:start;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sp-fold-body{padding:12px 18px 14px;display:flex;flex-direction:column;gap:10px;background:#fff;}
+.sp-card>.sp-fold:nth-of-type(1) .sp-fold-body{background:#f0fdfa;}
+.sp-card>.sp-fold:nth-of-type(2) .sp-fold-body{background:#faf5ff;}
+.sp-card>.sp-fold:nth-of-type(3) .sp-fold-body{background:#fdf2f8;}
+.sp-card>.sp-fold:nth-of-type(4) .sp-fold-body{background:#eff6ff;}
+.sp-card>.sp-fold:nth-of-type(5) .sp-fold-body{background:#fffbeb;}
+.sp-card>.sp-fold:nth-of-type(6) .sp-fold-body{background:#f0fdf4;}
+.sp-field label{display:block;font-size:.68rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+.sp-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.sp-checks{display:flex;flex-wrap:wrap;gap:8px;}
+.sp-check{display:inline-flex;align-items:center;gap:6px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:999px;padding:6px 10px;font-size:.75rem;font-weight:700;color:#334155;}
+.sp-hint{font-size:.72rem;font-weight:600;color:#94a3b8;line-height:1.4;}
+.add-card{border:1.5px dashed #f9a8d4;box-shadow:0 8px 24px rgba(236,72,153,.08);}
+.add-card>summary .t{color:#9d174d;}
+.add-card p{margin:0 0 14px;font-size:.8rem;font-weight:600;color:#64748b;}
+.perf-box{padding:0;margin-bottom:12px;}
+.add-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.dev-list{background:#fff;border-radius:18px;border:1px solid #eef2f7;box-shadow:0 8px 24px rgba(0,0,0,.07);overflow:hidden;}
+.dev-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid #f1f5f9;}
+.dev-row:last-child{border-bottom:none;}
+.note{background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:12px 14px;font-size:.82rem;color:#334155;line-height:1.55;font-weight:600;margin-bottom:12px;}
+.perf-bar{display:flex;align-items:end;gap:10px;flex-wrap:wrap;}
+.perf-bar .form-group{margin:0;}
+.perf-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:.82rem;}
+.perf-table th{text-align:left;padding:8px 6px;color:#64748b;font-size:.68rem;text-transform:uppercase;border-bottom:2px solid #e2e8f0;}
+.perf-table td{padding:10px 6px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
+.sp-month{padding:0 18px 12px;display:flex;gap:8px;flex-wrap:wrap;}
+.bar{height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-top:6px;}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,#ec4899,#db2777);border-radius:99px;}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px;}
+.cal b{text-align:center;font-size:.62rem;color:#94a3b8;}
+.cal span{display:flex;align-items:center;justify-content:center;height:28px;border-radius:8px;font-size:.68rem;font-weight:800;background:#f8fafc;color:#94a3b8;}
+.cal span.on{background:#d1fae5;color:#065f46;}
+.cal span.sh{background:#dbeafe;color:#1e40af;}
+.alert-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:16px;padding:14px 16px;margin-bottom:16px;}
+.attend-hours{background:linear-gradient(180deg,#fff,#f8fafc);border:1.5px solid #e2e8f0;border-radius:14px;padding:14px 16px;margin-bottom:14px;font-size:.82rem;color:#64748b;font-weight:600;line-height:1.45;}
+.attend-alert{background:linear-gradient(180deg,#fff,#fef2f2);border:1.5px solid #fecaca;border-radius:14px;padding:14px 16px;margin-bottom:14px;}
+.attend-alert.ok{background:linear-gradient(180deg,#fff,#f0fdf4);border-color:#bbf7d0;}
+.attend-alert-h{font-weight:800;color:#991b1b;display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.attend-alert.ok .attend-alert-h{color:#166534;}
+.attend-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+.attend-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:.78rem;font-weight:800;background:#fee2e2;color:#991b1b;border:1.5px solid #fecaca;}
+.attend-chip.on{background:#d1fae5;color:#065f46;border-color:#a7f3d0;}
+.attend-chip.absent{background:#fee2e2;color:#991b1b;border-color:#fecaca;}
+.sp-absent{background:#fef3c7;color:#92400e;}
+.sp-shift{background:#dbeafe;color:#1d4ed8;}
+.sp-lunch{background:#fef3c7;color:#92400e;}
+.mini{font-size:.75rem;font-weight:600;color:#64748b;line-height:1.45;}
+.team-roles{display:flex;flex-direction:column;gap:6px;}
+.team-roles div{overflow-wrap:anywhere;word-break:break-word;}
+.perf-intro{font-size:.8rem;font-weight:600;color:#64748b;margin-bottom:12px;line-height:1.45;overflow-wrap:anywhere;}
+.perf-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:end;}
+.perf-mob{display:none;}
+.perf-card{background:#fff;border:1.5px solid #ddd6fe;border-radius:14px;overflow:hidden;}
+.perf-card-top{text-align:center;padding:12px 12px 10px;background:linear-gradient(180deg,#f5f3ff,#fff);border-bottom:1px solid #ede9fe;}
+.perf-card-name{font-family:'Exo 2',sans-serif;font-weight:800;font-size:1rem;color:#5b21b6;}
+.perf-card-meta{font-size:.75rem;font-weight:700;color:#64748b;margin-top:2px;}
+.perf-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;}
+.perf-card-grid>div{text-align:center;border-radius:12px;padding:10px 8px;background:linear-gradient(180deg,#fff,#ecfeff);border:1.5px solid #a5f3fc;}
+.perf-card-grid>div:nth-child(2){background:linear-gradient(180deg,#fff,#fdf2f8);border-color:#fbcfe8;}
+.perf-card-grid>div:nth-child(3){background:linear-gradient(180deg,#fff,#fff7ed);border-color:#fed7aa;}
+.perf-card-grid>div:nth-child(4){background:linear-gradient(180deg,#fff,#f5f3ff);border-color:#ddd6fe;}
+.perf-card-grid>div:nth-child(5){background:linear-gradient(180deg,#fff,#f0fdf4);border-color:#bbf7d0;}
+.perf-card-grid>div:nth-child(6){background:linear-gradient(180deg,#fff,#eff6ff);border-color:#bfdbfe;}
+.perf-card-grid span{display:block;font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:#0e7490;margin-bottom:3px;}
+.perf-card-grid b{display:block;font-family:'Exo 2',sans-serif;font-size:.95rem;font-weight:800;color:#0f172a;line-height:1.25;}
+.perf-card-target{text-align:center;font-size:.75rem;font-weight:700;color:#64748b;padding:0 12px 8px;}
+.perf-card-sheet{display:flex;gap:8px;justify-content:center;padding:0 10px 12px;}
+.perf-card-sheet .btn{flex:1;justify-content:center;padding:8px 6px;}
+@media(max-width:900px){
+  .add-grid,.sp-2{grid-template-columns:1fr;}
+  .sp-stats{grid-template-columns:1fr 1fr 1fr;}
+  .owner-card{flex-wrap:wrap;}
+}
+@media(max-width:768px){
+  .team-wrap .page-header{
+    padding:12px 14px 14px;gap:8px;margin-bottom:12px;
+  }
+  .team-wrap .page-title{font-size:1.18rem;}
+  .team-wrap .page-subtitle{
+    font-size:.74rem;line-height:1.35;font-weight:600;
+    max-width:22em;margin-left:auto;margin-right:auto;
+  }
+  .team-wrap .page-header .btn{
+    width:auto;min-width:0;padding:8px 16px;font-size:.82rem;
+  }
+  .team-kpis{grid-template-columns:1fr!important;gap:10px;margin-bottom:10px;}
+  .team-kpi{
+    text-align:center!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:14px 12px!important;
+    border-left-width:4px;
+    min-height:0;
+  }
+  .team-kpi .l,.team-kpi .n,.team-kpi .s{
+    width:100%;
+    text-align:center!important;
+  }
+  .team-kpi .l{font-size:.68rem;}
+  .team-kpi .n{font-size:1.2rem;margin-top:4px;line-height:1.2;}
+  .team-kpi .s{font-size:.72rem;line-height:1.35;margin-top:4px;}
+  .team-roles{text-align:center;}
+  .team-acc{margin-bottom:10px;border-radius:14px;}
+  .team-acc>summary{padding:12px 14px;align-items:flex-start;flex-wrap:wrap;gap:6px 10px;}
+  .team-acc>summary .t{font-size:.95rem;flex:1;min-width:0;}
+  .team-acc>summary .hint{
+    display:block;width:100%;margin:0;order:3;font-size:.72rem;line-height:1.35;
+    overflow-wrap:anywhere;
+  }
+  .team-acc-body{padding:12px;}
+  .note{padding:10px 12px;font-size:.75rem;line-height:1.5;overflow-wrap:anywhere;}
+  .team-sec{flex-direction:column;align-items:flex-start;gap:2px;margin:14px 0 8px;}
+  .team-sec h2{font-size:.98rem;}
+  .perf-intro{text-align:center;font-size:.75rem;margin-bottom:10px;}
+  .perf-bar{flex-direction:column;align-items:stretch;gap:8px;}
+  .perf-bar .form-group,.perf-bar .form-control{width:100%;max-width:none;}
+  .perf-bar .form-label{text-align:center;width:100%;}
+  .perf-bar > .btn{width:100%;justify-content:center;}
+  .perf-actions{display:grid;grid-template-columns:1fr 1fr;width:100%;}
+  .perf-actions .btn{width:100%;justify-content:center;padding:9px 8px;font-size:.78rem;}
+  .perf-desk{display:none!important;}
+  .perf-mob{display:flex;flex-direction:column;gap:10px;margin-top:12px;}
+  .owner-card{flex-direction:column;align-items:stretch;gap:12px;}
+  .owner-card h3{font-size:1.02rem;overflow-wrap:anywhere;}
+  .owner-card .meta{overflow-wrap:anywhere;line-height:1.4;}
+  .owner-card > div:last-child{width:100%;}
+  .owner-card .btn{flex:1;justify-content:center;}
+  .sp-card>summary.sp-top{padding:12px 14px;align-items:flex-start;}
+  .sp-name{font-size:.95rem;overflow-wrap:anywhere;}
+  .sp-role{white-space:normal;line-height:1.35;overflow-wrap:anywhere;}
+  .sp-fold>summary{
+    grid-template-columns:minmax(0,1fr) 10px;padding:10px 14px;row-gap:2px;
+  }
+  .sp-fold>summary .sp-k{grid-column:1;}
+  .sp-fold>summary span{
+    grid-column:1;white-space:normal;overflow:visible;text-overflow:unset;
+    font-size:.75rem;line-height:1.35;
+  }
+  .sp-fold>summary:after{grid-column:2;grid-row:1 / span 2;align-self:center;margin-top:0;}
+  .sp-fold-body{padding:10px 12px 12px;}
+  .sp-stats{gap:6px;}
+  .sp-stat{padding:8px 4px;}
+  .sp-stat b{font-size:.88rem;}
+  .sp-stat span{font-size:.62rem;line-height:1.25;}
+  .sp-dev{flex-wrap:wrap;}
+  .sp-dev span{flex:1 1 100%;overflow-wrap:anywhere;}
+  .dev-row{flex-wrap:wrap;align-items:flex-start;padding:12px;gap:8px;}
+  .dev-row > div{min-width:0;flex:1 1 160px;overflow-wrap:anywhere;}
+  .alert-box{padding:12px;}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="team-wrap">
+  <div class="page-header" style="margin-bottom:16px;">
+    <div>
+      <div class="page-title">Team</div>
+      <div class="page-subtitle">Owner Account, Sales Persons, And Monthly Performance Sheets</div>
+    </div>
+    <a href="{{ url_for('settings') }}" class="btn btn-outline"><i class="fas fa-cog"></i> Settings</a>
+  </div>
+
+  <details class="team-acc">
+    <summary>
+      <span class="t">Overview</span>
+      <span class="hint">{{ limits.label if limits is defined else 'Trial' }} · {{ staff_rows|length if staff_rows is defined else 0 }}/{{ limits.staff if limits is defined else 0 }} People · {{ (devices or [])|length }}/{{ limits.devices if limits is defined else 1 }} Devices</span>
+    </summary>
+    <div class="team-acc-body">
+      <div class="team-kpis" style="margin-bottom:12px;">
+        <div class="team-kpi">
+          <div class="l">Plan</div>
+          <div class="n">{{ limits.label if limits is defined else 'Trial' }}</div>
+          <div class="s">{{ days_left }} Days Remaining</div>
+        </div>
+        <div class="team-kpi">
+          <div class="l">Sales Persons</div>
+          <div class="n">{{ staff_rows|length if staff_rows is defined else 0 }} / {{ limits.staff if limits is defined else 0 }}</div>
+          <div class="s">Active Logins Allowed On This Plan</div>
+        </div>
+        <div class="team-kpi">
+          <div class="l">Login Devices</div>
+          <div class="n">{{ (devices or [])|length }} / {{ limits.devices if limits is defined else 1 }}</div>
+          <div class="s">Phones And Computers Signed In</div>
+        </div>
+        {% if attendance_today is defined %}
+        <div class="team-kpi">
+          <div class="l">Absent Today</div>
+          <div class="n" style="color:{% if attendance_today.show_absent_alert and attendance_today.absent %}#dc2626{% elif not attendance_today.show_absent_alert %}#64748b{% else %}#16a34a{% endif %};">
+            {% if attendance_today.show_absent_alert %}{{ attendance_today.absent|length }}{% else %}—{% endif %}
+          </div>
+          <div class="s">{% if attendance_today.show_absent_alert %}Of {{ attendance_today.total_enabled }} Active · No Clock-In{% else %}Opens {{ attendance_today.shop_open_time }} · Closes {{ attendance_today.shop_close_time }}{% endif %}</div>
+        </div>
+        {% endif %}
+      </div>
+      <div class="note team-roles" style="margin-bottom:0;">
+        <div><strong>Owner</strong> — Settings, Reports, Inventory, Returns, Cancel Job, Team, And Devices.</div>
+        <div><strong>Sales Person</strong> — Counter Sales (If Allowed).</div>
+        <div><strong>Technician</strong> — Service Jobs Only.</div>
+      </div>
+    </div>
+  </details>
+
+  {% if alerts %}
+  <div class="alert-box">
+    <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;">
+      <div style="font-weight:800;color:#9a3412;"><i class="fas fa-bell"></i> New login devices ({{ alerts|length }})</div>
+      <form method="POST" action="{{ url_for('shop_staff_alerts_seen') }}" style="margin:0;"><button class="btn btn-outline" type="submit" style="padding:6px 10px;font-size:.75rem;">Mark seen</button></form>
+    </div>
+    {% for a in alerts %}
+    <div class="mini" style="margin-top:8px;">{{ a.staff_name }} · {{ a.device_label or 'Device' }}{% if a.ip_address %} · {{ a.ip_address }}{% endif %} · {{ a.created_at }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if attendance_today is defined %}
+    {% if not attendance_today.show_absent_alert %}
+    <div class="attend-hours"><i class="fas fa-clock"></i> Outside shop hours ({{ attendance_today.shop_open_time }} – {{ attendance_today.shop_close_time }} IST). Absent alerts appear when the shop is open. <a href="{{ url_for('settings') }}" style="color:#0d9488;font-weight:800;text-decoration:none;">Edit hours</a></div>
+    {% elif attendance_today.absent %}
+    <div class="attend-alert">
+      <div class="attend-alert-h"><i class="fas fa-user-clock"></i> Absent Today — No Clock-In ({{ attendance_today.today }})</div>
+      <div class="attend-chips">
+        {% for s in attendance_today.absent %}
+        <span class="attend-chip absent"><i class="fas fa-user"></i> {{ s.name }} · {{ s.phone }}{% if s.job_kind=='tech' %} · Tech{% endif %}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% elif attendance_today.total_enabled %}
+    <div class="attend-alert ok">
+      <div class="attend-alert-h"><i class="fas fa-check-circle"></i> All Sales Persons Clocked In Today</div>
+    </div>
+    {% endif %}
+    {% if attendance_today.on_shift %}
+    <div class="attend-alert ok" style="margin-top:0;">
+      <div class="attend-alert-h"><i class="fas fa-clock"></i> On Shift Now ({{ attendance_today.on_shift|length }})</div>
+      <div class="attend-chips">
+        {% for s in attendance_today.on_shift %}
+        <span class="attend-chip on"><i class="fas fa-circle-dot"></i> {{ s.name }}{% if s.clock_in %} · since {{ s.clock_in | to_ist }}{% endif %}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  {% endif %}
+
+  <details class="team-acc">
+    <summary>
+      <span class="t">Monthly Performance</span>
+      <span class="hint">{{ perf_label }}</span>
+    </summary>
+    <div class="team-acc-body">
+    <div class="perf-intro">One Sheet Per Sales Person From Their Sales, Jobs, And Invoices. Owner Download Only.</div>
+    <form class="perf-bar" method="GET" action="{{ url_for('shop_team') }}">
+      <div class="form-group">
+        <label class="form-label">Month</label>
+        <input class="form-control" type="month" name="month" value="{{ perf_month }}" required>
+      </div>
+      <button class="btn btn-primary" type="submit"><i class="fas fa-filter"></i> Show {{ perf_label }}</button>
+      <div class="perf-actions">
+      {% if staff_rows %}
+      <a class="btn btn-success" href="{{ url_for('shop_staff_perf_all_print', month=perf_month, download=1) }}"><i class="fas fa-file-pdf"></i> All PDF</a>
+      <a class="btn btn-outline" href="{{ url_for('shop_staff_perf_all_csv', month=perf_month) }}"><i class="fas fa-file-excel"></i> All Excel</a>
+      {% endif %}
+      <a class="btn btn-outline" href="{{ url_for('shop_staff_perf_owner_print', month=perf_month, download=1) }}"><i class="fas fa-crown"></i> Owner PDF</a>
+      <a class="btn btn-outline" href="{{ url_for('shop_staff_perf_owner_csv', month=perf_month) }}">Owner Excel</a>
+      </div>
+    </form>
+    {% if staff_rows %}
+    <div class="perf-desk table-wrap" style="margin-top:8px;">
+      <table class="perf-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Person</th>
+            <th>Collected</th>
+            <th>Credit</th>
+            <th>Returns</th>
+            <th>Jobs</th>
+            <th>Commission</th>
+            <th>Salary Due</th>
+            <th>Target</th>
+            <th>Sheet</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for s in staff_rows|sort(attribute='rank') %}
+        <tr>
+          <td>{{ s.rank or '—' }}</td>
+          <td><strong>{{ s.name }}</strong><div style="color:#94a3b8;font-size:.75rem;">{{ 'Technician' if s.job_kind=='tech' else 'Sales' }} · {{ s.phone }}</div></td>
+          <td>₹{{ '%.0f'|format((s.month.sales_collected if s.month else 0) or 0) }} <span class="mini">({{ s.month.sales_n if s.month else 0 }})</span></td>
+          <td>₹{{ '%.0f'|format((s.month.credit_amt if s.month else 0) or 0) }}</td>
+          <td>{{ s.month.returns_n if s.month else 0 }} · ₹{{ '%.0f'|format((s.month.returns_amt if s.month else 0) or 0) }}</td>
+          <td>{{ s.month.jobs_n if s.month else 0 }}</td>
+          <td>₹{{ '%.0f'|format((s.month.commission_amt if s.month else 0) or 0) }}</td>
+          <td>₹{{ '%.0f'|format(s.salary_due or 0) }}<div class="mini">{{ s.present_days or 0 }}/{{ s.salary_days or 26 }} Days</div></td>
+          <td>
+            {% if s.month and s.month.sales_pct is not none %}{{ s.month.sales_pct }}% sales{% elif s.target_sales %}0%{% else %}—{% endif %}
+            {% if s.month and s.month.jobs_pct is not none %}<div class="mini">{{ s.month.jobs_pct }}% jobs</div>{% endif %}
+          </td>
+          <td>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <a class="btn btn-outline" style="padding:6px 10px;font-size:.75rem;" href="{{ url_for('shop_staff_perf_print', sid=s.id, month=perf_month, download=1) }}"><i class="fas fa-file-pdf"></i></a>
+              <a class="btn btn-outline" style="padding:6px 10px;font-size:.75rem;" href="{{ url_for('shop_staff_perf_csv', sid=s.id, month=perf_month) }}"><i class="fas fa-file-excel"></i></a>
+              <a class="btn btn-outline" style="padding:6px 10px;font-size:.75rem;color:#16a34a;border-color:#bbf7d0;" target="_blank"
+                 href="https://wa.me/91{{ s.phone }}?text={{ ('Performance sheet for '~perf_label~': '~url_for('shop_staff_perf_print', sid=s.id, month=perf_month, _external=True))|urlencode }}"><i class="fab fa-whatsapp"></i></a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="perf-mob">
+      {% for s in staff_rows|sort(attribute='rank') %}
+      <article class="perf-card">
+        <div class="perf-card-top">
+          <div class="perf-card-name">{{ s.name }}</div>
+          <div class="perf-card-meta">{{ 'Technician' if s.job_kind=='tech' else 'Sales' }} · {{ s.phone }}</div>
+        </div>
+        <div class="perf-card-grid">
+          <div><span>Collected</span><b>₹{{ '%.0f'|format((s.month.sales_collected if s.month else 0) or 0) }}</b></div>
+          <div><span>Credit</span><b>₹{{ '%.0f'|format((s.month.credit_amt if s.month else 0) or 0) }}</b></div>
+          <div><span>Returns</span><b>{{ s.month.returns_n if s.month else 0 }} · ₹{{ '%.0f'|format((s.month.returns_amt if s.month else 0) or 0) }}</b></div>
+          <div><span>Jobs</span><b>{{ s.month.jobs_n if s.month else 0 }}</b></div>
+          <div><span>Commission</span><b>₹{{ '%.0f'|format((s.month.commission_amt if s.month else 0) or 0) }}</b></div>
+          <div><span>Salary Due</span><b>₹{{ '%.0f'|format(s.salary_due or 0) }}</b></div>
+        </div>
+        <div class="perf-card-target">
+          {% if s.month and s.month.sales_pct is not none %}{{ s.month.sales_pct }}% sales target{% elif s.target_sales %}0% sales target{% else %}No sales target{% endif %}
+          {% if s.month and s.month.jobs_pct is not none %} · {{ s.month.jobs_pct }}% jobs{% endif %}
+          · {{ s.present_days or 0 }}/{{ s.salary_days or 26 }} days
+        </div>
+        <div class="perf-card-sheet">
+          <a class="btn btn-outline" href="{{ url_for('shop_staff_perf_print', sid=s.id, month=perf_month, download=1) }}"><i class="fas fa-file-pdf"></i> PDF</a>
+          <a class="btn btn-outline" href="{{ url_for('shop_staff_perf_csv', sid=s.id, month=perf_month) }}"><i class="fas fa-file-excel"></i> Excel</a>
+          <a class="btn btn-outline" style="color:#16a34a;border-color:#bbf7d0;" target="_blank"
+             href="https://wa.me/91{{ s.phone }}?text={{ ('Performance sheet for '~perf_label~': '~url_for('shop_staff_perf_print', sid=s.id, month=perf_month, _external=True))|urlencode }}"><i class="fab fa-whatsapp"></i></a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="color:#94a3b8;font-size:.82rem;margin-top:10px;">Add a sales person to generate monthly sheets.</div>
+    {% endif %}
+    </div>
+  </details>
+
+  <details class="team-acc owner-acc">
+    <summary>
+      <span class="t">Owner</span>
+      <span class="hint">{{ user.shop_name or 'SHOP' }} · {{ user.phone }}</span>
+    </summary>
+    <div class="team-acc-body">
+      <div class="owner-card">
+        <div style="display:flex;align-items:center;gap:14px;min-width:0;">
+          <div class="owner-ava"><i class="fas fa-crown"></i></div>
+          <div>
+            <h3>{{ user.shop_name or 'SHOP' }}</h3>
+            <div class="meta">Owner · {{ user.phone }}{% if user.email %} · {{ user.email }}{% endif %}</div>
+            {% if owner_month %}
+            <div class="meta">{{ perf_label }} · Sales ₹{{ '%.0f'|format(owner_month.sales_collected or 0) }} · Jobs {{ owner_month.jobs_n or 0 }} · Credit ₹{{ '%.0f'|format(owner_month.credit_amt or 0) }}</div>
+            {% endif %}
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <a class="btn btn-outline" style="padding:7px 10px;font-size:.75rem;" href="{{ url_for('shop_staff_perf_owner_print', month=perf_month, download=1) }}">Owner sheet</a>
+          <a class="btn btn-outline" style="padding:7px 10px;font-size:.75rem;" target="_blank"
+             href="https://wa.me/91{{ user.phone }}?text={{ ('Owner performance '~perf_label~': '~url_for('shop_staff_perf_owner_print', month=perf_month, _external=True))|urlencode }}"><i class="fab fa-whatsapp"></i></a>
+          <span class="owner-you">You</span>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <div class="team-sec">
+    <h2>Sales Persons</h2>
+    <p>{{ staff_rows|length if staff_rows is defined else 0 }} Listed</p>
+  </div>
+  <div class="sp-grid">
+    {% for s in staff_rows or [] %}
+    <details class="sp-card">
+      <summary class="sp-top">
+        <div>
+          <div class="sp-name">{{ s.name }}</div>
+          <div class="sp-role">{% if s.job_kind=='tech' %}Technician{% else %}Sales Person{% endif %}{% if s.rank %} · #{{ s.rank }} This Month{% endif %} · {{ s.phone }}</div>
+        </div>
+        <span class="sp-badge {% if not s.enabled %}sp-off{% elif s.open_lunch %}sp-lunch{% elif s.open_shift %}sp-shift{% elif not s.clocked_today %}sp-absent{% else %}sp-on{% endif %}">{% if not s.enabled %}Disabled{% elif s.open_lunch %}On Lunch{% elif s.open_shift %}On Shift{% elif not s.clocked_today %}Absent{% else %}Present{% endif %}</span>
+      </summary>
+
+      <details class="sp-fold">
+        <summary><b class="sp-k">Overview</b><span>{% if s.open_lunch %}On Lunch{% elif s.open_shift %}On Shift{% elif not s.clocked_today %}Absent Today{% else %}Present{% endif %} · ₹{{ '%.0f'|format((s.month.sales_collected if s.month else 0) or 0) }}</span></summary>
+        <div class="sp-fold-body">
+          <div class="sp-stats" style="padding:0;">
+            <div class="sp-stat"><b>₹{{ '%.0f'|format(s.today_sales_amt or 0) }}</b><span>Today · {{ s.today_sales_n or 0 }} sales</span></div>
+            <div class="sp-stat"><b>{{ s.today_jobs_n or 0 }}</b><span>Today jobs</span></div>
+            <div class="sp-stat"><b>₹{{ '%.0f'|format((s.month.credit_amt if s.month else 0) or 0) }}</b><span>Credit due</span></div>
+          </div>
+          <div class="sp-stats" style="padding:0;">
+            <div class="sp-stat"><b>₹{{ '%.0f'|format((s.month.sales_collected if s.month else 0) or 0) }}</b><span>Month collected</span></div>
+            <div class="sp-stat"><b>{{ s.month.jobs_n if s.month else 0 }}</b><span>Month jobs</span></div>
+            <div class="sp-stat"><b>{{ s.month.returns_n if s.month else 0 }}</b><span>Returns · ₹{{ '%.0f'|format((s.month.returns_amt if s.month else 0) or 0) }}</span></div>
+          </div>
+          {% if s.target_sales or s.target_jobs %}
+          <div>
+            {% if s.target_sales %}
+            <div class="mini">Sales target ₹{{ '%.0f'|format(s.target_sales) }}{% if s.month and s.month.sales_pct is not none %} · {{ s.month.sales_pct }}%{% endif %}</div>
+            <div class="bar"><i style="width:{{ s.month.sales_pct if s.month and s.month.sales_pct is not none else 0 }}%"></i></div>
+            {% endif %}
+            {% if s.target_jobs %}
+            <div class="mini" style="margin-top:6px;">Jobs target {{ s.target_jobs }}{% if s.month and s.month.jobs_pct is not none %} · {{ s.month.jobs_pct }}%{% endif %}</div>
+            <div class="bar"><i style="width:{{ s.month.jobs_pct if s.month and s.month.jobs_pct is not none else 0 }}%;background:linear-gradient(90deg,#1E88E5,#4FC3F7);"></i></div>
+            {% endif %}
+          </div>
+          {% endif %}
+          <div class="mini">
+            {% if s.open_lunch %}On Lunch Since {{ s.open_lunch.lunch_out | to_ist }}
+            {% elif s.open_shift %}On Shift Since {{ s.open_shift.clock_in | to_ist }}
+            {% elif not s.clocked_today %}<strong style="color:#dc2626;">Absent today</strong> — no clock-in yet
+            {% elif s.first_at %}Auto today {{ s.first_at[11:16] if s.first_at|length>11 else s.first_at }}{% if s.last_at %} – {{ s.last_at[11:16] if s.last_at|length>11 else s.last_at }}{% endif %}
+            {% else %}Clocked in today{% endif %}
+            {% if s.lunch_today %} · {{ s.lunch_today|length }} lunch break{{ 's' if s.lunch_today|length != 1 else '' }} today{% endif %}
+            {% if s.commission_pct %} · Commission {{ s.commission_pct }}%{% endif %}
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary" style="flex:1;padding:8px;" onclick="openStaffRecord({{ s.id }})"><i class="fas fa-chart-line"></i> View record</button>
+            <a class="btn btn-outline" style="padding:8px 10px;" href="{{ url_for('shop_staff_perf_print', sid=s.id, month=perf_month, download=1) }}" title="{{ perf_label }} PDF"><i class="fas fa-file-pdf"></i></a>
+            <a class="btn btn-outline" style="padding:8px 10px;" href="{{ url_for('shop_staff_perf_csv', sid=s.id, month=perf_month) }}" title="{{ perf_label }} Excel"><i class="fas fa-file-excel"></i></a>
+          </div>
+        </div>
+      </details>
+
+      <details class="sp-fold">
+        <summary><b class="sp-k">Contact</b><span>{{ s.phone }}</span></summary>
+        <div class="sp-fold-body">
+          <div class="sp-2">
+            <div class="sp-field"><label>Name</label>
+              <input class="form-control" id="staffName-{{ s.id }}" value="{{ s.name }}" placeholder="Name" style="text-transform:uppercase"></div>
+            <div class="sp-field"><label>Mobile</label>
+              <input class="form-control" id="staffPhone-{{ s.id }}" value="{{ s.phone }}" maxlength="10" placeholder="10 digits"></div>
+          </div>
+          <div class="sp-field"><label>Email</label>
+            <input class="form-control" id="staffEmail-{{ s.id }}" value="{{ s.email or '' }}" placeholder="Optional"></div>
+          <button type="button" class="btn btn-primary" data-staff-id="{{ s.id }}" data-staff-name="{{ s.name }}" onclick="openStaffGuard(this,'profile')">Save contact</button>
+        </div>
+      </details>
+
+      <details class="sp-fold">
+        <summary><b class="sp-k">Role &amp; Targets</b><span>{% if s.job_kind=='tech' %}Technician{% else %}Sales Person{% endif %}</span></summary>
+        <div class="sp-fold-body">
+          <div class="sp-field"><label>Role</label>
+            <select class="form-control" id="staffKind-{{ s.id }}">
+              <option value="sales" {% if s.job_kind!='tech' %}selected{% endif %}>Sales person</option>
+              <option value="tech" {% if s.job_kind=='tech' %}selected{% endif %}>Technician</option>
+            </select>
+          </div>
+          <div class="sp-field"><label>Access</label>
+            <div class="sp-checks">
+              <label class="sp-check"><input type="checkbox" id="staffCanSale-{{ s.id }}" {% if s.can_sale %}checked{% endif %}> New sale</label>
+              <label class="sp-check"><input type="checkbox" id="staffCanCollect-{{ s.id }}" {% if s.can_collect %}checked{% endif %}> Collect</label>
+              <label class="sp-check"><input type="checkbox" id="staffCanJobs-{{ s.id }}" {% if s.can_jobs %}checked{% endif %}> Jobs</label>
+            </div>
+          </div>
+          <div class="sp-2">
+            <div class="sp-field"><label>Sales target ₹</label>
+              <input class="form-control" id="staffTgtS-{{ s.id }}" type="number" min="0" step="1" value="{{ s.target_sales or 0 }}"></div>
+            <div class="sp-field"><label>Jobs target</label>
+              <input class="form-control" id="staffTgtJ-{{ s.id }}" type="number" min="0" step="1" value="{{ s.target_jobs or 0 }}"></div>
+          </div>
+          <div class="sp-field"><label>Commission %</label>
+            <input class="form-control" id="staffComm-{{ s.id }}" type="number" min="0" max="100" step="0.1" value="{{ s.commission_pct or 0 }}"></div>
+          <button type="button" class="btn btn-primary" data-staff-id="{{ s.id }}" data-staff-name="{{ s.name }}" onclick="openStaffGuard(this,'perms')">Save role</button>
+        </div>
+      </details>
+
+      <details class="sp-fold">
+        <summary><b class="sp-k">Shift &amp; Devices</b><span>{{ (s.devices or [])|length }} Device{{ 's' if (s.devices or [])|length != 1 else '' }}</span></summary>
+        <div class="sp-fold-body">
+          <div class="sp-devs">
+            {% for d in s.devices or [] %}
+            <div class="sp-dev">
+              <span><i class="fas fa-mobile-screen-button"></i> {{ d.label or 'Device' }} · Last {{ (d.last_seen or d.created_at) | to_ist }}</span>
+              <button type="button" class="btn btn-outline" style="padding:4px 10px;font-size:.72rem;color:#991b1b;border-color:#fecaca;"
+                      data-staff-id="{{ s.id }}" data-staff-name="{{ s.name }}" data-device-id="{{ d.id }}"
+                      onclick="openStaffGuard(this,'device')">Remove</button>
+            </div>
+            {% else %}
+            <div class="sp-dev"><span>No login device registered</span></div>
+            {% endfor %}
+          </div>
+          <div class="sp-hint">Sales persons clock in with camera and location. Shifts auto-close at shop closing time if still open. This clock is an owner override only.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <form method="POST" action="{{ url_for('shop_staff_clock') }}" style="margin:0;">
+              <input type="hidden" name="staff_id" value="{{ s.id }}">
+              <input type="hidden" name="next" value="{{ url_for('shop_team', month=perf_month) }}">
+              {% if s.open_shift %}
+              <button class="btn btn-outline" name="clock" value="out" type="submit">Clock out</button>
+              {% else %}
+              <button class="btn btn-outline" name="clock" value="in" type="submit">Clock in</button>
+              {% endif %}
+            </form>
+            {% if s.open_shift %}
+            <form method="POST" action="{{ url_for('shop_staff_lunch') }}" style="margin:0;">
+              <input type="hidden" name="staff_id" value="{{ s.id }}">
+              <input type="hidden" name="next" value="{{ url_for('shop_team', month=perf_month) }}">
+              {% if s.open_lunch %}
+              <button class="btn btn-outline" name="lunch" value="in" type="submit">Back from lunch</button>
+              {% else %}
+              <button class="btn btn-outline" name="lunch" value="out" type="submit">Start lunch</button>
+              {% endif %}
+            </form>
+            {% endif %}
+            <button type="button" class="btn btn-outline" data-staff-id="{{ s.id }}" data-staff-name="{{ s.name }}" onclick="openStaffGuard(this,'kick')">Sign out all</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="sp-fold">
+        <summary><b class="sp-k">Salary</b><span>₹{{ '%.0f'|format(s.salary_due or 0) }} Due · {{ s.present_days or 0 }} Days</span></summary>
+        <div class="sp-fold-body">
+          <div class="sp-hint">Pay = present clock-in days × (monthly salary ÷ working days). Full month if present days reach working days.</div>
+          <div class="sp-2">
+            <div class="sp-field"><label>Monthly salary ₹</label>
+              <input class="form-control" id="staffSalM-{{ s.id }}" type="number" min="0" step="1" value="{{ s.salary_monthly or 0 }}"></div>
+            <div class="sp-field"><label>Working days / month</label>
+              <input class="form-control" id="staffSalD-{{ s.id }}" type="number" min="1" max="31" step="1" value="{{ s.salary_days or 26 }}"></div>
+          </div>
+          <div class="sp-field"><label>Hours / day</label>
+            <input class="form-control" id="staffSalH-{{ s.id }}" type="number" min="1" max="24" step="0.5" value="{{ s.salary_hours or 8 }}"></div>
+          <div class="mini">Daily ₹{{ '%.2f'|format(s.daily_rate or 0) }} · This month {{ s.present_days or 0 }} present · {{ '%.1f'|format(s.hours_worked or 0) }} hrs · Due ₹{{ '%.2f'|format(s.salary_due or 0) }}{% if s.pay_by_hours %} · By hours ₹{{ '%.2f'|format(s.pay_by_hours) }}{% endif %}</div>
+          <button type="button" class="btn btn-primary" data-staff-id="{{ s.id }}" data-staff-name="{{ s.name }}" onclick="openStaffGuard(this,'salary')">Save salary</button>
+        </div>
+      </details>
+
+      <details class="sp-fold">
+        <summary><b class="sp-k">Account</b><span>{{ 'Active' if s.enabled else 'Disabled' }}</span></summary>
+        <div class="sp-fold-body">
+          <div class="sp-field"><label>New password</label>
+            <div style="position:relative;">
+              <input class="form-control" type="password" id="staffNewPw-{{ s.id }}" placeholder="At least 6 characters" autocomplete="new-password" style="padding-right:40px;">
+              <i class="fas fa-eye" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;transition:color 0.2s;" onmouseover="this.style.color='#7c3aed'" onmouseout="if(this.classList.contains('fa-eye')){this.style.color='#94a3b8'}" onclick="const p=document.getElementById('staffNewPw-{{ s.id }}'); if(p.type==='password'){p.type='text';this.classList.replace('fa-eye','fa-eye-slash');this.style.color='#7c3aed';}else{p.type='password';this.classList.replace('fa-eye-slash','fa-eye');this.style.color='#94a3b8';}"></i>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-outline" data-staff-id="{{ s.id }}" data-staff-name="{{ s.name }}" onclick="openStaffGuard(this,'password')">Set password</button>
+            <button type="button" class="btn btn-outline" data-staff-id="{{ s.id }}" data-staff-name="{{ s.name }}" data-staff-enable="{{ 1 if not s.enabled else 0 }}"
+                    onclick="openStaffGuard(this,'toggle')">{{ 'Enable' if not s.enabled else 'Disable' }}</button>
+            <button type="button" class="btn btn-outline" style="color:#991b1b;border-color:#fecaca;margin-left:auto;"
+                    data-staff-id="{{ s.id }}" data-staff-name="{{ s.name }}" onclick="openStaffGuard(this,'delete')">Remove</button>
+          </div>
+        </div>
+      </details>
+    </details>
+    {% endfor %}
+    <details class="team-acc add-card">
+      <summary>
+        <span class="t">Add Team Member</span>
+        <span class="hint">{{ staff_rows|length if staff_rows is defined else 0 }} / {{ limits.staff if limits is defined else 0 }} Used</span>
+      </summary>
+      <div class="team-acc-body">
+      <p>{{ staff_rows|length if staff_rows is defined else 0 }} Listed · {{ limits.staff if limits is defined else 0 }} Allowed On This Plan</p>
+      <form method="POST" action="{{ url_for('shop_staff_add') }}">
+        <div class="add-grid">
+          <div class="form-group"><label class="form-label">Name *</label>
+            <input class="form-control" name="name" required style="text-transform:uppercase" autocomplete="off"></div>
+          <div class="form-group"><label class="form-label">Mobile *</label>
+            <input class="form-control" name="phone" required maxlength="10" inputmode="numeric" placeholder="10 Digits" autocomplete="off"></div>
+          <div class="form-group"><label class="form-label">Email (Optional)</label>
+            <input class="form-control" name="email" type="email" autocomplete="off"></div>
+          <div class="form-group"><label class="form-label">Password *</label>
+<div style="position:relative;">
+  <input class="form-control" name="password" id="addStaffPwd" type="password" required minlength="6" autocomplete="new-password" style="padding-right:40px;">
+  <i class="fas fa-eye" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;" onclick="const p=document.getElementById('addStaffPwd'); if(p.type==='password'){p.type='text';this.classList.replace('fa-eye','fa-eye-slash');}else{p.type='password';this.classList.replace('fa-eye-slash','fa-eye');}"></i>
+</div>
+</div>
+          <div class="form-group" style="grid-column:1 / -1;"><label class="form-label">Role</label>
+            <select class="form-control" name="job_kind">
+              <option value="sales">Sales Person — Counter + Jobs</option>
+              <option value="tech">Technician — Jobs Only</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" type="submit" style="width:100%;margin-top:4px;"><i class="fas fa-user-plus"></i> Add Team Member</button>
+      </form>
+      </div>
+    </details>
+  </div>
+
+  <details class="team-acc">
+    <summary>
+      <span class="t">Login Devices</span>
+      <span class="hint">{{ (devices or [])|length }} / {{ limits.devices if limits is defined else 1 }} Used</span>
+    </summary>
+    <div class="team-acc-body">
+  <div class="note">All Plans Include 4 Device Logins</div>
+  <div class="dev-list">
+    {% for d in devices or [] %}
+    <div class="dev-row">
+      <div>
+        <div style="font-weight:800;">{{ d.label or 'Browser' }}{% if d.token == device_token %} · This Device{% endif %}</div>
+        <div style="color:#64748b;font-size:.78rem;font-weight:600;margin-top:3px;">
+          {% if d.staff_id %}{{ (staff_names or {}).get(d.staff_id, 'Sales') }}{% else %}Owner{% endif %}
+          · Last Used {{ (d.last_seen or d.created_at) | to_ist }}{% if d.ip_address %} · {{ d.ip_address }}{% endif %}
+        </div>
+      </div>
+      <form method="POST" action="{{ url_for('shop_device_remove', did=d.id) }}" style="margin:0;" onsubmit="return confirm('Remove this login device?');">
+        <button class="btn btn-outline" type="submit" style="padding:7px 12px;font-size:.75rem;color:#991b1b;border-color:#fecaca;">Remove</button>
+      </form>
+    </div>
+    {% else %}
+    <div class="dev-row"><div style="color:#94a3b8;font-size:.82rem;">No devices registered yet. Sign in from a phone or computer to use a slot.</div></div>
+    {% endfor %}
+    </div>
+  </details>
+
+  <details class="team-acc">
+    <summary>
+      <span class="t">Activity</span>
+      <span class="hint">Last 50 Actions</span>
+    </summary>
+    <div class="team-acc-body" style="padding:0;">
+  <div class="dev-list">
+    {% for L in shop_logs or [] %}
+    <div class="dev-row">
+      <div>
+        <div style="font-weight:800;">{{ L.staff_name or 'OWNER' }} · {{ (L.action or '')|replace('_', ' ')|title }}</div>
+        <div class="mini">{{ L.detail or '' }}{% if L.ref_type %} · {{ (L.ref_type or '')|replace('_', ' ')|title }} {{ L.ref_id or '' }}{% endif %} · {{ L.created_at | to_ist }}</div>
+      </div>
+    </div>
+    {% else %}
+    <div class="dev-row"><div class="mini">No activity yet. Sales, jobs, collect, and logins will appear here.</div></div>
+    {% endfor %}
+  </div>
+    </div>
+  </details>
+</div>
+
+<div class="modal-overlay modal-center" id="staffGuardModal" style="z-index:10050;">
+  <div class="modal-box" style="max-width:400px;padding:28px 24px;">
+    <button type="button" class="modal-exit" onclick="closeStaffGuard()" title="Exit" aria-label="Exit">✕</button>
+    <div id="staffGuardIco" style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.25rem;margin:0 auto 12px;"><i class="fas fa-lock"></i></div>
+    <div class="modal-title" id="staffGuardTitle" style="text-align:center;padding-right:0;">Confirm with owner password</div>
+    <p id="staffGuardMsg" style="text-align:center;font-size:.85rem;font-weight:600;color:#334155;margin:6px 0 0;line-height:1.5;">Enter the owner login password to continue.</p>
+    <form method="POST" id="staffGuardForm" class="modal-body" onsubmit="return submitStaffGuard(event)">
+      <input type="hidden" name="action" id="staffGuardAction" value="delete">
+      <input type="hidden" name="password" id="staffGuardNewPw" value="">
+        <input type="hidden" name="device_id" id="staffGuardDeviceId" value="">
+        <input type="hidden" name="name" id="staffGuardName" value="">
+        <input type="hidden" name="phone" id="staffGuardPhone" value="">
+        <input type="hidden" name="email" id="staffGuardEmail" value="">
+        <input type="hidden" name="job_kind" id="staffGuardKind" value="">
+        <input type="hidden" name="can_sale" id="staffGuardSale" value="">
+        <input type="hidden" name="can_collect" id="staffGuardCollect" value="">
+        <input type="hidden" name="can_jobs" id="staffGuardJobs" value="">
+        <input type="hidden" name="target_sales" id="staffGuardTgtS" value="">
+        <input type="hidden" name="target_jobs" id="staffGuardTgtJ" value="">
+        <input type="hidden" name="commission_pct" id="staffGuardComm" value="">
+        <input type="hidden" name="salary_monthly" id="staffGuardSalM" value="">
+        <input type="hidden" name="salary_days" id="staffGuardSalD" value="">
+        <input type="hidden" name="salary_hours" id="staffGuardSalH" value="">
+      <label class="form-label">Owner password *</label>
+      <div style="position:relative;">
+        <input type="password" name="owner_password" id="staffGuardPwd" class="form-control" placeholder="Owner login password" autocomplete="current-password" style="padding-right:40px;">
+        <i class="fas fa-eye" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;transition:color 0.2s;" onmouseover="this.style.color='#7c3aed'" onmouseout="if(this.classList.contains('fa-eye')){this.style.color='#94a3b8'}" onclick="const p=document.getElementById('staffGuardPwd'); if(p.type==='password'){p.type='text';this.classList.replace('fa-eye','fa-eye-slash');this.style.color='#7c3aed';}else{p.type='password';this.classList.replace('fa-eye-slash','fa-eye');this.style.color='#94a3b8';}"></i>
+      </div>
+      <div id="staffGuardError" style="display:none;color:#b91c1c;font-size:.78rem;font-weight:700;text-align:center;margin-top:8px;"></div>
+      <button type="submit" class="btn btn-primary" id="staffGuardBtn" style="width:100%;margin-top:16px;padding:12px;"><i class="fas fa-check"></i> Confirm</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay modal-center" id="staffRecordModal" style="z-index:10050;">
+    <div class="modal-box" style="max-width:640px;padding:24px;max-height:86vh;overflow:auto;">
+    <button type="button" class="modal-exit" onclick="document.getElementById('staffRecordModal').classList.remove('show')" title="Exit" aria-label="Exit">✕</button>
+    <div class="modal-title" id="staffRecordTitle" style="padding-right:36px;">Sales person record</div>
+    <div id="staffRecordBody" class="modal-body"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openStaffGuard(btn, action){
+  const id = btn.getAttribute('data-staff-id');
+  const name = btn.getAttribute('data-staff-name') || 'this sales person';
+  const form = document.getElementById('staffGuardForm');
+  const ico = document.getElementById('staffGuardIco');
+  const title = document.getElementById('staffGuardTitle');
+  const msg = document.getElementById('staffGuardMsg');
+  const go = document.getElementById('staffGuardBtn');
+  const err = document.getElementById('staffGuardError');
+  let newPw = '';
+  if(action === 'password'){
+    const inp = document.getElementById('staffNewPw-'+id);
+    newPw = (inp && inp.value) ? inp.value : '';
+    if(newPw.length < 6){
+      if(typeof showAlert === 'function') showAlert('New password must be at least 6 characters.');
+      else alert('New password must be at least 6 characters.');
+      if(inp) inp.focus();
+      return;
+    }
+  }
+  form.action = '/settings/staff/' + id;
+  document.getElementById('staffGuardAction').value = action;
+  document.getElementById('staffGuardNewPw').value = newPw;
+  document.getElementById('staffGuardDeviceId').value = btn.getAttribute('data-device-id') || '';
+  document.getElementById('staffGuardPwd').value = '';
+  err.style.display = 'none';
+  if(action === 'profile'){
+    document.getElementById('staffGuardName').value = (document.getElementById('staffName-'+id)||{}).value || '';
+    document.getElementById('staffGuardPhone').value = (document.getElementById('staffPhone-'+id)||{}).value || '';
+    document.getElementById('staffGuardEmail').value = (document.getElementById('staffEmail-'+id)||{}).value || '';
+  }
+  if(action === 'perms'){
+    document.getElementById('staffGuardKind').value = (document.getElementById('staffKind-'+id)||{}).value || 'sales';
+    document.getElementById('staffGuardSale').value = (document.getElementById('staffCanSale-'+id)||{}).checked ? '1' : '0';
+    document.getElementById('staffGuardCollect').value = (document.getElementById('staffCanCollect-'+id)||{}).checked ? '1' : '0';
+    document.getElementById('staffGuardJobs').value = (document.getElementById('staffCanJobs-'+id)||{}).checked ? '1' : '0';
+    document.getElementById('staffGuardTgtS').value = (document.getElementById('staffTgtS-'+id)||{}).value || '0';
+    document.getElementById('staffGuardTgtJ').value = (document.getElementById('staffTgtJ-'+id)||{}).value || '0';
+    document.getElementById('staffGuardComm').value = (document.getElementById('staffComm-'+id)||{}).value || '0';
+  }
+  if(action === 'salary'){
+    document.getElementById('staffGuardSalM').value = (document.getElementById('staffSalM-'+id)||{}).value || '0';
+    document.getElementById('staffGuardSalD').value = (document.getElementById('staffSalD-'+id)||{}).value || '26';
+    document.getElementById('staffGuardSalH').value = (document.getElementById('staffSalH-'+id)||{}).value || '8';
+  }
+  if(action === 'delete'){
+    ico.style.background = 'linear-gradient(135deg,#ef4444,#b91c1c)';
+    ico.innerHTML = '<i class="fas fa-user-minus"></i>';
+    title.textContent = 'Remove sales person';
+    msg.textContent = 'Remove '+name+'? Enter the owner login password to continue.';
+    go.innerHTML = '<i class="fas fa-trash"></i> Remove';
+    go.style.background = 'linear-gradient(135deg,#ef4444,#b91c1c)';
+    go.style.boxShadow = '0 8px 18px rgba(185,28,28,.28)';
+  } else if(action === 'device'){
+    ico.style.background = 'linear-gradient(135deg,#6366f1,#4f46e5)';
+    ico.innerHTML = '<i class="fas fa-mobile-screen-button"></i>';
+    title.textContent = 'Remove login device';
+    msg.textContent = 'Remove the login device for '+name+'? Enter the owner login password to continue.';
+    go.innerHTML = '<i class="fas fa-trash"></i> Remove device';
+    go.style.background = 'linear-gradient(135deg,#ef4444,#b91c1c)';
+    go.style.boxShadow = '0 8px 18px rgba(185,28,28,.28)';
+  } else if(action === 'kick'){
+    ico.style.background = 'linear-gradient(135deg,#6366f1,#4f46e5)';
+    ico.innerHTML = '<i class="fas fa-right-from-bracket"></i>';
+    title.textContent = 'Sign out all devices';
+    msg.textContent = 'Sign '+name+' out of every device? Enter the owner login password.';
+    go.innerHTML = '<i class="fas fa-right-from-bracket"></i> Sign out all';
+    go.style.background = 'linear-gradient(135deg,#ef4444,#b91c1c)';
+    go.style.boxShadow = '0 8px 18px rgba(185,28,28,.28)';
+  } else if(action === 'profile'){
+    ico.style.background = 'linear-gradient(135deg,#00BCD4,#0097A7)';
+    ico.innerHTML = '<i class="fas fa-id-card"></i>';
+    title.textContent = 'Save contact';
+    msg.textContent = 'Update name, mobile, or email for '+name+'? Enter the owner login password.';
+    go.innerHTML = '<i class="fas fa-check"></i> Save contact';
+    go.style.background = '';
+    go.style.boxShadow = '';
+  } else if(action === 'perms'){
+    ico.style.background = 'linear-gradient(135deg,#8E24AA,#BA68C8)';
+    ico.innerHTML = '<i class="fas fa-sliders"></i>';
+    title.textContent = 'Save role and targets';
+    msg.textContent = 'Save role, permissions, targets, and commission for '+name+'? Enter the owner login password.';
+    go.innerHTML = '<i class="fas fa-check"></i> Save';
+    go.style.background = '';
+    go.style.boxShadow = '';
+  } else if(action === 'salary'){
+    ico.style.background = 'linear-gradient(135deg,#0d9488,#14b8a6)';
+    ico.innerHTML = '<i class="fas fa-indian-rupee-sign"></i>';
+    title.textContent = 'Save salary';
+    msg.textContent = 'Save monthly salary for '+name+'? Pay will be calculated from attendance. Enter the owner login password.';
+    go.innerHTML = '<i class="fas fa-check"></i> Save salary';
+    go.style.background = '';
+    go.style.boxShadow = '';
+  } else if(action === 'password'){
+    ico.style.background = 'linear-gradient(135deg,#00BCD4,#0097A7)';
+    ico.innerHTML = '<i class="fas fa-key"></i>';
+    title.textContent = 'Set new password';
+    msg.textContent = 'Set a new password for '+name+'? Enter the owner login password to continue.';
+    go.innerHTML = '<i class="fas fa-check"></i> Set password';
+    go.style.background = '';
+    go.style.boxShadow = '';
+  } else {
+    const enabling = btn.getAttribute('data-staff-enable') === '1';
+    ico.style.background = enabling ? 'linear-gradient(135deg,#16a34a,#15803d)' : 'linear-gradient(135deg,#f59e0b,#d97706)';
+    ico.innerHTML = enabling ? '<i class="fas fa-user-check"></i>' : '<i class="fas fa-user-slash"></i>';
+    title.textContent = enabling ? 'Enable sales person' : 'Disable sales person';
+    msg.textContent = (enabling ? 'Enable ' : 'Disable ') + name + '? Enter the owner login password to continue.';
+    go.innerHTML = '<i class="fas fa-check"></i> Confirm';
+    go.style.background = '';
+    go.style.boxShadow = '';
+  }
+  document.getElementById('staffGuardModal').classList.add('show');
+  setTimeout(function(){ document.getElementById('staffGuardPwd').focus(); }, 80);
+}
+function closeStaffGuard(){
+  document.getElementById('staffGuardModal').classList.remove('show');
+}
+function submitStaffGuard(e){
+  const pw=(document.getElementById('staffGuardPwd').value||'').trim();
+  const err=document.getElementById('staffGuardError');
+  if(!pw){
+    e.preventDefault();
+    err.textContent='Owner password is required.';
+    err.style.display='';
+    document.getElementById('staffGuardPwd').focus();
+    return false;
+  }
+  return true;
+}
+function esc(s){
+  return String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+const STAFF_RECORDS = JSON.parse({{ (staff_json or '[]')|tojson }});
+const PERF_MONTH = {{ (perf_month or '')|tojson }};
+function staffSelect(currentId){
+  let h = '<option value="0">OWNER</option>';
+  (STAFF_RECORDS||[]).forEach(x => {
+    h += `<option value="${x.id}" ${x.id==currentId?'selected':''}>${esc(x.name||'')}</option>`;
+  });
+  return h;
+}
+function openStaffRecord(id){
+  const s = (STAFF_RECORDS||[]).find(x => x.id == id);
+  if(!s){ if(typeof showAlert==='function') showAlert('No record found'); return; }
+  document.getElementById('staffRecordTitle').textContent = (s.name||'Team') + ' · Record';
+  const m = s.month||{};
+  const sales = s.recent_sales||[];
+  const jobs = s.recent_jobs||[];
+  const logs = s.logs||[];
+  const attend = s.attend||[];
+  let html = `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin-bottom:12px;font-size:.82rem;font-weight:700;color:#334155;line-height:1.55;">
+    Today ₹${Number(s.today_sales_amt||0).toFixed(2)} · ${s.today_jobs_n||0} jobs<br>
+    Month collected ₹${Number(m.sales_collected||0).toFixed(2)} · credit ₹${Number(m.credit_amt||0).toFixed(2)} · returns ${m.returns_n||0}<br>
+    Commission ₹${Number(m.commission_amt||0).toFixed(2)} (${Number(s.commission_pct||0)}%)<br>
+    Salary due ₹${Number(s.salary_due||0).toFixed(2)} · ${s.present_days||0}/${s.salary_days||26} present days · ${Number(s.hours_worked||0).toFixed(1)} hrs
+  </div>`;
+  html += `<div style="font-size:.72rem;font-weight:800;color:#94a3b8;text-transform:uppercase;">Attendance</div><div class="cal">`;
+  ['S','M','T','W','T','F','S'].forEach(d => html += `<b>${d}</b>`);
+  const first = attend[0] ? new Date(attend[0].d+'T00:00:00') : null;
+  const pad = first ? first.getDay() : 0;
+  for(let i=0;i<pad;i++) html += '<span></span>';
+  attend.forEach(a => {
+    const lunchTxt = (a.lunches||[]).map(x => 'Lunch '+ (x.out||'') + (x.in ? '–'+x.in : ' (open)')).join('; ');
+    const cls = a.shift ? 'sh' : (a.work ? 'on' : '');
+    html += `<span class="${cls}" title="${esc(a.d)} ${a.in||''} ${a.out||''}${lunchTxt ? ' · '+lunchTxt : ''}">${a.n}</span>`;
+  });
+  html += `</div>`;
+  html += `<div style="font-size:.72rem;font-weight:800;color:#94a3b8;text-transform:uppercase;margin:12px 0 6px;">Punches</div>`;
+  let punchN = 0;
+  attend.forEach(a => {
+    (a.punches||[]).forEach(p => {
+      punchN++;
+      const inMap = (p.in_lat!=null && p.in_lng!=null) ? ` <a href="https://maps.google.com/?q=${p.in_lat},${p.in_lng}" target="_blank" rel="noopener">in map</a>` : '';
+      const outMap = (p.out_lat!=null && p.out_lng!=null) ? ` <a href="https://maps.google.com/?q=${p.out_lat},${p.out_lng}" target="_blank" rel="noopener">out map</a>` : '';
+      const inPh = p.has_in_photo ? ` <button type="button" class="btn btn-outline" style="padding:2px 8px;font-size:.68rem;" onclick="viewPunchPhoto(${p.id},'in')">In photo</button>` : '';
+      const outPh = p.has_out_photo ? ` <button type="button" class="btn btn-outline" style="padding:2px 8px;font-size:.68rem;" onclick="viewPunchPhoto(${p.id},'out')">Out photo</button>` : '';
+      html += `<div class="mini" style="padding:6px 0;border-bottom:1px solid #f1f5f9;">${esc(a.d)} · ${esc(p.in||'')}–${esc(p.out||'open')}${inMap}${outMap}${inPh}${outPh}</div>`;
+    });
+  });
+  if(!punchN) html += `<div style="color:#94a3b8;font-size:.82rem;margin-bottom:8px;">No camera punches this month</div>`;
+  html += `<div style="font-size:.72rem;font-weight:800;color:#94a3b8;text-transform:uppercase;margin:14px 0 6px;">Reassign last records</div>`;
+  html += `<form method="POST" action="/team/reassign" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+    <input type="hidden" name="month" value="${esc(PERF_MONTH)}">
+    <select class="form-control" name="kind"><option value="sale">Sale bill</option><option value="job">Job</option><option value="invoice">Invoice</option></select>
+    <input class="form-control" name="item_id" placeholder="ID number" required>
+    <select class="form-control" name="staff_id">${staffSelect(s.id)}</select>
+    <input class="form-control" type="password" name="owner_password" placeholder="Owner password" required>
+    <button class="btn btn-primary" type="submit" style="grid-column:1/-1;">Assign</button>
+  </form>`;
+  html += `<div style="font-size:.72rem;font-weight:800;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;">Sales bills</div>`;
+  if(!sales.length) html += `<div style="color:#94a3b8;font-size:.82rem;margin-bottom:12px;">No sales yet</div>`;
+  sales.forEach(b => {
+    html += `<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:.82rem;">
+      <span><strong>SAL-${String(b.bill_no||0).padStart(4,'0')}</strong> · ${esc(b.customer_name||'')}<div style="color:#94a3b8;font-size:.72rem;">#${b.id} · ${esc(String(b.created_at||'').slice(0,16))} · ${esc(b.paid_status||'')}</div></span>
+      <strong>₹${Number(b.total||0).toFixed(2)}</strong></div>`;
+  });
+  html += `<div style="font-size:.72rem;font-weight:800;color:#94a3b8;text-transform:uppercase;margin:14px 0 6px;">Service jobs</div>`;
+  if(!jobs.length) html += `<div style="color:#94a3b8;font-size:.82rem;">No jobs yet</div>`;
+  jobs.forEach(j => {
+    html += `<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:.82rem;">
+      <span><strong>#${j.id}</strong> · ${esc(j.customer_name||'')}<div style="color:#94a3b8;font-size:.72rem;">${esc(j.device_model||'')} · ${esc(j.status||'')}</div></span>
+      <strong>${j.cost!=null?'₹'+Number(j.cost).toFixed(2):'—'}</strong></div>`;
+  });
+  html += `<div style="font-size:.72rem;font-weight:800;color:#94a3b8;text-transform:uppercase;margin:14px 0 6px;">Activity</div>`;
+  if(!logs.length) html += `<div style="color:#94a3b8;font-size:.82rem;">No activity yet</div>`;
+  logs.forEach(L => {
+    html += `<div class="mini" style="padding:6px 0;border-bottom:1px solid #f1f5f9;">${esc(L.created_at||'')} · ${esc(L.action||'')} · ${esc(L.detail||'')}</div>`;
+  });
+  document.getElementById('staffRecordBody').innerHTML = html;
+  document.getElementById('staffRecordModal').classList.add('show');
+}
+function viewPunchPhoto(shiftId, which){
+  fetch('/team/shift-photo/'+shiftId+'?which='+which).then(r=>r.json()).then(d=>{
+    if(!d.ok || !d.photo){ if(typeof showAlert==='function') showAlert(d.error||'No photo'); return; }
+    let m = document.getElementById('punchPhotoModal');
+    if(!m){
+      m = document.createElement('div');
+      m.id = 'punchPhotoModal';
+      m.className = 'modal-overlay modal-center show';
+      m.style.zIndex = '10060';
+      m.innerHTML = '<div class="modal-box" style="max-width:420px;padding:18px;"><button type="button" class="modal-exit" onclick="document.getElementById(\'punchPhotoModal\').classList.remove(\'show\')" title="Exit" aria-label="Exit">✕</button><div class="modal-title">Attendance photo</div><img id="punchPhotoView" alt="Attendance" style="width:100%;border-radius:12px;display:block;"></div>';
+      document.body.appendChild(m);
+    }
+    document.getElementById('punchPhotoView').src = d.photo;
+    m.classList.add('show');
+  });
+}
+</script>
+{% endblock %}

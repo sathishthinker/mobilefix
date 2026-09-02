@@ -30,13 +30,18 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size
 .info-name{font-family:'Exo 2',sans-serif;font-weight:700;font-size:0.85rem;color:#1a2332;}
 .info-detail{font-size:0.72rem;color:#64748b;line-height:1.4;margin-top:2px;}
 
-/* Items table */
+/* Items */
 .inv-body{padding:10px 16px;}
-.items-table{width:100%;border-collapse:collapse;margin-bottom:8px;}
-.items-table th{padding:6px 8px;background:#f8fafc;text-align:left;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;border-bottom:2px solid #e2e8f0;}
-.items-table td{padding:6px 8px;border-bottom:1px solid #f1f5f9;font-size:0.75rem;vertical-align:middle;}
-.items-table tr:last-child td{border-bottom:none;}
-.num{text-align:right;font-weight:600;}
+.items-wrap{width:100%;margin-bottom:8px;}
+.items-row{display:grid;grid-template-columns:minmax(0,1.4fr) 52px 92px 92px;gap:0;align-items:center;width:100%;}
+.items-row > div{padding:6px 8px;box-sizing:border-box;min-width:0;}
+.items-head{background:#f8fafc;border-bottom:2px solid #e2e8f0;}
+.items-head > div{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;}
+.items-line{border-bottom:1px solid #f1f5f9;}
+.items-line > div{font-size:0.75rem;}
+.items-line:last-of-type{border-bottom:none;}
+.items-row .c-qty,.items-row .c-price,.items-row .c-amt{text-align:right;}
+.items-row .c-desc{text-align:left;}
 
 /* Bottom */
 .inv-bottom{display:grid;grid-template-columns:1.2fr 0.8fr;gap:16px;margin-top:6px;align-items:start;}
@@ -59,7 +64,7 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size
 .inv-footer strong{color:#64748b;}
 
 /* Print controls */
-.print-btn{text-align:center;margin:12px auto;display:flex;gap:10px;justify-content:center;}
+.print-btn{text-align:center;margin:12px auto;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:0 8px;}
 .print-btn button{padding:8px 20px;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;font-family:inherit;color:white;transition:opacity .2s;}
 .print-btn button:hover{opacity:.9;}
 
@@ -74,6 +79,7 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size
 
 <div class="print-btn">
   <button onclick="window.print()" style="background:linear-gradient(135deg,var(--teal),#0097A7);">🖨️ Print Invoice</button>
+  <button onclick="sharePDF()" style="background:#25D366;">Share PDF</button>
   <button onclick="downloadPDF()" style="background:linear-gradient(135deg,#ef4444,#b91c1c);">📥 Download PDF</button>
   <button onclick="window.close()" style="background:#64748b;">✕ Close</button>
 </div>
@@ -124,7 +130,7 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size
         <span style="color:#00BCD4;font-weight:700;font-size:0.72rem;">Job #{{ job.id }}</span><br>
         {% if job.imei_billing or job.imei %}<span style="color:#94a3b8;font-size:0.65rem;">IMEI: {{ job.imei_billing or job.imei }}</span><br>{% endif %}
         {% if job.aadhar_number %}<span style="color:#f59e0b;font-size:0.65rem;">Aadhar: {{ job.aadhar_number }}</span><br>{% endif %}
-        Date: {{ inv.created_at[:10] }}
+        Date: {{ inv.created_at[:10] }}{% if inv.due_date and (inv.paid or 'Unpaid') != 'Paid' %}<br><span style="color:#c2410c;font-weight:700;">Due: {{ inv.due_date }}</span>{% endif %}
       </div>
       {% else %}
       <div class="info-detail">Job #{{ inv.job_id }}<br>Date: {{ inv.created_at[:10] }}</div>
@@ -134,17 +140,15 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size
 
   <!-- Items -->
   <div class="inv-body">
-    <table class="items-table">
-      <thead>
-        <tr>
-          <th style="width:48%;">Description</th>
-          <th class="num" style="width:12%;">Qty</th>
-          <th class="num" style="width:20%;">Unit Price</th>
-          <th class="num" style="width:20%;">Amount</th>
-        </tr>
-      </thead>
-      <tbody id="invItemsBody"></tbody>
-    </table>
+    <div class="items-wrap">
+      <div class="items-row items-head">
+        <div class="c-desc">Description</div>
+        <div class="c-qty">Qty</div>
+        <div class="c-price">Unit Price</div>
+        <div class="c-amt">Amount</div>
+      </div>
+      <div id="invItemsBody"></div>
+    </div>
 
     <div class="inv-bottom">
       <!-- Left: payment + terms -->
@@ -156,6 +160,20 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size
           {% elif ps == 'Partial' %}<span class="badge badge-partial">PARTIAL PAYMENT</span>
           {% else %}<span class="badge badge-unpaid">PAYMENT PENDING</span>{% endif %}
           {% if inv.pay_method %}<div class="pay-method">{{ inv.pay_method }}</div>{% endif %}
+          {% if inv.due_date and (inv.paid or 'Unpaid') != 'Paid' %}
+          <div style="margin-top:8px;font-size:0.72rem;font-weight:800;color:#c2410c;">Due Date: {{ inv.due_date }}</div>
+          {% endif %}
+          {% if pay_log %}
+          <div style="margin-top:10px;text-align:left;">
+            <div style="font-size:.68rem;font-weight:800;color:#64748b;text-transform:uppercase;margin-bottom:6px;">Payment Details</div>
+            {% for p in pay_log %}
+            <div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;font-size:.72rem;font-weight:700;color:#0f172a;background:#f8fafc;border-radius:6px;padding:5px 8px;margin-bottom:4px;">
+              <span>₹{{ '%.2f'|format(p.amount or 0) }} · {{ p.method or 'Cash' }}{% if p.note %} · {{ p.note }}{% endif %}</span>
+              <span style="color:#64748b;font-weight:600;">{{ p.date or '' }}</span>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
         </div>
         <div class="terms">
           • All repairs carry a 30-day warranty on parts &amp; labour.<br>
@@ -175,6 +193,10 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size
             <td style="color:#64748b;">Discount</td>
             <td id="discountAmt" style="color:#ef4444;">—</td>
           </tr>
+          <tr id="rowLoyalty" style="display:none;">
+            <td style="color:#64748b;">Points redeemed</td>
+            <td id="loyaltyAmt" style="color:#b45309;">—</td>
+          </tr>
           <tr id="rowAdvance" style="display:none;">
             <td style="color:#64748b;">Advance Paid</td>
             <td id="advanceAmt" style="color:#4CAF50;">—</td>
@@ -192,7 +214,7 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size
             <td id="totalPaidAmt" style="color:#16a34a;font-weight:700;">—</td>
           </tr>
           <tr class="balance" id="rowBalance" style="display:none;">
-            <td>Balance Due</td>
+            <td>Balance Due{% if inv.due_date %} ({{ inv.due_date }}){% endif %}</td>
             <td id="balanceAmt">—</td>
           </tr>
         </table>
@@ -214,6 +236,11 @@ body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size
     </a>
   </div>
   {% endif %}
+  {% if loyalty %}
+  <div style="background:#fffbeb;border-top:1px solid #fcd34d;padding:8px 16px;font-size:0.72rem;font-weight:700;color:#92400e;">
+    Loyalty points: {{ loyalty.points }} (₹{{ '%.2f'|format(loyalty.value) }}) · ₹100 spend = 10 pts · 4 pts = ₹1 · Redeem from 250 pts on service
+  </div>
+  {% endif %}
   <div class="inv-footer">
     Generated by <strong>MobileFix Pro</strong> &nbsp;•&nbsp; INV-{{ '%04d'|format(inv.id) }} &nbsp;•&nbsp; {{ inv.created_at[:10] }}
   </div>
@@ -224,6 +251,7 @@ const RAW_ITEMS = {{ inv['items'] | tojson if inv['items'] else '[]' | tojson }}
 const TOTAL    = {{ inv.total }};
 const ADV      = {{ inv.advance_amount or 0 }};   // total collected
 const DISC     = {{ inv.discount or 0 }};
+const LOY_PTS  = {{ inv.loyalty_points or 0 }};
 const JOB_ADV  = {{ (job.advance_amount or 0) | float if job else 0 }};  // initial advance from repair job
 
 function renderItems() {
@@ -241,18 +269,23 @@ function renderItems() {
     const price = parseFloat(item.price || 0);
     const amt = qty * price;
     subtotal += amt;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${item.desc || item.description || '—'}</td>
-      <td class="num">${qty}</td>
-      <td class="num">₹${price.toFixed(2)}</td>
-      <td class="num" style="font-weight:700;">₹${amt.toFixed(2)}</td>`;
-    tbody.appendChild(tr);
+    const row = document.createElement('div');
+    row.className = 'items-row items-line';
+    row.innerHTML = `<div class="c-desc">${item.desc || item.description || '—'}</div>
+      <div class="c-qty">${qty}</div>
+      <div class="c-price">₹${price.toFixed(2)}</div>
+      <div class="c-amt" style="font-weight:700;">₹${amt.toFixed(2)}</div>`;
+    tbody.appendChild(row);
   });
   if (DISC > 0) {
     document.getElementById('rowSubtotal').style.display = '';
     document.getElementById('subtotalAmt').textContent = '₹' + subtotal.toFixed(2);
     document.getElementById('rowDiscount').style.display = '';
     document.getElementById('discountAmt').textContent = '-₹' + DISC.toFixed(2);
+  }
+  if (LOY_PTS > 0) {
+    document.getElementById('rowLoyalty').style.display = '';
+    document.getElementById('loyaltyAmt').textContent = LOY_PTS + ' pts';
   }
   document.getElementById('grandTotal').textContent = '₹' + TOTAL.toFixed(2);
 
@@ -288,17 +321,58 @@ renderItems();
 if (new URLSearchParams(window.location.search).get('download') === '1') {
   window.addEventListener('load', () => setTimeout(downloadPDF, 600));
 }
+if (new URLSearchParams(window.location.search).get('share') === '1') {
+  window.addEventListener('load', () => setTimeout(sharePDF, 1500));
+}
 
-function downloadPDF() {
-  const el = document.getElementById('invoice-content');
+function invoicePdfOpts() {
   const invNum = 'INV-{{ "%04d"|format(inv.id) }}';
-  html2pdf().set({
+  return {
     margin: 0.15,
     filename: 'Invoice_' + invNum + '.pdf',
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
+    html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0, backgroundColor: '#ffffff' },
     jsPDF: { unit: 'in', format: 'a5', orientation: 'landscape' }
-  }).from(el).save();
+  };
+}
+function downloadPDF() {
+  const opts = invoicePdfOpts();
+  const el = document.getElementById('invoice-content');
+  html2pdf().set(opts).from(el.outerHTML, 'string').save();
+}
+async function sharePdfBlob(blob, filename, title) {
+  if (window.parent && window.parent !== window && typeof window.parent.sharePdfBlob === 'function') {
+    return window.parent.sharePdfBlob(blob, filename, title || filename, '');
+  }
+  var mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || (navigator.maxTouchPoints > 1 && /Macintosh/i.test(navigator.userAgent));
+  if (!mobile) {
+    var a = document.createElement('a');
+    var url = URL.createObjectURL(blob);
+    a.href = url; a.download = filename; a.click();
+    setTimeout(function() { URL.revokeObjectURL(url); }, 2500);
+    return;
+  }
+  const file = new File([blob], filename, { type: 'application/pdf' });
+  try {
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: title || filename });
+      return;
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(function() { URL.revokeObjectURL(a.href); }, 2500);
+}
+async function sharePDF() {
+  const opts = invoicePdfOpts();
+  const el = document.getElementById('invoice-content');
+  const blob = await html2pdf().set(opts).from(el.outerHTML, 'string').outputPdf('blob');
+  await sharePdfBlob(blob, opts.filename, opts.filename.replace('.pdf',''));
 }
 </script>
 </body>

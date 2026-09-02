@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>e-Aadhaar Print - MobileFix Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='smart_tools/e_aadhaar/style.css') }}" />
+    <style>
+      .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        background: white;
+        color: var(--ink);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border-radius: 99px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border: 1.5px solid var(--line);
+        transition: all 0.2s;
+      }
+      .back-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        border-color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    {% include 'includes/smart_tools_header.html' %}
+    <div class="app" style="padding-top: 1rem;">
+      <div class="no-print" style="background: linear-gradient(90deg, #1E88E5 0%, #7E57C2 100%); padding: 22px 28px; border-radius: 16px; color: #fff; margin-bottom: 24px; box-shadow: 0 8px 20px rgba(30, 136, 229, 0.2); display: flex; align-items: center; gap: 1rem;">
+        <a href="{{ url_for('smart_tools') }}" class="back-btn" style="width: 44px; height: 44px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin: 0; border: none; color: #1E88E5;" title="Back to Smart Tools">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 19l-7-7 7-7"/></svg>
+        </a>
+        <div>
+          <h1 style="font-family: 'Exo 2', sans-serif; font-weight: 800; font-size: 1.5rem; margin: 0 0 4px 0; color: #fff; line-height: 1.2;">e-Aadhaar Print</h1>
+          <div style="font-size: 0.9rem; opacity: 0.95;">Print front &amp; back at 85.5 × 54 mm</div>
+        </div>
+      </div>
+
+      <main class="panel no-print">
+        <div class="setup">
+          <label class="upload-card" id="pdfDrop">
+            <input type="file" id="pdfInput" accept=".pdf,application/pdf" />
+            <span class="upload-label">Upload PDF</span>
+            <span class="upload-hint" id="pdfHint">Drop file or click to browse</span>
+          </label>
+
+          <label class="field">
+            <span>Password</span>
+            <input
+              type="text"
+              id="passwordInput"
+              autocomplete="off"
+              spellcheck="false"
+              maxlength="8"
+              inputmode="text"
+              placeholder="ABCD1990"
+              aria-label="Password: 4 uppercase letters then 4 digits"
+            />
+          </label>
+        </div>
+
+        <div class="toolbar">
+          <div class="options">
+            <label class="toggle">
+              <input type="checkbox" id="cutGuides" checked />
+              <span>Cut guides</span>
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="solidGuides" />
+              <span>Solid guides</span>
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="roundedCorners" />
+              <span>Round corners</span>
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="showBoth" checked />
+              <span>One page</span>
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="sideBySide" checked />
+              <span>Side by side</span>
+            </label>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn ghost" id="clearBtn" disabled>Clear</button>
+            <button type="button" class="btn primary" id="extractBtn" disabled>Extract</button>
+          </div>
+        </div>
+
+        <div class="resolution-bar">
+          <span class="export-label">Resolution</span>
+          <div class="dpi-options" id="dpiOptions" role="group" aria-label="Export resolution">
+            <button type="button" class="dpi-btn" data-dpi="200">200 DPI</button>
+            <button type="button" class="dpi-btn" data-dpi="300">300 DPI</button>
+            <button type="button" class="dpi-btn active" data-dpi="400">400 DPI</button>
+            <button type="button" class="dpi-btn" data-dpi="600">600 DPI</button>
+          </div>
+          <p class="size-preview" id="sizePreview"></p>
+        </div>
+
+        <div class="gap-bar">
+          <span class="export-label">Gap</span>
+          <div class="gap-control">
+            <input type="range" id="cardGapRange" min="0" max="15" step="0.5" value="4" />
+            <span class="gap-input-wrap">
+              <input type="number" id="cardGapInput" class="gap-val" min="0" max="15" step="0.5" value="4" aria-label="Gap between front and back in mm" />
+              <span class="gap-suffix">mm</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="export-bar">
+          <span class="export-label">Export</span>
+          <button type="button" class="btn secondary" id="printBtn" disabled>Print</button>
+          <button type="button" class="btn secondary" id="downloadPdfBtn" disabled>PDF</button>
+          <button type="button" class="btn secondary" id="downloadFrontPngBtn" disabled>Front PNG</button>
+          <button type="button" class="btn secondary" id="downloadBackPngBtn" disabled>Back PNG</button>
+        </div>
+
+        <p class="status" id="status" role="status"></p>
+      </main>
+
+      <section class="preview-wrap no-print" id="previewWrap" hidden>
+        <div class="section-head">
+          <h2>Adjust</h2>
+          <p>Drag to pan · scroll or slider to zoom</p>
+        </div>
+        <section class="adjust-wrap" id="adjustWrap">
+          <div class="adjust-grid" id="adjustGrid"></div>
+        </section>
+
+        <div class="section-head">
+          <h2>Preview</h2>
+        </div>
+        <div class="preview-sheet" id="previewSheet"></div>
+      </section>
+    </div>
+
+    <div class="print-root" id="printRoot" aria-hidden="true"></div>
+    <script src="{{ url_for('static', filename='smart_tools/e_aadhaar/app.js') }}"></script>
+  </body>
+</html>

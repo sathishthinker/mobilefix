@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ user.shop_name if user and user.shop_name else 'Job Sticker' }}</title>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<style>
+@page { size: 60mm 40mm; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f1f5f9;
+  color: #000;
+}
+.toolbar {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 16px 12px 10px;
+}
+.toolbar button {
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font: 700 13px Arial, sans-serif;
+  cursor: pointer;
+  color: #fff;
+}
+.toolbar .print { background: #000; }
+.toolbar .close { background: #64748b; }
+.stage {
+  display: flex;
+  justify-content: center;
+  padding: 4px 12px 28px;
+}
+.sticker {
+  width: 60mm;
+  height: 40mm;
+  background: #fff;
+  padding: 2mm 2.4mm 1.8mm;
+  display: flex;
+  flex-direction: column;
+  color: #000;
+}
+.head {
+  text-align: center;
+  padding-bottom: 1.1mm;
+  border-bottom: 0.4mm solid #000;
+}
+.shop-name {
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.12;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.shop-meta {
+  margin-top: 0.7mm;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.barcode-wrap {
+  flex: 1 1 auto;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20mm;
+  padding: 0.2mm 0;
+}
+#barcode, #barcodePrint {
+  width: 100% !important;
+  height: 22mm !important;
+}
+.details {
+  width: 100%;
+  border-top: 0.4mm solid #000;
+  padding-top: 1mm;
+}
+.row {
+  display: grid;
+  grid-template-columns: 18mm 1fr;
+  gap: 1mm;
+  align-items: baseline;
+  line-height: 1.22;
+}
+.lbl {
+  font-size: 6px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #000;
+  text-align: left;
+}
+.val {
+  font-size: 7.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media print {
+  body { background: #fff; }
+  .toolbar, .stage { display: none !important; }
+  .print-sheet {
+    display: block !important;
+    width: 60mm;
+    height: 40mm;
+  }
+  .print-sheet .sticker { box-shadow: none; }
+}
+</style>
+</head>
+<body>
+{% set shop = (user.shop_name if user else '') or 'My Shop' %}
+{% set phone = (user.phone if user else '') or '' %}
+{% set city = (user.city if user else '') or '' %}
+{% set device = (job.device_model or '') %}
+{% set cust = (job.customer_name or '') %}
+{% set job_no = 'JOB-' ~ job.id %}
+
+<div class="toolbar">
+  <button class="print" type="button" onclick="window.print()">Print sticker</button>
+  <button class="close" type="button" onclick="window.close()">Close</button>
+</div>
+<div class="stage">
+  <div class="sticker" id="preview">
+    <div class="head">
+      <div class="shop-name">{{ shop }}</div>
+      <div class="shop-meta">
+        {%- if phone %}{{ phone }}{% endif -%}
+        {%- if phone and city %}&nbsp;&nbsp;|&nbsp;{% endif -%}
+        {%- if city %}{{ city }}{% endif -%}
+      </div>
+    </div>
+    <div class="barcode-wrap"><svg id="barcode"></svg></div>
+    <div class="details">
+      <div class="row"><div class="lbl">Job ID</div><div class="val">{{ job_no }}</div></div>
+      <div class="row"><div class="lbl">Device</div><div class="val">{{ device or '—' }}</div></div>
+      <div class="row"><div class="lbl">Customer</div><div class="val">{{ cust }}{% if job.customer_phone %} · {{ job.customer_phone }}{% endif %}</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="print-sheet" style="display:none;">
+  <div class="sticker">
+    <div class="head">
+      <div class="shop-name">{{ shop }}</div>
+      <div class="shop-meta">
+        {%- if phone %}{{ phone }}{% endif -%}
+        {%- if phone and city %}&nbsp;&nbsp;|&nbsp;{% endif -%}
+        {%- if city %}{{ city }}{% endif -%}
+      </div>
+    </div>
+    <div class="barcode-wrap"><svg id="barcodePrint"></svg></div>
+    <div class="details">
+      <div class="row"><div class="lbl">Job ID</div><div class="val">{{ job_no }}</div></div>
+      <div class="row"><div class="lbl">Device</div><div class="val">{{ device or '—' }}</div></div>
+      <div class="row"><div class="lbl">Customer</div><div class="val">{{ cust }}{% if job.customer_phone %} · {{ job.customer_phone }}{% endif %}</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function draw(sel) {
+  JsBarcode(sel, {{ job_no|tojson }}, {
+    format: "CODE128",
+    width: 2.15,
+    height: 62,
+    displayValue: true,
+    font: "Arial",
+    fontSize: 11,
+    fontOptions: "bold",
+    textMargin: 2,
+    margin: 0,
+    lineColor: "#000000",
+    background: "#ffffff"
+  });
+}
+draw("#barcode");
+draw("#barcodePrint");
+</script>
+</body>
+</html>

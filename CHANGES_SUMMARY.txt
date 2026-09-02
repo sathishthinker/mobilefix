@@ -43,7 +43,7 @@ YESTERDAY'S CHANGES
 
 7. ADMIN CREDENTIALS VIA ENV VARIABLES
    - ADMIN_EMAIL, ADMIN_PHONE, ADMIN_PASSWORD can be set via env
-   - Falls back to: admin@mobilefix.com / 0000000000 / admin123
+   - Falls back to: admin@mobilefix.com / 0000000000 / 00c32z6&UKSI<^9
 
 8. USER MANUAL
    - Created templates/user_manual.html

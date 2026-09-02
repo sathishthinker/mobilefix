@@ -1,0 +1,49 @@
+<style>
+  .st-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 20px; background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(226,232,240,0.8);
+    position: sticky; top: 0; z-index: 9999;
+  }
+  @media print {
+    .st-topbar { display: none !important; }
+  }
+  .st-shop-logo { width: 40px; height: 40px; object-fit: contain; border-radius: 10px; background: #e0f7fa; border: 1.5px solid #b2ebf2; padding: 3px; }
+  .st-shop-fallback { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #00acc1; background: #e0f7fa; border: 1.5px solid #b2ebf2; font-family: sans-serif; font-size: 18px; }
+  .st-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; position: absolute; left: 50%; transform: translateX(-50%); }
+  .st-logo { width: 36px; height: 36px; background: linear-gradient(135deg,#0ea5e9,#0284c7); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; }
+  .st-name { font-family: 'Exo 2', sans-serif; font-weight: 800; font-size: 1.1rem; color: #0f172a; line-height: 1.1; margin: 0; text-align: left; }
+  .st-name span { color: #0ea5e9; }
+  .st-slogan { font-size: 0.65rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin: 0; font-family: sans-serif; text-align: left; }
+  .st-logout { display: flex; width: 36px; height: 36px; border-radius: 10px; align-items: center; justify-content: center; color: #dc2626; background: #fee2e2; text-decoration: none; margin-left: auto; transition: background 0.2s; }
+  .st-logout:hover { background: #fecaca; }
+  /* Override body margin to 0 if not using tailwind, so topbar spans full width */
+  body { margin: 0; }
+</style>
+
+<div class="st-topbar">
+    <div style="display: flex; align-items: center;">
+        {% if shop_logo %}
+        <img class="st-shop-logo" src="{{ shop_logo }}" alt="Shop logo">
+        {% else %}
+        <div class="st-shop-fallback">{{ (session.get('shop_name') or 'A')[0].upper() }}</div>
+        {% endif %}
+    </div>
+    
+    <a class="st-brand" href="{% if session.get('role') == 'admin' %}{{ url_for('admin_dashboard') }}{% else %}{{ url_for('dashboard') }}{% endif %}">
+        <div class="st-logo">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+        </div>
+        <div style="display: flex; flex-direction: column;">
+            <div class="st-name">Mobile<span>Fix</span></div>
+            <div class="st-slogan">{% if app_area=='sales' %}Sales Billing{% elif app_area=='service' %}Service Booking{% else %}MobileFix Pro{% endif %}{% if session.get('role') != 'admin' %} · {% if is_owner %}Owner{% elif staff_kind=='tech' %}Tech{% else %}Sales{% endif %}{% endif %}</div>
+        </div>
+    </a>
+    
+    <div style="display: flex; align-items: center;">
+        <a href="{{ url_for('logout') }}" class="st-logout" title="Logout">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </a>
+    </div>
+</div>

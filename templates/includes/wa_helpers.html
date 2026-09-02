@@ -1,0 +1,548 @@
+<!-- WhatsApp send modal + multilingual message builders (English / Tamil / Hindi) -->
+<div class="mo" id="globalWaModal" style="z-index:10050;">
+  <div class="mb" style="max-width:440px;">
+    <div class="mt"><i class="fab fa-whatsapp" style="color:#25D366;"></i> Send WhatsApp Message</div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label class="form-label">Message language</label>
+      <div id="waLangRow" style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button type="button" class="wa-lang-chip active" data-wa-lang="en" onclick="setWaLangChip('en')">English</button>
+        <button type="button" class="wa-lang-chip" data-wa-lang="ta" onclick="setWaLangChip('ta')">தமிழ்</button>
+        <button type="button" class="wa-lang-chip" data-wa-lang="hi" onclick="setWaLangChip('hi')">हिंदी</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Customer phone</label>
+      <div style="display:flex;gap:8px;">
+        <span style="padding:10px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px;font-weight:700;color:#64748b;">+91</span>
+        <input type="tel" id="globalWaPhone" class="form-control" maxlength="10" placeholder="10-digit number" oninput="this.value=this.value.replace(/\D/g,'').substring(0,10)">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Message <span style="font-weight:500;color:#94a3b8;">(edit before sending)</span></label>
+      <textarea id="globalWaPreview" class="form-control" rows="8" style="font-size:0.82rem;line-height:1.5;resize:vertical;"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button type="button" onclick="confirmGlobalWA()" style="flex:1;padding:11px;font-size:0.9rem;background:#25D366;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:700;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'"><i class="fab fa-whatsapp"></i> Open WhatsApp</button>
+      <button type="button" id="globalWaPdfBtn" onclick="shareGlobalWaPdf()" style="display:none;background:#ef4444;color:#fff;padding:11px 16px;border-radius:10px;border:none;cursor:pointer;font-weight:700;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'"><i class="fas fa-file-pdf"></i> PDF</button>
+      <button type="button" onclick="closeGlobalWA()" style="padding:11px 18px;border-radius:10px;background:#f1f5f9;color:#0f172a;border:1.5px solid #94a3b8;font-weight:700;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">Cancel</button>
+    </div>
+  </div>
+</div>
+<style>
+.wa-lang-chip{
+  border:1.5px solid #e2e8f0;background:#f8fafc;color:#475569;
+  border-radius:999px;padding:7px 14px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;
+}
+.wa-lang-chip.active{background:#0f766e;color:#fff;border-color:#0f766e;}
+#globalWaModal.mo{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:10050;display:none;overflow-y:auto;backdrop-filter:blur(3px);}
+#globalWaModal.mo.show{display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;}
+#globalWaModal .mb{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:440px;margin:auto;box-shadow:0 24px 60px rgba(0,0,0,0.25);}
+#globalWaModal .mt{font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.05rem;margin-bottom:16px;}
+</style>
+<script>
+(function(){
+  const WA_KEY = 'mfp_wa_lang';
+  let waSpec = null;
+
+  function money(n) { return parseFloat(n || 0).toFixed(2); }
+  function pad4(n) { return String(n).padStart(4, '0'); }
+
+  window.getWaLang = function() {
+    const v = (localStorage.getItem(WA_KEY) || 'en').toLowerCase();
+    return v === 'ta' || v === 'hi' ? v : 'en';
+  };
+  window.setWaLang = function(lang) {
+    localStorage.setItem(WA_KEY, lang === 'ta' || lang === 'hi' ? lang : 'en');
+  };
+
+  window.sanitizeWA = function(msg) {
+    return String(msg || '')
+      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}]/gu, '')
+      .replace(/\uFFFD/g, '')
+      .replace(/[—–]/g, '-')
+      .replace(/[ \t]+\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n');
+  };
+
+  window.openWaUrl = function(phone, msg) {
+    const ph = String(phone || '').replace(/\D/g, '').slice(-10);
+    if (ph.length !== 10) return false;
+    
+    const text = encodeURIComponent(window.sanitizeWA(msg));
+    const waUrl = 'https://wa.me/91' + ph + '?text=' + text;
+    
+    if (/android/i.test(navigator.userAgent)) {
+        const intentUrl = 'intent://send?phone=91' + ph + '&text=' + text + '#Intent;package=com.whatsapp.w4b;scheme=whatsapp;S.browser_fallback_url=' + encodeURIComponent(waUrl) + ';end';
+        window.location.href = intentUrl;
+    } else {
+        window.open(waUrl, '_blank');
+    }
+    return true;
+  };
+
+  // Globally intercept all standard wa.me anchor links to force WA Business on Android
+  document.addEventListener('click', function(e) {
+      const target = e.target.closest('a[href^="https://wa.me/"]');
+      if (target && /android/i.test(navigator.userAgent)) {
+          e.preventDefault();
+          try {
+              const url = new URL(target.href);
+              const ph = url.pathname.replace('/', '');
+              const text = url.searchParams.get('text') || '';
+              const intentUrl = 'intent://send?phone=' + ph + '&text=' + encodeURIComponent(text) + '#Intent;package=com.whatsapp.w4b;scheme=whatsapp;S.browser_fallback_url=' + encodeURIComponent(target.href) + ';end';
+              window.location.href = intentUrl;
+          } catch(err) {
+              window.location.href = target.href; // Fallback
+          }
+      }
+  });
+
+  window.directWA = function(phone, spec) {
+    const msg = typeof spec === 'string' ? spec : window.WaMsg.build(spec.kind, spec.vars, window.getWaLang());
+    return window.openWaUrl(phone, msg);
+  };
+
+  function refreshWaPreview() {
+    const lang = window.getWaLang();
+    document.querySelectorAll('#waLangRow .wa-lang-chip').forEach(function(btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-wa-lang') === lang);
+    });
+    const el = document.getElementById('globalWaPreview');
+    if (!el || !waSpec) return;
+    if (typeof waSpec === 'string') el.value = waSpec;
+    else el.value = window.WaMsg.build(waSpec.kind, waSpec.vars, lang);
+  }
+
+  window.setWaLangChip = function(lang) {
+    window.setWaLang(lang);
+    refreshWaPreview();
+  };
+
+  window.openWA = function(phone, spec) {
+    waSpec = spec;
+    const phEl = document.getElementById('globalWaPhone');
+    if (phEl) phEl.value = String(phone || '').replace(/\D/g, '').slice(-10);
+    refreshWaPreview();
+    
+    const pdfBtn = document.getElementById('globalWaPdfBtn');
+    if (pdfBtn) {
+        if (spec && typeof spec === 'object' && spec.pdfUrl) {
+            pdfBtn.style.display = 'inline-block';
+            pdfBtn.onclick = function() { window.open(spec.pdfUrl, '_blank'); };
+        } else {
+            pdfBtn.style.display = 'none';
+        }
+    }
+    
+    const modal = document.getElementById('globalWaModal');
+    if (modal) modal.classList.add('show');
+  };
+
+  window.closeGlobalWA = function() {
+    const modal = document.getElementById('globalWaModal');
+    if (modal) modal.classList.remove('show');
+    waSpec = null;
+    if (window.waReloadOnClose) { window.waReloadOnClose = false; location.reload(); }
+  };
+
+  window.confirmGlobalWA = function() {
+    const ph = (document.getElementById('globalWaPhone').value || '').trim();
+    const msg = document.getElementById('globalWaPreview').value || '';
+    if (ph.length !== 10) {
+      window.showAlert('Please enter a valid 10-digit number.');
+      return;
+    }
+    window.openWaUrl(ph, msg);
+    window.closeGlobalWA();
+  };
+
+  document.getElementById('globalWaModal')?.addEventListener('click', function(e) {
+    if (e.target === this) window.closeGlobalWA();
+  });
+
+  const T = {
+    job_card: {
+      en: function(v) {
+        let m = '*--- SERVICE JOB CARD ---*\n*' + v.shop + '*\n' + (v.address || '') + '\n\nDear *' + v.name + '*,\nYour device has been received.\n\n';
+        m += '*Job ID:* #' + v.id + '\n*Device:* ' + v.device + '\n';
+        if (v.imei) m += '*IMEI/SN:* ' + v.imei + '\n';
+        m += '*Issue(s):* ' + v.issue + '\n*Received:* ' + v.received + '\n';
+        m += '*Expected Return:* ' + v.expected + '\n*Status:* ' + v.status + '\n';
+        if (v.happy_code) m += '\n*Happy Code:* ' + v.happy_code + ' _(show when collecting device)_\n';
+        m += '\nThank you! - *' + v.shop + '* | ' + (v.phone || '');
+        return m;
+      },
+      ta: function(v) {
+        let m = '*--- சேவை வேலை அட்டை ---*\n*' + v.shop + '*\n' + (v.address || '') + '\n\nஅன்புள்ள *' + v.name + '*,\nஉங்கள் சாதனம் பெறப்பட்டது.\n\n';
+        m += '*வேலை எண்:* #' + v.id + '\n*சாதனம்:* ' + v.device + '\n';
+        if (v.imei) m += '*IMEI/SN:* ' + v.imei + '\n';
+        m += '*பிரச்சனை:* ' + v.issue + '\n*பெற்றது:* ' + v.received + '\n';
+        m += '*எதிர்பார்க்கும் திரும்ப:* ' + v.expected + '\n*நிலை:* ' + v.status + '\n';
+        if (v.happy_code) m += '\n*Happy Code:* ' + v.happy_code + ' _(சாதனம் வாங்கும்போது காட்டவும்)_\n';
+        m += '\nநன்றி! - *' + v.shop + '* | ' + (v.phone || '');
+        return m;
+      },
+      hi: function(v) {
+        let m = '*--- सेवा जॉब कार्ड ---*\n*' + v.shop + '*\n' + (v.address || '') + '\n\nप्रिय *' + v.name + '*,\nआपका डिवाइस प्राप्त हो गया है।\n\n';
+        m += '*जॉब ID:* #' + v.id + '\n*डिवाइस:* ' + v.device + '\n';
+        if (v.imei) m += '*IMEI/SN:* ' + v.imei + '\n';
+        m += '*समस्या:* ' + v.issue + '\n*प्राप्त:* ' + v.received + '\n';
+        m += '*अपेक्षित वापसी:* ' + v.expected + '\n*स्थिति:* ' + v.status + '\n';
+        if (v.happy_code) m += '\n*Happy Code:* ' + v.happy_code + ' _(डिवाइस लेने पर दिखाएं)_\n';
+        m += '\nधन्यवाद! - *' + v.shop + '* | ' + (v.phone || '');
+        return m;
+      }
+    },
+    ready_pickup: {
+      en: function(v) {
+        let m = 'Dear *' + v.name + '*,\n\nYour *' + v.device + '* (Job #' + v.id + ') is *READY FOR PICKUP*\n\n';
+        if (v.happy_code) m += '*Happy Code:* ' + v.happy_code + '\nPlease show this code when collecting your device.\n\n';
+        m += '*' + v.shop + '* | ' + (v.phone || '');
+        return m;
+      },
+      ta: function(v) {
+        let m = 'அன்புள்ள *' + v.name + '*,\n\nஉங்கள் *' + v.device + '* (வேலை #' + v.id + ') *வாங்க தயார்*\n\n';
+        if (v.happy_code) m += '*Happy Code:* ' + v.happy_code + '\nசாதனம் வாங்கும்போது இந்த குறியீட்டை காட்டவும்.\n\n';
+        m += '*' + v.shop + '* | ' + (v.phone || '');
+        return m;
+      },
+      hi: function(v) {
+        let m = 'प्रिय *' + v.name + '*,\n\nआपका *' + v.device + '* (जॉब #' + v.id + ') *लेने के लिए तैयार है*\n\n';
+        if (v.happy_code) m += '*Happy Code:* ' + v.happy_code + '\nडिवाइस लेने पर यह कोड दिखाएं।\n\n';
+        m += '*' + v.shop + '* | ' + (v.phone || '');
+        return m;
+      }
+    },
+    payment_receipt: {
+      en: function(v) {
+        const status = parseFloat(v.balance || 0) < 0.01 ? 'PAID IN FULL' : 'PARTIAL - Balance Due: Rs ' + money(v.balance);
+        let m = '*--- PAYMENT RECEIPT ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nPhone: ' + (v.phone || '') + '\n\n';
+        m += 'Dear *' + v.name + '*,\nWe have received your payment.\n\n';
+        if (v.ref_label) m += '*' + v.ref_label + ':* ' + v.ref_value + '\n';
+        if (v.extra_label && v.extra) m += '*' + v.extra_label + ':* ' + v.extra + '\n';
+        m += '*Date:* ' + (v.date || '') + '\n';
+        m += '*Amount Received:* Rs ' + money(v.amount) + ' via ' + (v.method || 'Cash') + '\n';
+        if (v.bill_total) m += '*Bill Total:* Rs ' + money(v.bill_total) + '\n';
+        m += '*Total Paid:* Rs ' + money(v.total_paid) + '\n*Payment Status:* ' + status + '\n';
+        if (parseFloat(v.balance || 0) >= 0.01 && v.due_date) m += '*Due Date:* ' + v.due_date + '\n';
+        m += '\nThank you!\n*' + v.shop + '*';
+        return m;
+      },
+      ta: function(v) {
+        const status = parseFloat(v.balance || 0) < 0.01 ? 'முழுமையாக செலுத்தப்பட்டது' : 'பகுதி - மீதி: Rs ' + money(v.balance);
+        let m = '*--- பணம் பெற்ற ரசீது ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nதொலைபேசி: ' + (v.phone || '') + '\n\n';
+        m += 'அன்புள்ள *' + v.name + '*,\nஉங்கள் பணம் பெறப்பட்டது.\n\n';
+        if (v.ref_label) m += '*' + v.ref_label + ':* ' + v.ref_value + '\n';
+        if (v.extra_label && v.extra) m += '*' + v.extra_label + ':* ' + v.extra + '\n';
+        m += '*தேதி:* ' + (v.date || '') + '\n';
+        m += '*பெற்ற தொகை:* Rs ' + money(v.amount) + ' - ' + (v.method || 'Cash') + '\n';
+        if (v.bill_total) m += '*மொத்தம்:* Rs ' + money(v.bill_total) + '\n';
+        m += '*மொத்த செலுத்தியது:* Rs ' + money(v.total_paid) + '\n*நிலை:* ' + status + '\n';
+        if (parseFloat(v.balance || 0) >= 0.01 && v.due_date) m += '*கடைசி தேதி:* ' + v.due_date + '\n';
+        m += '\nநன்றி!\n*' + v.shop + '*';
+        return m;
+      },
+      hi: function(v) {
+        const status = parseFloat(v.balance || 0) < 0.01 ? 'पूर्ण भुगतान' : 'आंशिक - बकाया: Rs ' + money(v.balance);
+        let m = '*--- भुगतान रसीद ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nफोन: ' + (v.phone || '') + '\n\n';
+        m += 'प्रिय *' + v.name + '*,\nआपका भुगतान प्राप्त हो गया।\n\n';
+        if (v.ref_label) m += '*' + v.ref_label + ':* ' + v.ref_value + '\n';
+        if (v.extra_label && v.extra) m += '*' + v.extra_label + ':* ' + v.extra + '\n';
+        m += '*तारीख:* ' + (v.date || '') + '\n';
+        m += '*प्राप्त राशि:* Rs ' + money(v.amount) + ' - ' + (v.method || 'Cash') + '\n';
+        if (v.bill_total) m += '*कुल राशि:* Rs ' + money(v.bill_total) + '\n';
+        m += '*कुल भुगतान:* Rs ' + money(v.total_paid) + '\n*स्थिति:* ' + status + '\n';
+        if (parseFloat(v.balance || 0) >= 0.01 && v.due_date) m += '*देय तिथि:* ' + v.due_date + '\n';
+        m += '\nधन्यवाद!\n*' + v.shop + '*';
+        return m;
+      }
+    },
+    advance_receipt: {
+      en: function(v) {
+        let m = '*--- ADVANCE RECEIPT ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nPhone: ' + (v.phone || '') + '\n\n';
+        m += 'Dear *' + v.name + '*,\nWe have received your advance payment for Job #' + v.id + '.\n\n';
+        m += '*Device:* ' + v.device + '\n';
+        m += '*Estimated Total:* Rs ' + money(v.cost) + '\n';
+        m += '*Advance Received:* Rs ' + money(v.amount) + ' via ' + (v.method || 'Cash') + '\n';
+        m += '*Remaining Due:* Rs ' + money((v.cost || 0) - (v.amount || 0)) + '\n\n';
+        m += 'Thank you!\n*' + v.shop + '*';
+        return m;
+      },
+      ta: function(v) {
+        let m = '*--- முன்பண ரசீது ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nதொலைபேசி: ' + (v.phone || '') + '\n\n';
+        m += 'அன்புள்ள *' + v.name + '*,\nஉங்கள் வேலை #' + v.id + ' க்கான முன்பணம் பெறப்பட்டது.\n\n';
+        m += '*சாதனம்:* ' + v.device + '\n';
+        m += '*மொத்த மதிப்பீடு:* Rs ' + money(v.cost) + '\n';
+        m += '*முன்பணம் பெறப்பட்டது:* Rs ' + money(v.amount) + ' - ' + (v.method || 'Cash') + '\n';
+        m += '*மீதி:* Rs ' + money((v.cost || 0) - (v.amount || 0)) + '\n\n';
+        m += 'நன்றி!\n*' + v.shop + '*';
+        return m;
+      },
+      hi: function(v) {
+        let m = '*--- अग्रिम रसीद ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nफोन: ' + (v.phone || '') + '\n\n';
+        m += 'प्रिय *' + v.name + '*,\nहमें जॉब #' + v.id + ' के लिए आपका अग्रिम भुगतान प्राप्त हो गया है।\n\n';
+        m += '*डिवाइस:* ' + v.device + '\n';
+        m += '*अनुमानित कुल:* Rs ' + money(v.cost) + '\n';
+        m += '*प्राप्त अग्रिम:* Rs ' + money(v.amount) + ' - ' + (v.method || 'Cash') + '\n';
+        m += '*शेष:* Rs ' + money((v.cost || 0) - (v.amount || 0)) + '\n\n';
+        m += 'धन्यवाद!\n*' + v.shop + '*';
+        return m;
+      }
+    },
+    service_invoice: {
+      en: function(v) {
+        let m = '*--- INVOICE ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nPhone: ' + (v.phone || '') + '\n\n';
+        m += 'Dear *' + v.name + '*,\nHere is the invoice for your *' + v.device + '*.\n\n';
+        m += '*Job ID:* #' + v.id + '\n*Date:* ' + (v.date || '') + '\n\n';
+        if (v.items_lines) m += v.items_lines;
+        const credit = parseFloat(v.credit || 0);
+        const status = credit > 0.01 ? 'PARTIAL - Balance Due: Rs ' + money(credit) : 'PAID IN FULL';
+        if (v.amt_paid > 0) m += '*Amount Received:* Rs ' + money(v.amt_paid) + '\n';
+        m += '*Total Paid:* Rs ' + money(v.total_paid) + '\n*Payment Status:* ' + status + '\n\nThank you for your business!\n';
+        if (v.review) m += '\nWe value your feedback:\n' + v.review;
+        return m;
+      },
+      ta: function(v) {
+        let m = '*--- இன்வாய்ஸ் ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nதொலைபேசி: ' + (v.phone || '') + '\n\n';
+        m += 'அன்புள்ள *' + v.name + '*,\nஉங்கள் *' + v.device + '* இன்வாய்ஸ்.\n\n';
+        m += '*வேலை எண்:* #' + v.id + '\n*தேதி:* ' + (v.date || '') + '\n\n';
+        if (v.items_lines) m += v.items_lines;
+        const credit = parseFloat(v.credit || 0);
+        const status = credit > 0.01 ? 'பகுதி - மீதி: Rs ' + money(credit) : 'முழுமையாக செலுத்தப்பட்டது';
+        if (v.amt_paid > 0) m += '*பெற்ற தொகை:* Rs ' + money(v.amt_paid) + '\n';
+        m += '*மொத்த செலுத்தியது:* Rs ' + money(v.total_paid) + '\n*நிலை:* ' + status + '\n\nவணக்கம்!\n';
+        if (v.review) m += '\nஉங்கள் கருத்து:\n' + v.review;
+        return m;
+      },
+      hi: function(v) {
+        let m = '*--- इनवॉइस ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nफोन: ' + (v.phone || '') + '\n\n';
+        m += 'प्रिय *' + v.name + '*,\nआपके *' + v.device + '* का इनवॉइस।\n\n';
+        m += '*जॉब ID:* #' + v.id + '\n*तारीख:* ' + (v.date || '') + '\n\n';
+        if (v.items_lines) m += v.items_lines;
+        const credit = parseFloat(v.credit || 0);
+        const status = credit > 0.01 ? 'आंशिक - बकाया: Rs ' + money(credit) : 'पूर्ण भुगतान';
+        if (v.amt_paid > 0) m += '*प्राप्त राशि:* Rs ' + money(v.amt_paid) + '\n';
+        m += '*कुल भुगतान:* Rs ' + money(v.total_paid) + '\n*स्थिति:* ' + status + '\n\nधन्यवाद!\n';
+        if (v.review) m += '\nआपकी प्रतिक्रिया:\n' + v.review;
+        return m;
+      }
+    },
+    invoice: {
+      en: function(v) {
+        let m = '*--- INVOICE ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nPhone: ' + (v.phone || '') + '\n\n';
+        m += 'Dear *' + v.name + '*,\nHere is your invoice.\n\n';
+        m += '*Invoice:* INV-' + pad4(v.inv_id) + '\n*Date:* ' + (v.date || '') + '\n\n';
+        if (v.items_lines) m += v.items_lines;
+        m += '*Total Paid:* Rs ' + money(v.total_paid) + '\n*Payment Status:* ' + (v.status_txt || '') + '\n\nThank you for your business!\n';
+        if (v.review) m += '\nWe value your feedback:\n' + v.review;
+        return m;
+      },
+      ta: function(v) {
+        let m = '*--- இன்வாய்ஸ் ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nதொலைபேசி: ' + (v.phone || '') + '\n\n';
+        m += 'அன்புள்ள *' + v.name + '*,\nஉங்கள் இன்வாய்ஸ்.\n\n';
+        m += '*இன்வாய்ஸ்:* INV-' + pad4(v.inv_id) + '\n*தேதி:* ' + (v.date || '') + '\n\n';
+        if (v.items_lines) m += v.items_lines;
+        m += '*மொத்த செலுத்தியது:* Rs ' + money(v.total_paid) + '\n*நிலை:* ' + (v.status_txt || '') + '\n\nவணக்கம்!\n';
+        if (v.review) m += '\nஉங்கள் கருத்து:\n' + v.review;
+        return m;
+      },
+      hi: function(v) {
+        let m = '*--- इनवॉइस ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nफोन: ' + (v.phone || '') + '\n\n';
+        m += 'प्रिय *' + v.name + '*,\nआपका इनवॉइस।\n\n';
+        m += '*इनवॉइस:* INV-' + pad4(v.inv_id) + '\n*तारीख:* ' + (v.date || '') + '\n\n';
+        if (v.items_lines) m += v.items_lines;
+        m += '*कुल भुगतान:* Rs ' + money(v.total_paid) + '\n*स्थिति:* ' + (v.status_txt || '') + '\n\nधन्यवाद!\n';
+        if (v.review) m += '\nआपकी प्रतिक्रिया:\n' + v.review;
+        return m;
+      }
+    },
+    sale_bill: {
+      en: function(v) {
+        let m = '*--- SALES BILL ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nPhone: ' + (v.phone || '') + '\n\n';
+        m += 'Dear *' + v.name + '*,\nHere is your bill.\n\n';
+        m += '*Bill:* SAL-' + pad4(v.bill_no) + '\n*Date:* ' + (v.date || '') + '\n';
+        if (v.pay_line) m += v.pay_line + '\n';
+        if (v.items_lines) m += '\n' + v.items_lines;
+        m += '\n*Total:* Rs ' + money(v.total) + '\n*Paid:* Rs ' + money(v.paid) + '\n';
+        if (parseFloat(v.due || 0) > 0.01) {
+          m += '*Credit due:* Rs ' + money(v.due);
+          if (v.due_date) m += '\n*Due date:* ' + v.due_date;
+          m += '\n';
+        }
+        m += '\nThank you for your business!\n*' + v.shop + '*';
+        if (v.review) m += '\n\nWe value your feedback:\n' + v.review;
+        return m;
+      },
+      ta: function(v) {
+        let m = '*--- விற்பனை பில் ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nதொலைபேசி: ' + (v.phone || '') + '\n\n';
+        m += 'அன்புள்ள *' + v.name + '*,\nஉங்கள் பில்.\n\n';
+        m += '*பில்:* SAL-' + pad4(v.bill_no) + '\n*தேதி:* ' + (v.date || '') + '\n';
+        if (v.pay_line) m += v.pay_line + '\n';
+        if (v.items_lines) m += '\n' + v.items_lines;
+        m += '\n*மொத்தம்:* Rs ' + money(v.total) + '\n*செலுத்தியது:* Rs ' + money(v.paid) + '\n';
+        if (parseFloat(v.due || 0) > 0.01) {
+          m += '*கடன் மீதி:* Rs ' + money(v.due);
+          if (v.due_date) m += '\n*கடைசி தேதி:* ' + v.due_date;
+          m += '\n';
+        }
+        m += '\nவணக்கம்!\n*' + v.shop + '*';
+        if (v.review) m += '\n\nஉங்கள் கருத்து:\n' + v.review;
+        return m;
+      },
+      hi: function(v) {
+        let m = '*--- बिक्री बिल ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nफोन: ' + (v.phone || '') + '\n\n';
+        m += 'प्रिय *' + v.name + '*,\nआपका बिल।\n\n';
+        m += '*बिल:* SAL-' + pad4(v.bill_no) + '\n*तारीख:* ' + (v.date || '') + '\n';
+        if (v.pay_line) m += v.pay_line + '\n';
+        if (v.items_lines) m += '\n' + v.items_lines;
+        m += '\n*कुल:* Rs ' + money(v.total) + '\n*भुगतान:* Rs ' + money(v.paid) + '\n';
+        if (parseFloat(v.due || 0) > 0.01) {
+          m += '*बकाया:* Rs ' + money(v.due);
+          if (v.due_date) m += '\n*देय तिथि:* ' + v.due_date;
+          m += '\n';
+        }
+        m += '\nधन्यवाद!\n*' + v.shop + '*';
+        if (v.review) m += '\n\nआपकी प्रतिक्रिया:\n' + v.review;
+        return m;
+      }
+    },
+    payment_reminder: {
+      en: function(v) {
+        let m = 'Dear ' + v.name + ', this is a friendly reminder that you have an outstanding balance of Rs ' + money(v.amount);
+        m += v.ref_text ? ' for ' + v.ref_text : '';
+        if (v.due_date) m += '. Due date: ' + v.due_date + '.';
+        else m += '.';
+        m += ' Please settle it at your earliest convenience.\n\n' + v.shop + '\n' + (v.phone || '');
+        if (v.address) m += '\n' + v.address;
+        m += '\n\nThank you!';
+        return m;
+      },
+      ta: function(v) {
+        let m = 'அன்புள்ள ' + v.name + ', Rs ' + money(v.amount) + ' மீதி தொகை உள்ளது';
+        m += v.ref_text ? ' - ' + v.ref_text : '';
+        if (v.due_date) m += '. கடைசி தேதி: ' + v.due_date + '.';
+        else m += '.';
+        m += ' விரைவில் செலுத்தவும்.\n\n' + v.shop + '\n' + (v.phone || '');
+        if (v.address) m += '\n' + v.address;
+        m += '\n\nநன்றி!';
+        return m;
+      },
+      hi: function(v) {
+        let m = 'प्रिय ' + v.name + ', Rs ' + money(v.amount) + ' की बकाया राशि है';
+        m += v.ref_text ? ' - ' + v.ref_text : '';
+        if (v.due_date) m += '. देय तिथि: ' + v.due_date + '.';
+        else m += '.';
+        m += ' कृपया शीघ्र भुगतान करें।\n\n' + v.shop + '\n' + (v.phone || '');
+        if (v.address) m += '\n' + v.address;
+        m += '\n\nधन्यवाद!';
+        return m;
+      }
+    },
+    cancel_job: {
+      en: function(v) {
+        let m = 'Dear ' + v.name + ',\n\nYour service request for the ' + v.device + ' (Job ID: ' + v.id + ') has been CANCELLED.\n\n';
+        m += 'Net Advance Paid: Rs ' + money(v.adv) + '\nRefund Processed: Rs ' + money(v.refund) + ' via ' + (v.method || 'Cash') + '.';
+        if (v.upi_note) m += '\n\nIf payment was UPI/Bank, please allow 2-3 business days for credit.';
+        m += '\n\nWe apologize for any inconvenience.\n\nRegards,\n' + v.shop;
+        return m;
+      },
+      ta: function(v) {
+        let m = 'அன்புள்ள ' + v.name + ',\n\nஉங்கள் ' + v.device + ' சேவை (வேலை #' + v.id + ') ரத்து செய்யப்பட்டது.\n\n';
+        m += 'முன்பணம்: Rs ' + money(v.adv) + '\nதிரும்பப் பெற்றது: Rs ' + money(v.refund) + ' - ' + (v.method || 'Cash') + '.';
+        if (v.upi_note) m += '\n\nUPI/Bank திரும்பப் பெற 2-3 வணிக நாட்கள் ஆகலாம்.';
+        m += '\n\nமன்னிக்கவும்.\n\n' + v.shop;
+        return m;
+      },
+      hi: function(v) {
+        let m = 'प्रिय ' + v.name + ',\n\nआपकी ' + v.device + ' सेवा (जॉब #' + v.id + ') रद्द कर दी गई है।\n\n';
+        m += 'अग्रिम भुगतान: Rs ' + money(v.adv) + '\nरिफंड: Rs ' + money(v.refund) + ' - ' + (v.method || 'Cash') + '.';
+        if (v.upi_note) m += '\n\nUPI/Bank रिफंड में 2-3 कार्य दिवस लग सकते हैं।';
+        m += '\n\nक्षमा करें।\n\n' + v.shop;
+        return m;
+      }
+    },
+    sale_refund: {
+      en: function(v) {
+        let m = '*--- REFUND RECEIPT ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nPhone: ' + (v.phone || '') + '\n\n';
+        m += 'Dear *' + v.name + '*,\nYour sale has been returned.\n\n';
+        m += '*Bill:* SAL-' + pad4(v.bill_no) + '\n*Reason:* ' + (v.reason || '') + '\n';
+        m += '*Refund:* Rs ' + money(v.refund) + ' via ' + (v.method || 'Cash') + '\n';
+        if (v.upi_note) m += '\nUPI/Bank refunds may take 2-3 business days.\n';
+        m += '\nStock has been taken back.\n*' + v.shop + '*';
+        return m;
+      },
+      ta: function(v) {
+        let m = '*--- திரும்பப் பெற ரசீது ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nதொலைபேசி: ' + (v.phone || '') + '\n\n';
+        m += 'அன்புள்ள *' + v.name + '*,\nவிற்பனை திரும்பப் பெறப்பட்டது.\n\n';
+        m += '*பில்:* SAL-' + pad4(v.bill_no) + '\n*காரணம்:* ' + (v.reason || '') + '\n';
+        m += '*திரும்பப் பெற:* Rs ' + money(v.refund) + ' - ' + (v.method || 'Cash') + '\n';
+        if (v.upi_note) m += '\nUPI/Bank திரும்பப் பெற 2-3 வணிக நாட்கள் ஆகலாம்.\n';
+        m += '\nபொருள் திரும்பப் பெறப்பட்டது.\n*' + v.shop + '*';
+        return m;
+      },
+      hi: function(v) {
+        let m = '*--- रिफंड रसीद ---*\n*' + v.shop + '*\n' + (v.address || '') + '\nफोन: ' + (v.phone || '') + '\n\n';
+        m += 'प्रिय *' + v.name + '*,\nबिक्री वापस ली गई।\n\n';
+        m += '*बिल:* SAL-' + pad4(v.bill_no) + '\n*कारण:* ' + (v.reason || '') + '\n';
+        m += '*रिफंड:* Rs ' + money(v.refund) + ' - ' + (v.method || 'Cash') + '\n';
+        if (v.upi_note) m += '\nUPI/Bank रिफंड में 2-3 कार्य दिवस लग सकते हैं।\n';
+        m += '\nस्टॉक वापस लिया गया।\n*' + v.shop + '*';
+        return m;
+      }
+    },
+    invoice_link: {
+      en: function(v) {
+        let m = '*--- INVOICE ---*\n*' + v.shop + '*\n' + (v.address || '') + ' | ' + (v.phone || '') + '\n\n';
+        m += 'Dear *' + v.name + '*,\nThank you for choosing us!\n\nView your invoice: ' + (v.link || '');
+        if (v.review) m += '\n\n*Happy with the service? Leave us a review:*\n' + v.review;
+        return m;
+      },
+      ta: function(v) {
+        let m = '*--- இன்வாய்ஸ் ---*\n*' + v.shop + '*\n' + (v.address || '') + ' | ' + (v.phone || '') + '\n\n';
+        m += 'அன்புள்ள *' + v.name + '*,\nஎங்களை தேர்ந்தெடுத்ததற்கு நன்றி!\n\nஇன்வாய்ஸ்: ' + (v.link || '');
+        if (v.review) m += '\n\n*சேவை பிடித்திருந்தால் மதிப்பீடு:*\n' + v.review;
+        return m;
+      },
+      hi: function(v) {
+        let m = '*--- इनवॉइस ---*\n*' + v.shop + '*\n' + (v.address || '') + ' | ' + (v.phone || '') + '\n\n';
+        m += 'प्रिय *' + v.name + '*,\nहमें चुनने के लिए धन्यवाद!\n\nइनवॉइस: ' + (v.link || '');
+        if (v.review) m += '\n\n*सेवा अच्छी लगी? समीक्षा दें:*\n' + v.review;
+        return m;
+      }
+    },
+    repair_general: {
+      en: function(v) { return 'Hello ' + v.name + ', regarding your repair at ' + (v.shop || 'our shop') + '.'; },
+      ta: function(v) { return 'வணக்கம் ' + v.name + ', ' + (v.shop || 'எங்கள் கடை') + ' பழுது பார்த்தல் தொடர்பாக.'; },
+      hi: function(v) { return 'नमस्ते ' + v.name + ', ' + (v.shop || 'हमारी दुकान') + ' में मरम्मत के संबंध में।'; }
+    },
+    sale_general: {
+      en: function(v) { return 'Hello ' + v.name + ', regarding your purchase at ' + (v.shop || 'our shop') + '.'; },
+      ta: function(v) { return 'வணக்கம் ' + v.name + ', ' + (v.shop || 'எங்கள் கடை') + ' வாங்கியது தொடர்பாக.'; },
+      hi: function(v) { return 'नमस्ते ' + v.name + ', ' + (v.shop || 'हमारी दुकान') + ' में खरीद के संबंध में।'; }
+    }
+  };
+
+  window.WaMsg = {
+    build: function(kind, vars, lang) {
+      lang = lang || window.getWaLang();
+      const block = T[kind];
+      if (!block) return '';
+      const fn = block[lang] || block.en;
+      return fn ? fn(vars || {}) : '';
+    },
+    itemsBlock: function(items, lang) {
+      if (!items || !items.length) return '';
+      const hdr = lang === 'ta' ? '*பணிகள்/பாகங்கள்:*\n' : (lang === 'hi' ? '*सेवा/पार्ट्स:*\n' : '*Services/Parts:*\n');
+      let m = hdr;
+      items.forEach(function(i) {
+        const qty = i.qty || 1;
+        const price = parseFloat(i.price || 0);
+        const desc = i.desc || i.name || '';
+        m += '- ' + qty + ' x ' + desc + ' @ Rs ' + price.toFixed(2) + ' = Rs ' + (qty * price).toFixed(2) + '\n';
+      });
+      m += '\n-----------------------------------\n';
+      return m;
+    }
+  };
+})();
+</script>

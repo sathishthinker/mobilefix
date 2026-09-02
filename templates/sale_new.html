@@ -1,0 +1,749 @@
+{% extends 'base.html' %}
+{% block title %}New Sale{% endblock %}
+{% block page_title %}New Sale{% endblock %}
+{% block extra_head %}
+<style>
+html,body{max-width:100vw;overflow-x:hidden;width:100%;}
+.main{min-width:0;}.content{min-width:0;overflow-x:hidden;}
+.card{max-width:100%;}
+.page-header{
+  text-align:center;
+  flex-direction:column;
+  max-width:560px;
+  margin-left:auto;
+  margin-right:auto;
+  width:100%;
+}
+.page-header .btn{width:100%;justify-content:center;}
+.pos-layout{
+  display:grid;
+  grid-template-columns:1fr;
+  max-width:560px;
+  width:100%;
+  margin:0 auto;
+  gap:14px;
+  align-items:start;
+}
+.pos-layout .card{width:100%;margin:0;overflow:hidden;}
+.pos-card-cust{border:1.5px solid #a5f3fc;box-shadow:0 8px 24px rgba(6,182,212,.12);}
+.pos-card-pay{border:1.5px solid #bbf7d0;box-shadow:0 8px 24px rgba(22,163,74,.12);}
+.pos-sec{
+  display:flex;align-items:center;gap:8px;
+  font-size:.78rem;font-weight:800;letter-spacing:.4px;text-transform:uppercase;
+  margin-bottom:12px;padding:8px 10px;border-radius:10px;
+}
+.pos-sec i{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:.85rem;}
+.pos-cust-box{
+  border:1.5px solid #ddd6fe;border-radius:16px;padding:14px 14px 12px;background:#fff;margin-bottom:16px;
+}
+.pos-sec-cust{background:transparent;color:#0f172a;padding:0 0 10px;margin-bottom:12px;border-bottom:1px solid #e9d5ff;border-radius:0;}
+.pos-sec-cust i{background:transparent;color:#06b6d4;width:auto;height:auto;font-size:1rem;}
+.pos-cust{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:0;}
+.pos-cust .form-label{color:#334155;font-size:.78rem;font-weight:800;}
+.pos-cust .req{color:#ef4444;font-weight:800;}
+.pos-cust .form-control{border:1.5px solid #c4b5fd;border-radius:10px;}
+.pos-cust .form-control:focus{border-color:#a78bfa;box-shadow:0 0 0 3px rgba(167,139,250,.2);}
+.pos-cust-hint{display:flex;align-items:center;gap:5px;margin-top:6px;font-size:.7rem;font-weight:600;color:#94a3b8;}
+.pos-cust-hint i{color:#94a3b8;font-size:.72rem;}
+.pos-sec-item{background:#f5f3ff;color:#6d28d9;}
+.pos-sec-item i{background:#7c3aed;}
+.pos-sec-pay{background:#ecfdf5;color:#047857;}
+.pos-sec-pay i{background:#16a34a;}
+.pos-item-label{color:#6d28d9;}
+.pos-scan{
+  background:linear-gradient(135deg,#7c3aed,#a78bfa)!important;
+  color:#fff!important;border:none!important;
+  white-space:nowrap;padding:0 14px!important;font-weight:800;
+}
+.pos-scan:hover{filter:brightness(1.05);border:none!important;color:#fff!important;}
+.suggest{position:relative;}
+.suggest-list{position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid #e2e8f0;border-radius:10px;z-index:20;max-height:220px;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.12);display:none;}
+.suggest-list button{display:block;width:100%;text-align:left;padding:10px 12px;border:none;background:#fff;cursor:pointer;font-family:inherit;word-break:break-word;}
+.suggest-list button:hover{background:#e0f7fa;}
+.pos-empty{text-align:center;color:#7c3aed;background:#f5f3ff;border:1.5px dashed #c4b5fd;border-radius:12px;padding:18px 12px;font-weight:700;font-size:.82rem;}
+.pay-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.pay-method-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 6px;border-radius:10px;border:2px solid #e2e8f0;background:white;cursor:pointer;font-size:0.85rem;font-weight:700;color:#475569;min-width:0;font-family:inherit;}
+.pay-method-btn i{font-size:1.15rem;line-height:1;}
+.pay-method-btn[data-pay="Cash"]{background:#f0fdf4;border-color:#86efac;color:#15803d;}
+.pay-method-btn[data-pay="Cash"].active{background:#16a34a;border-color:#16a34a;color:#fff;}
+.pay-method-btn[data-pay="UPI"]{background:#f5f3ff;border-color:#c4b5fd;color:#6d28d9;}
+.pay-method-btn[data-pay="UPI"].active{background:#7c3aed;border-color:#7c3aed;color:#fff;}
+.pay-method-btn[data-pay="Card"]{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8;}
+.pay-method-btn[data-pay="Card"].active{background:#2563eb;border-color:#2563eb;color:#fff;}
+.pay-method-btn[data-pay="Bank"]{background:#fff7ed;border-color:#fdba74;color:#c2410c;}
+.pay-method-btn[data-pay="Bank"].active{background:#ea580c;border-color:#ea580c;color:#fff;}
+.pay-method-btn[data-pay="Credit"]{background:#fff1f2;border-color:#fda4af;color:#be123c;}
+.pay-method-btn[data-pay="Credit"].active{background:#e11d48;border-color:#e11d48;color:#fff;}
+.qty-btn{width:36px;height:36px;border-radius:8px;border:none;background:#7c3aed;color:#fff;font-weight:800;cursor:pointer;flex-shrink:0;}
+.pos-lines{display:flex;flex-direction:column;gap:10px;}
+.pos-k{display:block;margin-bottom:4px;font-size:.68rem;font-weight:800;color:#94a3b8;text-transform:uppercase;}
+.pos-line{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) 36px;
+  grid-template-areas:
+    "name name rm"
+    "stock price rm"
+    "qty amt amt";
+  gap:10px 8px;
+  align-items:center;
+  background:linear-gradient(180deg,#f5f3ff,#ecfeff);
+  border:1.5px solid #c4b5fd;border-radius:12px;padding:10px 12px;
+  width:100%;max-width:100%;box-sizing:border-box;
+}
+.pos-line-hsn{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.pos-line-hsn .pos-k{margin:0;}
+.pos-line-name{grid-area:name;min-width:0;}
+.pos-line-name strong{display:block;word-break:break-word;line-height:1.25;color:#5b21b6;}
+.pos-line-name .sku{font-size:.72rem;color:#7c3aed;}
+.pos-line-rm{grid-area:rm;align-self:start;}
+.pos-line-stock{grid-area:stock;min-width:0;font-size:.85rem;color:#0f766e;}
+.pos-line-price{grid-area:price;min-width:0;}
+.pos-line-qty{grid-area:qty;min-width:0;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.pos-line-amt{
+  grid-area:amt;align-self:end;justify-self:stretch;
+  display:flex;flex-direction:column;align-items:flex-end;
+  min-width:0;white-space:normal;text-align:right;font-weight:800;
+  background:linear-gradient(135deg,#06b6d4,#22c55e);border-radius:10px;padding:8px 10px;
+}
+.pos-line-amt .pos-k{color:rgba(255,255,255,.85);}
+.pos-line-amt strong{font-size:1rem;color:#fff;word-break:break-word;}
+.pos-price{width:100%;min-width:0;padding:8px 10px;font-size:.9rem;background:#eef2ff;color:#4338ca;pointer-events:none;cursor:default;}
+.pos-sub{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;background:#eff6ff;border:1.5px solid #93c5fd;border-radius:10px;padding:10px 12px;color:#1d4ed8;font-weight:700;}
+.pos-total{
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:'Exo 2',sans-serif;font-size:1.25rem;font-weight:900;margin:12px 0;
+  background:linear-gradient(135deg,#0891b2,#7c3aed);color:#fff;border-radius:12px;padding:12px 14px;
+}
+.pos-total #totEl{color:#fff;}
+.pos-loy{background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1.5px solid #f59e0b;border-radius:12px;padding:12px;margin-bottom:12px;}
+.pos-use300{height:42px;background:#f59e0b!important;color:#fff!important;border:none!important;font-weight:800;}
+.pos-use300:hover{background:#d97706!important;color:#fff!important;border:none!important;}
+.pos-confirm{
+  width:100%;justify-content:center;
+  background:linear-gradient(135deg,#16a34a,#06b6d4)!important;
+  box-shadow:0 8px 20px rgba(22,163,74,.28)!important;
+  font-weight:800;padding:14px!important;font-size:1rem;
+}
+@media (max-width: 768px) {
+  html,body,.main,.content{overflow-x:hidden;max-width:100vw;}
+  .main{margin-left:0;width:100vw;}
+  .content{padding:16px 16px 108px;width:100%;box-sizing:border-box;}
+  .page-header,.pos-layout{max-width:420px;}
+  .pay-row{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;}
+  .pay-method-btn{padding:8px 2px;font-size:.62rem;border-radius:12px;}
+  .pay-method-btn i{font-size:1.2rem;}
+  .pos-cust-box{padding:12px;}
+  .pos-cust{gap:10px;}
+  .pos-cust .form-label{font-size:.72rem;}
+  .pos-cust-hint{font-size:.65rem;}
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">New Sale</div>
+    <div class="page-subtitle">Stock Reduces When You Confirm The Sale</div>
+  </div>
+  <a href="{{ url_for('sales_hub') }}" class="btn btn-outline">Bills</a>
+</div>
+<div class="pos-layout">
+  <div class="card pos-card-cust">
+    <div class="card-body">
+      <div class="pos-cust-box">
+      <div class="pos-sec pos-sec-cust"><i class="fas fa-user"></i> Customer Details</div>
+      <div class="pos-cust">
+        <div class="form-group suggest">
+          <label class="form-label">Customer Phone <span class="req">*</span></label>
+          <input class="form-control" id="custPhone" maxlength="10" inputmode="numeric" placeholder="9876543210"
+                 value="{{ prefill_phone or '' }}"
+                 autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
+          <div class="suggest-list" id="custSuggest"></div>
+          <div class="pos-cust-hint"><i class="fas fa-info-circle"></i> Numbers only · max 10 digits</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Customer Name <span class="req">*</span></label>
+          <input class="form-control" id="custName" placeholder="FULL NAME" style="text-transform:uppercase"
+                 value="{{ prefill_name or '' }}"
+                 autocomplete="off" readonly>
+        </div>
+      </div>
+      <div id="custLoyLine" class="pos-cust-loy" style="display:none;margin-top:10px;padding:8px 10px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;font-size:.8rem;font-weight:700;color:#92400e;"></div>
+      </div>
+      <div class="pos-sec pos-sec-item"><i class="fas fa-box"></i> Add Item</div>
+      <div class="form-group suggest">
+        <div style="display:flex;gap:8px;align-items:stretch;">
+          <input class="form-control" id="itemSearch" placeholder="Search Inventory Or Scan Serial"
+                 autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" style="flex:1;">
+          <button type="button" class="btn pos-scan" onclick="scanSaleSerial()" title="Scan serial number"><i class="fas fa-barcode"></i> Scan</button>
+        </div>
+        <div class="suggest-list" id="itemSuggest"></div>
+        <div id="saleScanHint" style="font-size:.75rem;font-weight:700;color:#0f766e;margin-top:6px;display:none;"></div>
+      </div>
+      <div id="linesBody" class="pos-lines"></div>
+      <p id="emptyLines" class="pos-empty">Search And Add Items From Inventory.</p>
+    </div>
+  </div>
+  <div class="card pos-card-pay">
+    <div class="card-body">
+      <div class="pos-sec pos-sec-pay"><i class="fas fa-wallet"></i> Payment</div>
+      <div class="pos-sub"><span>Subtotal</span><strong id="subEl">₹0.00</strong></div>
+      <!-- GST Toggle -->
+      <div id="gstToggleBox" style="background:#f0fdf4;border:1.5px solid #6ee7b7;border-radius:12px;padding:12px 14px;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:.85rem;font-weight:800;color:#047857;"><i class="fas fa-file-invoice-dollar"></i> GST Invoice</div>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <div id="gstToggleTrack" style="width:44px;height:24px;border-radius:999px;background:#d1fae5;border:1.5px solid #6ee7b7;position:relative;transition:background .2s;cursor:pointer;" onclick="toggleGST()">
+              <div id="gstToggleThumb" style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#10b981;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.2);"></div>
+            </div>
+            <span id="gstToggleLabel" style="font-size:.8rem;font-weight:700;color:#047857;">Off</span>
+          </label>
+        </div>
+        <div id="gstFields" style="display:none;margin-top:12px;">
+          <!-- Tax Mode Toggle -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <span style="font-size:.78rem;font-weight:700;color:#047857;">Tax Mode</span>
+            <div style="display:flex;gap:0;border-radius:8px;overflow:hidden;border:1.5px solid #6ee7b7;">
+              <button type="button" id="taxModeIncl" onclick="setTaxMode('incl')" style="padding:5px 16px;font-size:.78rem;font-weight:800;border:none;cursor:pointer;background:#10b981;color:#fff;font-family:inherit;">Incl. Tax</button>
+              <button type="button" id="taxModeExcl" onclick="setTaxMode('excl')" style="padding:5px 16px;font-size:.78rem;font-weight:800;border:none;cursor:pointer;background:#f0fdf4;color:#047857;font-family:inherit;">+ Tax</button>
+            </div>
+          </div>
+          <!-- Rate % + Billing State row -->
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:10px;margin-bottom:10px;align-items:end;">
+            <div class="form-group" style="margin:0;min-width:120px;">
+              <label class="form-label" style="color:#047857;">GST Rate %</label>
+              <select class="form-control" id="gstRate" onchange="refreshTotals()" style="font-weight:700;color:#047857;">
+                <option value="0">0% (Exempt)</option>
+                <option value="5">5%</option>
+                <option value="12">12%</option>
+                <option value="18" selected>18%</option>
+                <option value="28">28%</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label" style="color:#047857;">Billing State</label>
+              <input class="form-control" id="gstState" placeholder="Auto-filled from GSTIN" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+            </div>
+          </div>
+          <!-- Customer GSTIN -->
+          <div class="form-group">
+            <p style="font-size:.75rem;font-weight:700;color:#047857;margin:0 0 10px;">Each product needs an HSN / SAC code (4–8 digits).</p>
+            <label class="form-label" style="color:#047857;">Customer GSTIN <span style="color:#94a3b8;font-weight:600;">(optional)</span></label>
+            <input class="form-control" id="gstGSTIN" placeholder="15-Digit GSTIN" maxlength="15" style="text-transform:uppercase;letter-spacing:.05em;" oninput="this.value=this.value.toUpperCase(); if(window.gstStateFromGstin){ var s=gstStateFromGstin(this.value); if(s) document.getElementById('gstState').value=s; }">
+          </div>
+          <!-- Billing Address -->
+          <div class="form-group" style="margin-bottom:10px;">
+            <label class="form-label" style="color:#047857;">Billing Address <span style="color:#94a3b8;font-weight:600;">(optional)</span></label>
+            <textarea class="form-control" id="gstAddress" placeholder="Customer address for invoice" rows="2" style="resize:none;line-height:1.5;"></textarea>
+          </div>
+          <!-- GST Breakdown -->
+          <div id="gstBreakdownBox" style="display:none;background:#ecfdf5;border:1.5px solid #6ee7b7;border-radius:10px;padding:10px 14px;font-size:.82rem;color:#065f46;flex-direction:column;gap:5px;">
+            <div style="display:flex;justify-content:space-between;"><span>Taxable Value</span><strong id="gstTaxable">₹0.00</strong></div>
+            <div id="gstCGSTRow" style="display:flex;justify-content:space-between;color:#047857;"><span id="gstCGSTLabel">CGST</span><strong id="gstCGST">₹0.00</strong></div>
+            <div id="gstSGSTRow" style="display:flex;justify-content:space-between;color:#047857;"><span id="gstSGSTLabel">SGST</span><strong id="gstSGST">₹0.00</strong></div>
+            <div id="gstIGSTRow" style="display:none;justify-content:space-between;color:#047857;"><span>IGST</span><strong id="gstIGST">₹0.00</strong></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Discount ₹</label>
+        <input class="form-control" type="number" id="discEl" min="0" step="0.01" value="0">
+      </div>
+      <div id="loyBox" class="pos-loy">
+        <div style="font-size:.8rem;font-weight:800;color:#92400e;"><i class="fas fa-star"></i> Loyalty: <span id="loyBal">0</span> Pts (₹<span id="loyVal">0.00</span>)</div>
+        <div style="font-size:.72rem;font-weight:600;color:#b45309;margin:4px 0 8px;">₹100 = 10 Pts · 4 Pts = ₹1 · Min 300 To Redeem</div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;">
+          <div>
+            <label class="form-label">Redeem Points</label>
+            <input class="form-control" type="number" id="loyPts" min="0" step="1" value="0" oninput="refreshTotals()">
+          </div>
+          <button type="button" class="btn pos-use300" onclick="useMinSalesPts()">Use 300</button>
+        </div>
+        <div id="loyHint" style="font-size:.75rem;font-weight:700;color:#b45309;margin-top:6px;"></div>
+      </div>
+      <div class="pos-total">
+        <span>Total<span id="gstExclHint" style="display:none;font-size:.7rem;font-weight:600;color:#a7f3d0;margin-left:6px;">(incl. GST)</span></span><span id="totEl">₹0.00</span>
+      </div>
+      <label class="form-label">Pay Method</label>
+      <div class="pay-row">
+        <button type="button" class="pay-method-btn active" data-pay="Cash" onclick="setPay(this)"><i class="fas fa-money-bill-wave"></i><span>Cash</span></button>
+        <button type="button" class="pay-method-btn" data-pay="UPI" onclick="setPay(this)"><i class="fas fa-qrcode"></i><span>UPI</span></button>
+        <button type="button" class="pay-method-btn" data-pay="Card" onclick="setPay(this)"><i class="fas fa-credit-card"></i><span>Card</span></button>
+        <button type="button" class="pay-method-btn" data-pay="Bank" onclick="setPay(this)"><i class="fas fa-university"></i><span>Bank</span></button>
+        <button type="button" class="pay-method-btn" data-pay="Credit" onclick="setPay(this)"><i class="fas fa-clock"></i><span>Credit</span></button>
+      </div>
+      <div id="txnBox" class="form-group" style="display:none;">
+        <label class="form-label">Transaction ID <span style="color:#94a3b8;font-weight:600;">(optional)</span></label>
+        <input class="form-control" id="txnEl" maxlength="80" placeholder="UPI / Card / Bank reference"
+               autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
+      </div>
+      <div class="form-group" id="paidBox">
+        <label class="form-label">Amount Received ₹</label>
+        <input class="form-control" type="number" id="paidEl" min="0" step="0.01" value="0" oninput="syncCredit()">
+      </div>
+      <div id="creditBox" style="display:none;background:#fff7ed;border:1.5px solid #fbbf24;border-radius:10px;padding:12px;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:.78rem;font-weight:800;color:#92400e;">CREDIT DUE</span>
+          <strong id="creditEl" style="color:#ef4444;">₹0.00</strong>
+        </div>
+        <label class="form-label">Due date *</label>
+        <input type="date" id="dueEl" class="form-control" min="{{ due_min }}" max="{{ due_max }}">
+        <small style="color:#b45309;font-size:.75rem;">Due date can be today through {{ due_max }}. Customer mobile is required for credit sales.</small>
+      </div>
+      <button type="button" class="btn btn-primary pos-confirm" onclick="confirmSale()"><i class="fas fa-check"></i> Confirm Sale</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const CATALOG = JSON.parse({{ items_json|tojson }});
+const SHOP = { name:{{ user.shop_name|default('My Shop')|tojson }}, phone:{{ (user.phone or '')|tojson }}, address:{{ user.address|default('')|tojson }}, review:{{ (user.google_review_link or '')|tojson }} };
+let lines = [];
+let payMethod = 'Cash';
+let nameLocked = false;
+let knownPhone = '';
+let lookupSeq = 0;
+let saleLoyAvail = 0;
+function setNameLocked(locked, name){
+  const el = document.getElementById('custName');
+  nameLocked = !!locked;
+  if (name != null) el.value = name;
+  el.readOnly = nameLocked;
+  el.style.background = nameLocked ? '#f1f5f9' : '';
+  el.style.color = nameLocked ? '#334155' : '';
+  el.title = nameLocked ? 'Name is locked for this saved customer' : '';
+}
+function applyKnownCustomer(phone, name, loyalty){
+  knownPhone = phone;
+  document.getElementById('custPhone').value = phone;
+  setNameLocked(true, (name||'').toUpperCase());
+  document.getElementById('custSuggest').style.display = 'none';
+  if (loyalty && loyalty.points != null) setSaleLoyalty(loyalty);
+  else loadSaleLoyalty(phone);
+}
+function setSaleLoyalty(info){
+  const pts = parseInt((info && info.points) || 0, 10) || 0;
+  const rupees = (info && info.value != null) ? Number(info.value) : (pts / 4);
+  saleLoyAvail = pts;
+  const bal = document.getElementById('loyBal');
+  const val = document.getElementById('loyVal');
+  if (bal) bal.textContent = pts;
+  if (val) val.textContent = (rupees || 0).toFixed(2);
+  const line = document.getElementById('custLoyLine');
+  if (line) {
+    line.style.display = '';
+    line.innerHTML = '<i class="fas fa-star"></i> Reward points: <strong>' + pts + '</strong> (₹' + (rupees || 0).toFixed(2) + ')';
+  }
+  refreshTotals();
+}
+function clearSaleLoyalty(){
+  saleLoyAvail = 0;
+  const bal = document.getElementById('loyBal');
+  const val = document.getElementById('loyVal');
+  if (bal) bal.textContent = '0';
+  if (val) val.textContent = '0.00';
+  const line = document.getElementById('custLoyLine');
+  if (line) { line.style.display = 'none'; line.innerHTML = ''; }
+  const ptsEl = document.getElementById('loyPts');
+  if (ptsEl) ptsEl.value = '0';
+}
+async function lookupByPhone(phone){
+  if (phone.length !== 10) return;
+  const seq = ++lookupSeq;
+  try{
+    const res = await fetch('/api/sales/customers/by-phone?phone='+encodeURIComponent(phone));
+    const row = await res.json();
+    if (seq !== lookupSeq) return;
+    const current = document.getElementById('custPhone').value.replace(/\D/g,'').slice(-10);
+    if (current !== phone) return;
+    if (row && row.name) applyKnownCustomer(phone, row.name, row.loyalty);
+    else {
+      knownPhone = '';
+      setNameLocked(false);
+      if (row && row.loyalty) setSaleLoyalty(row.loyalty);
+      else loadSaleLoyalty(phone);
+    }
+  }catch(e){
+    if (seq !== lookupSeq) return;
+    knownPhone = '';
+    setNameLocked(false);
+    loadSaleLoyalty(phone);
+  }
+}
+document.getElementById('custName').addEventListener('focus', function(){
+  if (!nameLocked) this.removeAttribute('readonly');
+});
+function setPay(btn){
+  document.querySelectorAll('.pay-method-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  payMethod = btn.dataset.pay;
+  const box = document.getElementById('txnBox');
+  if (box) box.style.display = ['UPI','Card','Bank'].includes(payMethod) ? '' : 'none';
+  const paidBox = document.getElementById('paidBox');
+  const paidEl = document.getElementById('paidEl');
+  if (paidBox) paidBox.style.display = payMethod === 'Credit' ? 'none' : '';
+  if (paidEl) {
+    paidEl.dataset.touched = payMethod === 'Credit' ? '1' : '';
+    if (payMethod === 'Credit') paidEl.value = '0';
+  }
+  refreshTotals();
+}
+async function loadSaleLoyalty(phone){
+  const ph = String(phone||'').replace(/\D/g,'').slice(-10);
+  if (ph.length !== 10) { clearSaleLoyalty(); refreshTotals(); return; }
+  try{
+    const res = await fetch('/api/loyalty?phone='+encodeURIComponent(ph));
+    const d = await res.json();
+    setSaleLoyalty(d);
+  }catch(e){
+    setSaleLoyalty({points:0, value:0});
+  }
+}
+function saleLoyRupees(){
+  let pts = parseInt(document.getElementById('loyPts').value||0,10);
+  const hint = document.getElementById('loyHint');
+  if (pts < 0) pts = 0;
+  if (pts > saleLoyAvail) { pts = saleLoyAvail; document.getElementById('loyPts').value = pts; }
+  if (pts > 0 && pts < 300) { hint.textContent = 'Minimum 300 points to redeem in sales.'; return 0; }
+  hint.textContent = pts >= 300 ? ('Redeem '+pts+' pts = ₹'+(pts/4).toFixed(2)) : '';
+  return pts >= 300 ? pts/4 : 0;
+}
+function useMinSalesPts(){
+  document.getElementById('loyPts').value = saleLoyAvail >= 300 ? Math.min(saleLoyAvail, Math.max(300, Math.floor(saleLoyAvail/4)*4)) : 0;
+  refreshTotals();
+}
+function money(n){ return '₹'+parseFloat(n||0).toFixed(2); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function render(){
+  const tb = document.getElementById('linesBody');
+  tb.innerHTML = '';
+  document.getElementById('emptyLines').style.display = lines.length ? 'none' : '';
+  lines.forEach((ln, i) => {
+    const amt = ln.qty * ln.price;
+    const row = document.createElement('div');
+    row.className = 'pos-line';
+    row.innerHTML = `<div class="pos-line-name"><strong>${esc(ln.name)}</strong><div class="sku">${esc(ln.sku||'')}</div></div>
+      ${gstEnabled ? `<div class="pos-line-hsn" style="grid-column:1/-1;">
+        <span class="pos-k">HSN / SAC *</span>
+        <input class="form-control" value="${esc(ln.hsn||'')}" maxlength="8" inputmode="numeric"
+          placeholder="4–8 digits" oninput="setHsn(${i}, this.value)"
+          style="font-weight:800;letter-spacing:.04em;max-width:160px;">
+      </div>` : ''}
+      <div class="pos-line-stock"><span class="pos-k">Stock</span>${ln.stock}</div>
+      <div class="pos-line-qty"><button type="button" class="qty-btn" onclick="chgQty(${i},-1)">-</button>
+      <strong style="min-width:1.4em;text-align:center;">${ln.qty}</strong>
+      <button type="button" class="qty-btn" onclick="chgQty(${i},1)">+</button></div>
+      <div class="pos-line-price"><span class="pos-k">Price ₹</span><input class="form-control pos-price" value="${ln.price}" readonly tabindex="-1" title="Price is taken from inventory"></div>
+      <div class="pos-line-amt"><span class="pos-k">Amt</span><strong>${money(amt)}</strong></div>
+      <button type="button" class="sale-act sale-act-return pos-line-rm" onclick="rmLine(${i})" title="Remove" aria-label="Remove"><i class="fas fa-times"></i></button>`;
+    tb.appendChild(row);
+  });
+  refreshTotals();
+}
+function refreshTotals(){
+  const sub = lines.reduce((s,l)=>s+l.qty*l.price,0);
+  let disc = parseFloat(document.getElementById('discEl').value||0);
+  if (disc > sub) { disc = sub; document.getElementById('discEl').value = sub.toFixed(2); }
+  const loy = saleLoyRupees();
+  const baseTotal = Math.max(0, sub-disc-loy);
+  // In exclusive mode the actual charged total includes the GST on top
+  const gstB = typeof gstBreakdown === 'function' ? gstBreakdown() : null;
+  const displayTotal = (gstB && gstB.mode === 'excl') ? gstB.total : baseTotal;
+  document.getElementById('subEl').textContent = money(sub);
+  document.getElementById('totEl').textContent = money(displayTotal);
+  const paidEl = document.getElementById('paidEl');
+  if (payMethod === 'Credit') paidEl.value = '0';
+  else paidEl.value = displayTotal.toFixed(2);
+  document.querySelectorAll('#linesBody .pos-line').forEach((row, i) => {
+    const el = row.querySelector('.pos-line-amt strong');
+    if (el && lines[i]) el.textContent = money(lines[i].qty * lines[i].price);
+  });
+  syncCredit();
+  updateGSTBreakdown();
+}
+function syncCredit(){
+  const sub = lines.reduce((s,l)=>s+l.qty*l.price,0);
+  const disc = parseFloat(document.getElementById('discEl').value||0);
+  const loy = saleLoyRupees();
+  const baseTotal = Math.max(0, sub-disc-loy);
+  const gstB = typeof gstBreakdown === 'function' ? gstBreakdown() : null;
+  const total = (gstB && gstB.mode === 'excl') ? gstB.total : baseTotal;
+  const paidEl = document.getElementById('paidEl');
+  let paid = parseFloat(paidEl.value||0);
+  if (paid > total + 0.005) { paid = total; paidEl.value = total.toFixed(2); }
+  const credit = Math.max(0, total-paid);
+  document.getElementById('creditEl').textContent = money(credit);
+  document.getElementById('creditBox').style.display = credit > 0.01 ? 'block' : 'none';
+  const dueEl = document.getElementById('dueEl');
+  if (credit > 0.01 && !dueEl.value) dueEl.value = dueEl.min || '';
+}
+document.getElementById('paidEl').addEventListener('input', function(){ this.dataset.touched='1'; syncCredit(); });
+function chgQty(i,d){
+  const ln = lines[i];
+  const n = ln.qty + d;
+  if (n < 1) return;
+  if (n > ln.stock) { showAlert('Not enough stock'); return; }
+  ln.qty = n; render();
+}
+function rmLine(i){ lines.splice(i,1); render(); }
+function setHsn(i, v){
+  if (!lines[i]) return;
+  lines[i].hsn = String(v||'').replace(/\D/g,'').slice(0,8);
+}
+function addItem(it){
+  if (!it || !it.id) return;
+  if ((it.qty||0) <= 0) { showAlert('Zero stock. Use Stock In in Inventory.'); return; }
+  if (!(parseFloat(it.sell_price||0) > 0)) { showAlert('Set a sell price in Inventory first.'); return; }
+  const existing = lines.find(l => l.item_id == it.id);
+  if (existing) {
+    if (existing.qty + 1 > it.qty) { showAlert('Not enough stock'); return; }
+    existing.qty += 1; render(); return;
+  }
+  lines.push({ item_id: it.id, name: it.name, sku: it.sku||'', hsn: String(it.hsn_code||it.hsn||'').replace(/\D/g,'').slice(0,8), stock: parseFloat(it.qty||0), qty: 1, price: parseFloat(it.sell_price||0) });
+  const itemGst = parseFloat(it.gst_rate||0);
+  const rateEl = document.getElementById('gstRate');
+  if (gstEnabled && rateEl && itemGst > 0) rateEl.value = String(itemGst);
+  render();
+}
+function findItemBySerial(sn){
+  const q = String(sn||'').trim().toUpperCase();
+  if (!q) return null;
+  return CATALOG.find(x => String(x.serial_no||'').toUpperCase()===q)
+      || CATALOG.find(x => String(x.sku||'').toUpperCase()===q)
+      || null;
+}
+async function addBySerial(sn){
+  sn = (typeof sanitizeImeiSerial === 'function') ? sanitizeImeiSerial(sn) : String(sn||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if (!sn) return;
+  const hint = document.getElementById('saleScanHint');
+  let it = findItemBySerial(sn);
+  if (!it) {
+    try {
+      const res = await fetch('/api/inventory/search?q='+encodeURIComponent(sn));
+      const rows = await res.json();
+      it = (rows||[]).find(x => String(x.serial_no||'').toUpperCase()===String(sn).toUpperCase())
+        || (rows||[]).find(x => String(x.sku||'').toUpperCase()===String(sn).toUpperCase())
+        || ((rows||[]).length===1 ? rows[0] : null);
+    } catch(e) { it = null; }
+  }
+  if (!it) {
+    if (hint) { hint.style.display=''; hint.style.color='#b91c1c'; hint.textContent='No item for serial '+sn; }
+    document.getElementById('imeiScanStatus').textContent = 'No item for '+sn;
+    return;
+  }
+  const before = (lines.find(l => l.item_id == it.id)||{}).qty || 0;
+  addItem(it);
+  const after = (lines.find(l => l.item_id == it.id)||{}).qty || before;
+  if (hint) { hint.style.display=''; hint.style.color='#0f766e'; hint.textContent=it.name+' · qty '+after; }
+  document.getElementById('imeiScanStatus').textContent = '\u2713 '+it.name+' · qty '+after;
+}
+function scanSaleSerial(){
+  if (typeof startSerialScan !== 'function') { showAlert('Scanner is not available.'); return; }
+  startSerialScan({
+    continuous: true,
+    hint: 'Scan item serial or SKU barcode — quantity increases by 1',
+    onCode: function(sn){ addBySerial(sn); }
+  });
+}
+let itemT;
+document.getElementById('itemSearch').addEventListener('input', function(){
+  clearTimeout(itemT);
+  const q = this.value.trim();
+  itemT = setTimeout(async () => {
+    const res = await fetch('/api/inventory/search?q='+encodeURIComponent(q));
+    const rows = await res.json();
+    const box = document.getElementById('itemSuggest');
+    box.innerHTML = '';
+    (rows||[]).forEach(r => {
+      const b = document.createElement('button');
+      b.type='button';
+      b.textContent = `${r.name}  (${r.qty} in stock)  ₹${parseFloat(r.sell_price||0).toFixed(2)}`;
+      b.onclick = () => {
+        addItem(r);
+        clearTimeout(itemT);
+        box.style.display = 'none';
+        box.innerHTML = '';
+        const sf = document.getElementById('itemSearch');
+        sf.value = '';
+        sf.blur();
+      };
+      box.appendChild(b);
+    });
+    box.style.display = rows && rows.length ? 'block' : 'none';
+  }, 180);
+});
+let custT;
+document.getElementById('custPhone').addEventListener('input', function(){
+  this.value = this.value.replace(/\D/g,'').slice(0,10);
+  clearTimeout(custT);
+  const q = this.value.trim();
+  if (nameLocked && q !== knownPhone) {
+    knownPhone = '';
+    setNameLocked(false, '');
+    clearSaleLoyalty();
+  }
+  if (q.length < 10) clearSaleLoyalty();
+  if (q.length < 2) { document.getElementById('custSuggest').style.display='none'; return; }
+  if (q.length === 10) {
+    lookupByPhone(q);
+    return;
+  }
+  custT = setTimeout(async () => {
+    const res = await fetch('/api/sales/customers/search?q='+encodeURIComponent(q));
+    const rows = await res.json();
+    const box = document.getElementById('custSuggest');
+    box.innerHTML = '';
+    (rows||[]).forEach(r => {
+      const b = document.createElement('button');
+      b.type='button';
+      const ph = String(r.phone||'').replace(/\D/g,'').slice(-10);
+      const pts = parseInt((r.loyalty && r.loyalty.points) || 0, 10) || 0;
+      b.textContent = pts ? `${r.name}  ${ph}  · ${pts} pts` : `${r.name}  ${ph}`;
+      b.onclick = () => applyKnownCustomer(ph, r.name||'', r.loyalty);
+      box.appendChild(b);
+    });
+    box.style.display = rows && rows.length ? 'block' : 'none';
+  }, 180);
+});
+if ((document.getElementById('custPhone').value||'').replace(/\D/g,'').length === 10) {
+  lookupByPhone(document.getElementById('custPhone').value.replace(/\D/g,'').slice(-10));
+}
+document.getElementById('discEl').addEventListener('input', render);
+async function confirmSale(){
+  if (!lines.length) { showAlert('Add at least one item'); return; }
+  const zero = lines.find(l => !(l.price > 0) || !(l.qty > 0));
+  if (zero) { showAlert('Enter a price greater than 0 for '+zero.name); return; }
+  const sub = lines.reduce((s,l)=>s+l.qty*l.price,0);
+  const discount = parseFloat(document.getElementById('discEl').value||0);
+  const redeemPts = parseInt(document.getElementById('loyPts').value||0,10);
+  const loy = saleLoyRupees();
+  if (discount > sub) { showAlert('Discount cannot exceed subtotal'); return; }
+  const total = Math.max(0, sub - discount - loy);
+  if (total < 0) { showAlert('Sale total cannot be negative'); return; }
+  // In GST-exclusive mode the customer actually pays base + tax
+  const gstB = gstBreakdown();
+  const payableTotal = (gstB && gstB.mode === 'excl') ? gstB.total : total;
+  let paid = payMethod === 'Credit' ? 0 : parseFloat(document.getElementById('paidEl').value||0);
+  if (paid > payableTotal + 0.005) paid = payableTotal;
+  const credit = Math.max(0, payableTotal - paid);
+  const phone = document.getElementById('custPhone').value.replace(/\D/g,'').slice(-10);
+  const name = (document.getElementById('custName').value||'').trim();
+  if (phone.length !== 10) { showAlert('Enter a 10-digit mobile number'); return; }
+  if (!name) { showAlert('Enter customer name'); return; }
+  const dueDate = document.getElementById('dueEl').value;
+  if (credit > 0.01) {
+    if (!dueDate) { showAlert('Set a due date for the remaining credit'); return; }
+    if (dueDate < (document.getElementById('dueEl').min||'') || dueDate > (document.getElementById('dueEl').max||'')) {
+      showAlert('Due date must be within 15 days from today.'); return;
+    }
+  }
+  const txnId = ['UPI','Card','Bank'].includes(payMethod)
+    ? (document.getElementById('txnEl').value||'').trim() : '';
+  const gst = gstB; // already computed above
+  if (gstEnabled) {
+    const bad = lines.find(l => !/^\d{4,8}$/.test(String(l.hsn||'')));
+    if (bad) { showAlert('Enter HSN / SAC code (4–8 digits) for '+bad.name); return; }
+  }
+  const payload = {
+    customer_name: name,
+    customer_phone: phone,
+    discount, redeem_points: loy>=0.01?redeemPts:0, pay_method: payMethod, paid_amount: paid, due_date: dueDate, txn_id: txnId,
+    items: lines.map(l => ({item_id:l.item_id, qty:l.qty, price:l.price, hsn:l.hsn||''})),
+    is_gst: gstEnabled ? 1 : 0,
+    gst_rate: gst ? gst.rate : 0,
+    gst_exclusive: (gstEnabled && gstTaxMode === 'excl') ? 1 : 0,
+    customer_gstin: gstEnabled ? (document.getElementById('gstGSTIN').value||'').trim().toUpperCase() : '',
+    billing_state: gstEnabled ? (document.getElementById('gstState').value||'').trim().toUpperCase() : '',
+    customer_address: gstEnabled ? (document.getElementById('gstAddress').value||'').trim() : ''
+  };
+  const res = await fetch('/sales/new', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  if (!data.ok) { showAlert(data.error || 'Could not save sale'); return; }
+  window.open('/sales/'+data.id+'/print','_blank');
+  location.href = '/sales';
+}
+let gstEnabled = false;
+const SHOP_STATE = {{ (user.state or '')|tojson }};
+function toggleGST(){
+  gstEnabled = !gstEnabled;
+  const track = document.getElementById('gstToggleTrack');
+  const thumb = document.getElementById('gstToggleThumb');
+  const label = document.getElementById('gstToggleLabel');
+  const fields = document.getElementById('gstFields');
+  track.style.background = gstEnabled ? '#10b981' : '#d1fae5';
+  thumb.style.left = gstEnabled ? '22px' : '2px';
+  thumb.style.background = gstEnabled ? '#fff' : '#10b981';
+  label.textContent = gstEnabled ? 'On' : 'Off';
+  fields.style.display = gstEnabled ? 'block' : 'none';
+  render();
+}
+let gstTaxMode = 'incl'; // 'incl' = prices include tax | 'excl' = tax added on top
+function setTaxMode(mode){
+  gstTaxMode = mode;
+  document.getElementById('taxModeIncl').style.background = mode==='incl' ? '#10b981' : '#f0fdf4';
+  document.getElementById('taxModeIncl').style.color = mode==='incl' ? '#fff' : '#047857';
+  document.getElementById('taxModeExcl').style.background = mode==='excl' ? '#10b981' : '#f0fdf4';
+  document.getElementById('taxModeExcl').style.color = mode==='excl' ? '#fff' : '#047857';
+  const hint = document.getElementById('gstExclHint');
+  if (hint) hint.style.display = (gstEnabled && mode==='excl') ? 'inline' : 'none';
+  refreshTotals();
+}
+function gstBreakdown(){
+  if (!gstEnabled) return null;
+  const rate = parseFloat(document.getElementById('gstRate').value||0);
+  if (!rate) return null;
+  const sub = lines.reduce((s,l)=>s+l.qty*l.price,0);
+  const disc = parseFloat(document.getElementById('discEl').value||0);
+  const loy = saleLoyRupees();
+  const base = Math.max(0, sub-disc-loy);
+  const billingState = (document.getElementById('gstState').value||'').trim().toUpperCase();
+  const shopState = (SHOP_STATE||'').trim().toUpperCase();
+  function gstCode(s){ const m=String(s||'').match(/(\d{2})/); return m?m[1]:String(s||'').trim().toUpperCase(); }
+  const isInter = billingState && shopState && gstCode(billingState) !== gstCode(shopState);
+  let taxable, tax;
+  if (gstTaxMode === 'excl') {
+    // Tax exclusive: taxable = base, tax added on top
+    taxable = Math.round(base * 100) / 100;
+    tax = Math.round(base * rate / 100 * 100) / 100;
+  } else {
+    // Tax inclusive: extract tax backward
+    taxable = Math.round(base / (1 + rate/100) * 100) / 100;
+    tax = Math.round((base - taxable) * 100) / 100;
+  }
+  return { rate, taxable, tax, isInter, mode: gstTaxMode,
+    total: gstTaxMode === 'excl' ? base + tax : base,
+    cgst: isInter ? 0 : Math.round(tax/2*100)/100,
+    sgst: isInter ? 0 : Math.round((tax - Math.round(tax/2*100)/100)*100)/100,
+    igst: isInter ? tax : 0 };
+}
+function updateGSTBreakdown(){
+  const b = gstBreakdown();
+  const box = document.getElementById('gstBreakdownBox');
+  if (!box) return;
+  if (!b) { box.style.display = 'none'; return; }
+  const rate = b.rate;
+  box.style.display = 'flex';
+  box.style.flexDirection = 'column';
+  box.style.gap = '4px';
+  document.getElementById('gstTaxable').textContent = money(b.taxable);
+  document.getElementById('gstCGSTLabel').textContent = `CGST (${rate/2}%)`;
+  document.getElementById('gstSGSTLabel').textContent = `SGST (${rate/2}%)`;
+  document.getElementById('gstCGST').textContent = money(b.cgst);
+  document.getElementById('gstSGST').textContent = money(b.sgst);
+  document.getElementById('gstIGST').textContent = money(b.igst);
+  document.getElementById('gstCGSTRow').style.display = b.isInter ? 'none' : 'flex';
+  document.getElementById('gstSGSTRow').style.display = b.isInter ? 'none' : 'flex';
+  document.getElementById('gstIGSTRow').style.display = b.isInter ? 'flex' : 'none';
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.suggest')) {
+    document.getElementById('itemSuggest').style.display='none';
+    document.getElementById('custSuggest').style.display='none';
+  }
+});
+if (window.bindGstinState) bindGstinState(document.getElementById('gstGSTIN'), document.getElementById('gstState'));
+</script>
+{% endblock %}

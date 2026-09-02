@@ -1,28 +1,61 @@
 {% extends 'base.html' %}
-{% block title %}Dashboard — MobileFix Pro{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
+{% block title %}Home — MobileFix Pro{% endblock %}
+{% block page_title %}Home{% endblock %}
 
 {% block extra_head %}
 <style>
 html,body{max-width:100vw;overflow-x:hidden;width:100%;}
-.main{min-width:0;}.content{min-width:0;overflow-x:hidden;}.card{max-width:100%;}.table-wrap{max-width:100%;}
+.main{min-width:0;}.content{min-width:0;overflow-x:hidden;}
+.dash-shop-head{display:flex;align-items:center;gap:14px;}
+.dash-shop-logo{width:56px;height:56px;object-fit:contain;border-radius:14px;background:#e0f7fa;border:1.5px solid #b2ebf2;padding:4px;flex-shrink:0;}
+.dash-hub{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:8px;}
+.dash-pick{display:flex;flex-direction:column;text-decoration:none;color:inherit;background:linear-gradient(180deg,#fff,#ecfeff);border:1.5px solid #a5f3fc;border-radius:20px;padding:28px 24px;box-shadow:0 10px 28px rgba(8,145,178,.12);min-height:220px;transition:transform .15s,box-shadow .15s;}
+.dash-pick.dash-service{background:linear-gradient(180deg,#fff,#ecfeff);border-color:#a5f3fc;}
+.dash-pick.dash-sales{background:linear-gradient(180deg,#fff,#ecfdf5);border-color:#bbf7d0;}
+.dash-pick.dash-tools{background:linear-gradient(180deg,#fff,#f5f3ff);border-color:#ddd6fe;}
+.dash-pick.dash-team{background:linear-gradient(180deg,#fff,#fdf2f8);border-color:#fbcfe8;}
+.dash-pick.dash-settings-card{background:linear-gradient(180deg,#fff,#eff6ff);border-color:#bfdbfe;}
+.dash-pick.dash-inventory-card{background:linear-gradient(180deg,#fff,#ecfdf5);border-color:#a7f3d0;}
+.dash-pick.dash-settings{min-height:0;padding:22px 20px;}
+.dash-pick.dash-settings .dash-pick-icon{margin-bottom:16px;}
+.dash-pick:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,0.12);}
+.dash-pick-icon{width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.6rem;margin-bottom:16px;}
+.dash-pick-title{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.35rem;margin-bottom:6px;}
+.dash-open{display:inline-flex;align-items:center;gap:8px;margin-top:auto;padding:10px 14px;border-radius:12px;border:1.5px solid #e2e8f0;background:#f8fafc;font-size:.82rem;font-weight:800;width:fit-content;}
+.dash-open i{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:.75rem;}
+.dash-open-service{color:#1565C0;border-color:#bbdefb;background:#e3f2fd;}
+.dash-open-service i{background:#1E88E5;}
+.dash-open-sales{color:#00695C;border-color:#b2dfdb;background:#e0f2f1;}
+.dash-open-sales i{background:#00897B;}
+.dash-open-settings{color:#E65100;border-color:#ffe0b2;background:#fff8e1;}
+.dash-open-team{color:#9D174D;border-color:#fbcfe8;background:#fdf2f8;}
+.dash-open-team i{background:#ec4899;}
+.dash-open-attend{color:#1d4ed8;border-color:#bfdbfe;background:#eff6ff;}
+.dash-open-attend i{background:#2563eb;}
+.dash-absent{background:linear-gradient(180deg,#fff,#fef2f2);border:1.5px solid #fecaca;border-radius:14px;padding:14px 16px;margin-bottom:18px;position:relative;}
+.dash-absent-h{font-weight:800;color:#991b1b;display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:.9rem;padding-right:72px;}
+.dash-absent-list{font-size:.82rem;color:#475569;font-weight:600;line-height:1.5;}
+.dash-absent-hide{position:absolute;top:10px;right:12px;border:1.5px solid #fecaca;background:#fff;color:#991b1b;border-radius:999px;padding:4px 12px;font-size:.72rem;font-weight:800;cursor:pointer;font-family:inherit;}
+.dash-absent-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;flex-wrap:wrap;}
+.dash-open-settings i{background:#FF9800;}
+.dash-pick:hover .dash-open{box-shadow:0 4px 12px rgba(15,23,42,.08);}
 @media(max-width:768px){
+  .dash-shop-logo{display:none !important;}
   .main{margin-left:0;width:100vw;max-width:100vw;overflow-x:hidden;}
-  .content{padding:16px 12px 80px;width:100%;box-sizing:border-box;overflow-x:hidden;}
-  .topbar{padding:0 16px;height:60px;max-width:100vw;box-sizing:border-box;}
-  .page-header{flex-direction:column;align-items:flex-start;gap:10px;}
-  .page-header .btn{width:100%;justify-content:center;}
-  .stat-grid{grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
-  .stat-card{padding:12px 10px;gap:8px;border-radius:12px;}
-  .stat-num{font-size:1.35rem;}.stat-icon{width:38px;height:38px;font-size:1.05rem;border-radius:10px;}.stat-label{font-size:0.72rem;}
-  /* trial/expired banner */
+  .content{padding:16px 12px 24px;width:100%;box-sizing:border-box;overflow-x:hidden;}
+  .bottom-nav{display:none!important;}
+  .topbar{padding:0 12px;height:64px;max-width:100vw;box-sizing:border-box;}
+  .page-header{flex-direction:column;align-items:center;gap:10px;text-align:center;}
+  .dash-hub{grid-template-columns:repeat(2, 1fr); gap:12px;}
+  .dash-pick{min-height:0;padding:16px 12px;text-align:center;border-radius:16px;}
+  .dash-pick-icon{margin-left:auto;margin-right:auto;width:48px;height:48px;font-size:1.2rem;margin-bottom:12px;border-radius:12px;}
+  .dash-pick-title{text-align:center;font-size:1.05rem;margin-bottom:4px;}
+  .dash-pick > div[style*="font-size:.9rem"]{font-size:0.72rem !important; margin-bottom:12px !important; line-height: 1.35 !important; color: #64748b;}
+  .dash-open{width:100%;justify-content:center;padding:8px;font-size:0.75rem;border-radius:10px;}
   div[style*="linear-gradient(135deg,#f59e0b"],
   div[style*="linear-gradient(135deg,#ef4444"]{flex-direction:column;align-items:flex-start!important;}
   div[style*="linear-gradient(135deg,#f59e0b"] a,
   div[style*="linear-gradient(135deg,#ef4444"] a{width:100%;text-align:center;box-sizing:border-box;}
-  /* Quick Nav grid */
-  div[style*="grid-template-columns:repeat(auto-fit,minmax(110px"]{grid-template-columns:repeat(3,1fr)!important;gap:10px!important;}
-  /* Recent jobs — let mob-cards handle layout, hide less-important cols */
 }
 </style>
 {% endblock %}
@@ -43,7 +76,11 @@ html,body{max-width:100vw;overflow-x:hidden;width:100%;}
       </div>
     </div>
   </div>
+  {% if is_owner %}
   <a href="{{ url_for('subscription_page') }}" style="background:white;color:#d97706;padding:8px 18px;border-radius:10px;font-weight:700;font-size:0.85rem;text-decoration:none;white-space:nowrap;"><i class="fas fa-crown"></i> Upgrade Now</a>
+  {% else %}
+  <div style="font-size:.8rem;opacity:.9;">Ask the owner to upgrade</div>
+  {% endif %}
 </div>
 {% elif status == 'trial_expired' %}
 <div style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border-radius:14px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;box-shadow:0 4px 16px rgba(239,68,68,0.3);">
@@ -54,101 +91,114 @@ html,body{max-width:100vw;overflow-x:hidden;width:100%;}
       <div style="font-size:0.82rem;opacity:0.9;">Your 30-day free trial has ended. Upgrade to continue using MobileFix Pro.</div>
     </div>
   </div>
+  {% if is_owner %}
   <a href="{{ url_for('subscription_page') }}" style="background:white;color:#dc2626;padding:8px 18px;border-radius:10px;font-weight:700;font-size:0.85rem;text-decoration:none;white-space:nowrap;"><i class="fas fa-crown"></i> Upgrade Now</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if is_owner and attendance_today and attendance_today.show_absent_alert and attendance_today.absent and not hide_absent_today %}
+<div class="dash-absent">
+  <form method="POST" action="{{ url_for('dashboard_hide_absent') }}" style="margin:0;">
+    <button type="submit" class="dash-absent-hide" title="Hide this alert until tomorrow">Hide</button>
+  </form>
+  <div class="dash-absent-h"><i class="fas fa-user-clock"></i> {{ attendance_today.absent|length }} Sales Person{{ 's' if attendance_today.absent|length != 1 else '' }} Absent Today</div>
+  <div class="dash-absent-list">
+    {% for s in attendance_today.absent %}{{ s.name }}{% if s.phone %} · {{ s.phone }}{% endif %}{% if not loop.last %} · {% endif %}{% endfor %}
+  </div>
+  <div style="font-size:.72rem;color:#94a3b8;margin-top:6px;font-weight:600;">Shop hours {{ attendance_today.shop_open_time }} – {{ attendance_today.shop_close_time }} (IST)</div>
+  <div class="dash-absent-foot">
+    <a href="{{ url_for('shop_team') }}" style="font-size:.8rem;font-weight:800;color:#dc2626;text-decoration:none;">View Team →</a>
+  </div>
 </div>
 {% endif %}
 
 <div class="page-header">
-  <div>
-    <div class="page-title">{{ user.shop_name or 'My Shop' }} 👋</div>
-    <div class="page-subtitle">Live repair shop overview</div>
-  </div>
-  <a href="{{ url_for('add_job') }}" class="btn btn-primary"><i class="fas fa-plus"></i> New Job</a>
-</div>
-
-<div class="stat-grid">
-  <div class="stat-card">
-    <div class="stat-icon"><i class="fas fa-tools"></i></div>
-    <div><div class="stat-num">{{ job_count }}</div><div class="stat-label">Total Jobs</div></div>
-  </div>
-  <div class="stat-card warning">
-    <div class="stat-icon warning"><i class="fas fa-hourglass-half"></i></div>
-    <div><div class="stat-num">{{ pending }}</div><div class="stat-label">Pending</div></div>
-  </div>
-  <div class="stat-card success">
-    <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
-    <div><div class="stat-num">{{ delivered }}</div><div class="stat-label">Delivered</div></div>
-  </div>
-  <div class="stat-card {% if status in ('trial_expired','expired') %}danger{% elif days_left <= 7 %}warning{% endif %}">
-    <div class="stat-icon {% if status in ('trial_expired','expired') %}danger{% elif days_left <= 7 %}warning{% endif %}"><i class="fas fa-calendar-check"></i></div>
-    <div><div class="stat-num">{{ days_left }}</div><div class="stat-label">Days Left</div></div>
-  </div>
-</div>
-
-<!-- Quick Nav -->
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:16px;margin-bottom:28px;">
-  {% set nav = [
-    ('New Job',    'fa-screwdriver-wrench', "add_job",   '#FF5722','#FF8A65'),
-    ('View Jobs',  'fa-clipboard-list',     "jobs",      '#1E88E5','#4FC3F7'),
-    ('Invoices',   'fa-file-invoice',       "invoices",  '#8E24AA','#BA68C8'),
-    ('Customers',  'fa-users',              "customers", '#43A047','#81C784'),
-    ('Reports',    'fa-chart-line',         "reports",   '#00BCD4','#4DD0E1'),
-    ('Settings',   'fa-cog',               "settings",  '#FF9800','#FFC107'),
-  ] %}
-  {% for label, icon, endpoint, c1, c2 in nav %}
-  <a href="{{ url_for(endpoint) }}" style="text-decoration:none;">
-    <div style="background:white;border-radius:14px;padding:18px 10px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,0.07);transition:transform 0.18s,box-shadow 0.18s;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 20px rgba(0,0,0,0.13)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(0,0,0,0.07)'">
-      <div style="width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,{{ c1 }},{{ c2 }});display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:1.4rem;color:white;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
-        <i class="fas {{ icon }}"></i>
-      </div>
-      <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:0.82rem;color:#1a2332;">{{ label }}</div>
-    </div>
-  </a>
-  {% endfor %}
-</div>
-
-<!-- Recent Jobs -->
-<div class="card">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 14px;">
-    <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:1rem;">Recent Repair Jobs</div>
-    <a href="{{ url_for('jobs') }}" style="color:#00BCD4;font-size:0.85rem;font-weight:600;text-decoration:none;">View All →</a>
-  </div>
-  <div class="card-body" style="padding-top:0;">
-    {% if recent_jobs %}
-    <div class="table-wrap mob-cards">
-      <table>
-        <thead><tr><th class="mob-hide">ID</th><th>Customer</th><th>Device</th><th class="mob-hide">Issue</th><th>Status</th><th class="mob-hide">Date</th></tr></thead>
-        <tbody>
-          {% for job in recent_jobs %}
-          <tr>
-            <td data-label="ID" class="mob-hide" style="color:#94a3b8;font-size:0.8rem;">#{{ job.id }}</td>
-            <td data-label="Customer"><strong>{{ job.customer_name }}</strong><br><small style="color:#94a3b8;white-space:nowrap;">{{ job.customer_phone }}</small></td>
-            <td data-label="Device" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">{{ job.device_model }}</td>
-            <td data-label="Issue" class="mob-hide" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ job.issue }}</td>
-            <td data-label="Status">
-              {% set sc = {'Received':'#00BCD4','Diagnosing':'#FFC107','Repairing':'#FF9800','Ready':'#9C27B0','Delivered':'#4CAF50','Cancelled':'#795548','Rework':'#03A9F4'} %}
-              <span style="background:{{ sc.get(job.status,'#94a3b8') }};color:{% if job.status=='Diagnosing' %}#333{% else %}white{% endif %};padding:4px 10px;border-radius:999px;font-size:0.74rem;font-weight:700;">{{ job.status }}</span>
-            </td>
-            <td data-label="Date" class="mob-hide" style="color:#94a3b8;font-size:0.8rem;">{{ job.created_at[:10] }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% else %}
-    <div style="text-align:center;padding:40px;color:#94a3b8;">
-      <i class="fas fa-tools" style="font-size:2.5rem;margin-bottom:14px;display:block;opacity:0.25;"></i>
-      No jobs yet. <a href="{{ url_for('add_job') }}" style="color:#00BCD4;font-weight:600;">Add your first job</a>
-    </div>
+  <div class="dash-shop-head">
+    {% if shop_logo %}
+    <img class="dash-shop-logo" src="{{ shop_logo }}" alt="{{ user.shop_name or 'Shop' }}">
     {% endif %}
+    <div>
+      <div class="page-title">{{ user.shop_name or 'My Shop' }}</div>
+      <div class="page-subtitle">Choose A Workspace</div>
+    </div>
   </div>
+</div>
+
+<div class="dash-hub">
+  {% if is_owner or can_jobs %}
+  <a class="dash-pick dash-service" href="{{ url_for('service_hub') }}">
+    <div class="dash-pick-icon" style="background:linear-gradient(135deg,#1E88E5,#4FC3F7);"><i class="fas fa-tools"></i></div>
+    <div class="dash-pick-title">Service Booking</div>
+    <div style="font-size:.9rem;color:#64748b;line-height:1.45;margin-bottom:16px;">Repair Jobs, Diagnose, Deliver, And INV Invoices. Stock Is Not Used Here.</div>
+    <span class="dash-open dash-open-service"><i class="fas fa-arrow-right"></i> Open</span>
+  </a>
+  {% endif %}
+  {% if is_owner or can_sale %}
+  <a class="dash-pick dash-sales" href="{{ url_for('sales_hub') }}">
+    <div class="dash-pick-icon" style="background:linear-gradient(135deg,#00897B,#26A69A);"><i class="fas fa-cash-register"></i></div>
+    <div class="dash-pick-title">Sales Billing</div>
+    <div style="font-size:.9rem;color:#64748b;line-height:1.45;margin-bottom:16px;">Counter Sales, SAL Bills, And Inventory. Separate From Repair Jobs.</div>
+    <span class="dash-open dash-open-sales"><i class="fas fa-arrow-right"></i> Open</span>
+  </a>
+  {% endif %}
+  <a class="dash-pick dash-settings dash-tools" href="{{ url_for('smart_tools') }}">
+    <div class="dash-pick-icon" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa);"><i class="fas fa-magic"></i></div>
+    <div class="dash-pick-copy">
+      <div style="font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.2rem;margin-bottom:4px;">Smart Tools</div>
+      <div style="font-size:.88rem;color:#64748b;line-height:1.4;margin-bottom:16px;">e-Aadhaar Print and other utilities.</div>
+    </div>
+    <span class="dash-open" style="color:#5b21b6;border-color:#e0e7ff;background:#ede9fe;"><i class="fas fa-arrow-right" style="background:#8b5cf6;"></i> Open</span>
+  </a>
+  {% if is_owner %}
+  <a class="dash-pick dash-settings dash-team" href="{{ url_for('shop_team') }}">
+    <div class="dash-pick-icon" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fas fa-user-tag"></i></div>
+    <div class="dash-pick-copy">
+      <div style="font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.2rem;margin-bottom:4px;">Team</div>
+      <div style="font-size:.88rem;color:#64748b;line-height:1.4;margin-bottom:16px;">Owner, Sales Persons, Performance, And Login Devices.</div>
+    </div>
+    <span class="dash-open dash-open-team"><i class="fas fa-arrow-right"></i> Open</span>
+  </a>
+  <a class="dash-pick dash-settings dash-inventory-card" href="{{ url_for('inventory') }}">
+    <div class="dash-pick-icon" style="background:linear-gradient(135deg,#10b981,#34d399);"><i class="fas fa-boxes-stacked"></i></div>
+    <div class="dash-pick-copy">
+      <div style="font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.2rem;margin-bottom:4px;">Inventory</div>
+      <div style="font-size:.88rem;color:#64748b;line-height:1.4;margin-bottom:16px;">Manage Stock, Items, Parts, and View Activity Logs.</div>
+    </div>
+    <span class="dash-open" style="color:#047857;border-color:#d1fae5;background:#ecfdf5;"><i class="fas fa-arrow-right" style="background:#10b981;"></i> Open</span>
+  </a>
+  <a class="dash-pick dash-settings dash-purchases-card" href="{{ url_for('purchases') }}">
+    <div class="dash-pick-icon" style="background:linear-gradient(135deg,#0ea5e9,#38bdf8);"><i class="fas fa-shopping-cart"></i></div>
+    <div class="dash-pick-copy">
+      <div style="font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.2rem;margin-bottom:4px;">Purchases</div>
+      <div style="font-size:.88rem;color:#64748b;line-height:1.4;margin-bottom:16px;">Track inward supplies and stock purchases.</div>
+    </div>
+    <span class="dash-open" style="color:#0369a1;border-color:#bae6fd;background:#f0f9ff;"><i class="fas fa-arrow-right" style="background:#0ea5e9;"></i> Open</span>
+  </a>
+  <a class="dash-pick dash-settings dash-gst-card" href="{{ url_for('gst_reports') }}">
+    <div class="dash-pick-icon" style="background:linear-gradient(135deg,#a855f7,#c084fc);"><i class="fas fa-file-invoice-dollar"></i></div>
+    <div class="dash-pick-copy">
+      <div style="font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.2rem;margin-bottom:4px;">GST Reports</div>
+      <div style="font-size:.88rem;color:#64748b;line-height:1.4;margin-bottom:16px;">View GST returns, JSON files and PDFs.</div>
+    </div>
+    <span class="dash-open" style="color:#7e22ce;border-color:#e9d5ff;background:#faf5ff;"><i class="fas fa-arrow-right" style="background:#a855f7;"></i> Open</span>
+  </a>
+  <a class="dash-pick dash-settings dash-settings-card" href="{{ url_for('settings') }}">
+    <div class="dash-pick-icon" style="background:linear-gradient(135deg,#FF9800,#FFC107);"><i class="fas fa-cog"></i></div>
+    <div class="dash-pick-copy">
+      <div style="font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.2rem;margin-bottom:4px;">Settings</div>
+      <div style="font-size:.88rem;color:#64748b;line-height:1.4;margin-bottom:16px;">Shop Details, Account, And Legal Policies.</div>
+    </div>
+    <span class="dash-open dash-open-settings"><i class="fas fa-arrow-right"></i> Open</span>
+  </a>
+  {% endif %}
 </div>
 
 {% if status == 'trial' and days_left <= 7 or status == 'active' and days_left <= 7 %}
 <div id="expiry-popup" class="show">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
     <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:0.95rem;color:#92400e;">⚠️ {% if status=='trial' %}Trial{% else %}Subscription{% endif %} Ending Soon!</div>
-    <button onclick="this.parentElement.parentElement.style.display='none'" style="background:none;border:none;cursor:pointer;color:#94a3b8;padding:0;">✕</button>
+    <button onclick="this.parentElement.parentElement.style.display='none'" style="background:#475569;border:none;cursor:pointer;color:#fff;padding:0;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;" title="Exit" aria-label="Exit">✕</button>
   </div>
   <p style="font-size:0.83rem;color:#6b7c93;margin-bottom:10px;">Expires in <strong style="color:#f59e0b;">{{ days_left }} days</strong>. Contact admin.</p>
   <a href="{{ url_for('subscription_page') }}" style="font-size:0.82rem;color:#00BCD4;font-weight:600;text-decoration:none;">View Plans →</a>

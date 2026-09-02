@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% block title %}Categories & Sub-Categories{% endblock %}
+{% block page_title %}Categories{% endblock %}
+
+{% block extra_head %}
+<style>
+.cat-wrap { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media(max-width: 768px){ .cat-wrap { grid-template-columns: 1fr; } }
+.cat-box { background: #fff; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.07); overflow: hidden; border: 1px solid #eef2f7; display: flex; flex-direction: column;}
+.cat-head { padding: 16px; background: linear-gradient(135deg, #00BCD4, #0097A7); color: #fff; display: flex; align-items: center; justify-content: space-between; }
+.cat-head h3 { margin: 0; font-family: 'Exo 2', sans-serif; font-size: 1rem; font-weight: 800; }
+.cat-body { padding: 16px; flex: 1; overflow-y: auto; max-height: 500px; }
+.cat-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+.cat-item:hover { border-color: #00BCD4; transform: translateY(-1px); }
+.cat-item.active { background: #e0f7fa; border-color: #00BCD4; font-weight: 700; color: #00838F; }
+.cat-add { display: flex; gap: 8px; padding: 16px; background: #f1f5f9; border-top: 1px solid #e2e8f0; }
+.btn-del { background: transparent; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 4px; transition: 0.2s; }
+.btn-del:hover { color: #b91c1c; transform: scale(1.1); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cat-wrap">
+  <div class="cat-box">
+    <div class="cat-head">
+      <h3>Categories</h3>
+    </div>
+    <div class="cat-body" id="catList">
+      {% for c in categories %}
+      <div class="cat-item" onclick="selectCategory({{ c.id }}, '{{ c.name }}')" id="cat_{{ c.id }}">
+        <span>{{ c.name }}</span>
+        <button class="btn-del" onclick="deleteCategory(event, {{ c.id }}, '{{ c.name }}')"><i class="fas fa-trash-alt"></i></button>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="cat-add">
+      <input type="text" id="newCatName" class="form-control" placeholder="New Category Name">
+      <button class="btn btn-primary" onclick="addCategory()"><i class="fas fa-plus"></i></button>
+    </div>
+  </div>
+
+  <div class="cat-box">
+    <div class="cat-head">
+      <h3 id="subTitle">Sub-Categories</h3>
+    </div>
+    <div class="cat-body" id="subList">
+      <div style="text-align:center;color:#94a3b8;padding:20px;font-weight:600;">Select a category first</div>
+    </div>
+    <div class="cat-add">
+      <input type="text" id="newSubName" class="form-control" placeholder="New Sub-Category" disabled>
+      <button class="btn btn-primary" id="btnSubAdd" onclick="addSubCategory()" disabled><i class="fas fa-plus"></i></button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const subData = {{ subcategories | tojson | safe }};
+let currentCatId = null;
+let currentCatName = null;
+
+function selectCategory(id, name) {
+  document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('cat_'+id).classList.add('active');
+  currentCatId = id;
+  currentCatName = name;
+  document.getElementById('subTitle').innerText = name + ' Sub-Categories';
+  document.getElementById('newSubName').disabled = false;
+  document.getElementById('btnSubAdd').disabled = false;
+  
+  renderSubCategories();
+}
+
+function renderSubCategories() {
+  const list = document.getElementById('subList');
+  list.innerHTML = '';
+  const subs = subData[currentCatId] || [];
+  if(subs.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;font-weight:600;">No sub-categories yet</div>';
+  } else {
+    subs.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'cat-item';
+      div.style.cursor = 'default';
+      div.innerHTML = `
+        <span>${s.name}</span>
+        <button class="btn-del" onclick="deleteSubCategory(${s.id}, '${s.name}')"><i class="fas fa-trash-alt"></i></button>
+      `;
+      list.appendChild(div);
+    });
+  }
+}
+
+async function addCategory() {
+  const name = document.getElementById('newCatName').value.trim();
+  if(!name) return;
+  const formData = new FormData();
+  formData.append('name', name);
+  const res = await fetch('{{ url_for("api_categories_add") }}', { method: 'POST', body: formData });
+  const data = await res.json();
+  if(data.success) {
+    location.reload();
+  } else {
+    alert(data.error || 'Failed to add category');
+  }
+}
+
+async function deleteCategory(e, id, name) {
+  e.stopPropagation();
+  if(!confirm('Delete category "' + name + '" and all its sub-categories? This cannot be undone.')) return;
+  const formData = new FormData();
+  formData.append('id', id);
+  const res = await fetch('{{ url_for("api_categories_delete") }}', { method: 'POST', body: formData });
+  const data = await res.json();
+  if(data.success) {
+    location.reload();
+  } else {
+    alert(data.error || 'Failed to delete');
+  }
+}
+
+async function addSubCategory() {
+  if(!currentCatId) return;
+  const name = document.getElementById('newSubName').value.trim();
+  if(!name) return;
+  const formData = new FormData();
+  formData.append('category_id', currentCatId);
+  formData.append('name', name);
+  const res = await fetch('{{ url_for("api_subcategories_add") }}', { method: 'POST', body: formData });
+  const data = await res.json();
+  if(data.success) {
+    if(!subData[currentCatId]) subData[currentCatId] = [];
+    subData[currentCatId].push(data);
+    document.getElementById('newSubName').value = '';
+    renderSubCategories();
+  } else {
+    alert(data.error || 'Failed to add sub-category');
+  }
+}
+
+async function deleteSubCategory(id, name) {
+  if(!confirm('Delete sub-category "' + name + '"?')) return;
+  const formData = new FormData();
+  formData.append('id', id);
+  const res = await fetch('{{ url_for("api_subcategories_delete") }}', { method: 'POST', body: formData });
+  const data = await res.json();
+  if(data.success) {
+    if(subData[currentCatId]) {
+      subData[currentCatId] = subData[currentCatId].filter(s => s.id != id);
+    }
+    renderSubCategories();
+  } else {
+    alert(data.error || 'Failed to delete');
+  }
+}
+</script>
+{% endblock %}

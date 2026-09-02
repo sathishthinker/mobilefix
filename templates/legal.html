@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ title }} — MobileFix Pro</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size:0.92rem;line-height:1.7;}
+.wrap{max-width:800px;margin:0 auto;padding:28px 16px 48px;}
+.header{background:linear-gradient(135deg,#0d1b2a,#1a3a5c);color:white;border-radius:16px;padding:24px 28px;margin-bottom:18px;}
+.header h1{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.55rem;margin-bottom:6px;}
+.header p{color:rgba(255,255,255,.75);font-size:.85rem;}
+.teal{color:#00BCD4;}
+.nav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.nav a{font-size:.8rem;font-weight:700;text-decoration:none;padding:7px 12px;border-radius:999px;background:#fff;color:#0f172a;border:1px solid #e2e8f0;}
+.nav a.on{background:#00BCD4;color:#fff;border-color:#00BCD4;}
+.set-doc{background:#fff;border-radius:14px;overflow:hidden;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid #eef2f7;}
+.set-doc-head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none;background:#f8fafc;}
+.set-doc-head strong{display:block;font-family:'Exo 2',sans-serif;font-size:.92rem;color:#0f172a;}
+.set-doc-head p{margin:2px 0 0;font-size:.72rem;font-weight:600;color:#64748b;}
+.set-doc-ico{width:36px;height:36px;border-radius:10px;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.set-chev{margin-left:auto;color:#64748b;font-size:.75rem;transition:transform .2s;}
+.set-doc.open .set-chev{transform:rotate(180deg);}
+.set-doc:not(.open) .set-doc-body{display:none;}
+.set-doc-body{padding:4px 18px 18px;}
+.legal-copy{font-size:.85rem;color:#334155;}
+.legal-copy p{margin:0 0 10px;}
+.legal-copy h4{font-family:'Exo 2',sans-serif;font-size:.88rem;color:#0f172a;margin:14px 0 6px;}
+.legal-copy ul{padding-left:18px;margin:0 0 10px;}
+.legal-copy li{margin-bottom:4px;}
+.foot{text-align:center;margin-top:18px;font-size:.78rem;color:#94a3b8;}
+.foot a{color:#00BCD4;text-decoration:none;font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>Mobile<span class="teal">Fix</span> Pro</h1>
+    <p>Legal policies for our digital subscription product &nbsp;|&nbsp; Payment and account use</p>
+  </div>
+  <div class="nav">
+    <a href="{{ url_for('terms_page') }}" class="{{ 'on' if page=='terms' else '' }}">Terms and Conditions</a>
+    <a href="{{ url_for('privacy_page') }}" class="{{ 'on' if page=='privacy' else '' }}">Privacy Policy</a>
+    <a href="{{ url_for('refund_policy_page') }}" class="{{ 'on' if page=='refund' else '' }}">Refund and Return</a>
+  </div>
+  {% include 'includes/legal_policies.html' %}
+  <div class="foot">Support: <a href="https://wa.me/918682861656" target="_blank">+91 86828 61656</a></div>
+</div>
+<script>
+function toggleSetDoc(el){
+  const wasOpen = el.classList.contains('open');
+  document.querySelectorAll('.set-doc').forEach(d => d.classList.remove('open'));
+  if(!wasOpen) el.classList.add('open');
+}
+</script>
+</body>
+</html>

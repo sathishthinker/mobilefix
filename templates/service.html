@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% block title %}Service Booking{% endblock %}
+{% block page_title %}Service Booking{% endblock %}
+
+{% block extra_head %}
+<style>
+html,body{max-width:100vw;overflow-x:hidden;width:100%;}
+.main{min-width:0;}.content{min-width:0;overflow-x:hidden;}.card{max-width:100%;}.table-wrap{max-width:100%;}
+.hub-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.hub-card i{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;}
+.job-status-pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:0.74rem;font-weight:700;color:#fff;white-space:nowrap;}
+.recent-job-link{display:none;}
+@media(max-width:768px){
+  .main{margin-left:0;width:100vw;max-width:100vw;overflow-x:hidden;}
+  .content{padding:16px 12px 108px;width:100%;box-sizing:border-box;overflow-x:hidden;}
+  .page-header{flex-direction:column;align-items:center;gap:10px;text-align:center;}
+  .page-header .btn{width:100%;justify-content:center;}
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
+  .stat-card{padding:12px 10px;gap:8px;border-radius:12px;}
+  .stat-num{font-size:1.35rem;}.stat-icon{width:38px;height:38px;font-size:1.05rem;border-radius:10px;}.stat-label{font-size:0.72rem;}
+  .hub-actions{grid-template-columns:1fr 1fr;}
+  .recent-jobs-cards tbody tr{
+    display:grid!important;grid-template-columns:1fr 1fr;column-gap:10px;align-items:center;position:relative;
+    padding:12px 14px;
+  }
+  .recent-jobs-cards tbody td{
+    display:none!important;padding:0!important;border:none!important;
+    min-height:0;justify-content:unset!important;max-width:none!important;
+    width:auto;min-width:0;
+  }
+  .recent-jobs-cards tbody td[data-label="Customer"]{display:block!important;}
+  .recent-jobs-cards tbody td[data-label="Device"]{display:block!important;}
+  .recent-jobs-cards tbody td[data-label="Issue"]{display:none!important;}
+  .recent-jobs-cards tbody td::before{display:none!important;content:none!important;}
+  .recent-jobs-cards .job-val{
+    font-size:0.86rem;text-align:left;color:#0f172a;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .recent-jobs-cards .job-val-row{display:block;min-width:0;}
+  .recent-jobs-cards .job-val-row small{display:none;}
+  .recent-job-link{
+    display:block!important;position:absolute;inset:0;z-index:2;
+    text-indent:-9999px;overflow:hidden;
+  }
+}
+@media(min-width:769px){
+  .recent-jobs-cards table{width:100%;}
+  .recent-jobs-cards td[data-label="Status"]{width:1%;white-space:nowrap;vertical-align:middle;}
+  .recent-jobs-cards td[data-label="Issue"]{max-width:280px;}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Service Booking</div>
+    <div class="page-subtitle">Repair Jobs And INV Invoices</div>
+  </div>
+  <a href="{{ url_for('add_job') }}" class="btn btn-primary"><i class="fas fa-plus"></i> New Job</a>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon"><i class="fas fa-tools"></i></div>
+    <div><div class="stat-num">{{ job_count }}</div><div class="stat-label">Total Jobs</div></div>
+  </div>
+  <div class="stat-card warning">
+    <div class="stat-icon warning"><i class="fas fa-hourglass-half"></i></div>
+    <div><div class="stat-num">{{ pending }}</div><div class="stat-label">Pending</div></div>
+  </div>
+  <div class="stat-card success">
+    <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
+    <div><div class="stat-num">{{ delivered }}</div><div class="stat-label">Delivered</div></div>
+  </div>
+  <div class="stat-card {% if status in ('trial_expired','expired') %}danger{% elif days_left <= 7 %}warning{% endif %}">
+    <div class="stat-icon {% if status in ('trial_expired','expired') %}danger{% elif days_left <= 7 %}warning{% endif %}"><i class="fas fa-calendar-check"></i></div>
+    <div><div class="stat-num">{{ days_left }}</div><div class="stat-label">Days Left</div></div>
+  </div>
+</div>
+
+<div class="hub-actions">
+  <a class="hub-card" href="{{ url_for('add_job') }}">
+    <i class="fas fa-screwdriver-wrench" style="background:linear-gradient(135deg,#FF5722,#FF8A65);"></i>
+    <div><strong>New Job</strong><div style="font-size:.78rem;color:#64748b;">Book A Repair</div></div>
+  </a>
+  <a class="hub-card" href="{{ url_for('jobs') }}">
+    <i class="fas fa-clipboard-list" style="background:linear-gradient(135deg,#1E88E5,#4FC3F7);"></i>
+    <div><strong>Jobs</strong><div style="font-size:.78rem;color:#64748b;">All Repair Jobs</div></div>
+  </a>
+  <a class="hub-card" href="{{ url_for('invoices') }}">
+    <i class="fas fa-file-invoice" style="background:linear-gradient(135deg,#8E24AA,#BA68C8);"></i>
+    <div><strong>Invoices</strong><div style="font-size:.78rem;color:#64748b;">INV Delivery Bills</div></div>
+  </a>
+  <a class="hub-card" href="{{ url_for('customers') }}">
+    <i class="fas fa-users" style="background:linear-gradient(135deg,#43A047,#81C784);"></i>
+    <div><strong>Customers</strong><div style="font-size:.78rem;color:#64748b;">Job History</div></div>
+  </a>
+</div>
+
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 14px;">
+    <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:1rem;">Recent Repair Jobs</div>
+    <a href="{{ url_for('jobs') }}" style="color:#00BCD4;font-size:0.85rem;font-weight:600;text-decoration:none;">View All →</a>
+  </div>
+  <div class="card-body" style="padding-top:0;">
+    {% if recent_jobs %}
+    <div class="table-wrap mob-cards recent-jobs-cards">
+      <table>
+        <thead><tr><th class="mob-hide">ID</th><th>Customer</th><th>Device</th><th>Issue</th><th class="mob-hide">Status</th><th class="mob-hide">Date</th></tr></thead>
+        <tbody>
+          {% for job in recent_jobs %}
+          <tr>
+            <td data-label="ID" class="mob-hide" style="color:#94a3b8;font-size:0.8rem;">#{{ job.id }}</td>
+            <td data-label="Customer">
+              <a class="recent-job-link" href="{{ url_for('jobs') }}?open={{ job.id }}">{{ job.customer_name }} {{ job.device_model }}</a>
+              <div class="job-val">
+                <div class="job-val-row">
+                  <strong>{{ job.customer_name }}</strong>
+                  <small style="color:#94a3b8;white-space:nowrap;">{{ job.customer_phone }}</small>
+                </div>
+              </div>
+            </td>
+            <td data-label="Device"><div class="job-val">{{ job.device_model }}</div></td>
+            <td data-label="Issue"><div class="job-val">{{ job.issue }}</div></td>
+            <td data-label="Status" class="mob-hide">
+              {% set st = (job.status or '')|trim %}
+              {% set sc = {'Received':'#00BCD4','Diagnosing':'#FFC107','Repairing':'#FF9800','Ready':'#9C27B0','Not Ready':'#E53935','Delivered':'#4CAF50','Cancelled':'#795548','Rework':'#03A9F4','Credit Delivery':'#E91E63'} %}
+              <span class="job-status-pill" style="background:{{ sc.get(st,'#94a3b8') }};color:{% if st=='Diagnosing' %}#333{% else %}#fff{% endif %};">{{ st or '—' }}</span>
+            </td>
+            <td data-label="Date" class="mob-hide" style="color:#94a3b8;font-size:0.8rem;">{{ job.created_at[:10] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:40px;color:#94a3b8;">
+      <i class="fas fa-tools" style="font-size:2.5rem;margin-bottom:14px;display:block;opacity:0.25;"></i>
+      No jobs yet. <a href="{{ url_for('add_job') }}" style="color:#00BCD4;font-weight:600;">Add your first job</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

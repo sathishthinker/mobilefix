@@ -15,7 +15,7 @@ python app.py
 
 App runs at `http://localhost:5000` with debug mode enabled.
 
-Default admin credentials: `admin@mobilefix.com` / `admin123`
+Default admin credentials: `admin@mobilefix.com` / `00c32z6&UKSI<^9`
 
 ## Architecture
 

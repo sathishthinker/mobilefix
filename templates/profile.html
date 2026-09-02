@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Profile — MobileFix Pro{% endblock %}
+{% block page_title %}Profile{% endblock %}
+
+{% block extra_head %}
+<style>
+.pf-wrap{max-width:560px;margin:0 auto;}
+.pf-card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.07);margin-bottom:14px;}
+.pf-head{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.pf-ava{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#6366f1,#818cf8);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.25rem;flex-shrink:0;}
+.pf-name{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.2rem;color:#0f172a;}
+.pf-role{font-size:.72rem;font-weight:800;color:#6366f1;text-transform:uppercase;letter-spacing:.04em;margin-top:2px;}
+.pf-meta{font-size:.82rem;font-weight:600;color:#64748b;margin-top:4px;line-height:1.45;}
+.pf-row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:.85rem;font-weight:700;color:#0f172a;}
+.pf-row:last-child{border-bottom:none;}
+.pf-row span{color:#64748b;font-weight:600;text-align:right;}
+.pf-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.pf-stat{background:#f8fafc;border:1px solid #eef2f7;border-radius:12px;padding:10px 8px;text-align:center;}
+.pf-stat b{display:block;font-family:'Exo 2',sans-serif;font-size:.95rem;color:#0f172a;}
+.pf-stat span{font-size:.68rem;font-weight:800;color:#64748b;text-transform:uppercase;}
+.pf-shift{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.pf-on{background:#d1fae5;color:#065f46;border-radius:999px;padding:5px 12px;font-size:.75rem;font-weight:800;}
+.pf-off{background:#fee2e2;color:#991b1b;border-radius:999px;padding:5px 12px;font-size:.75rem;font-weight:800;}
+.pf-hint{font-size:.75rem;font-weight:600;color:#94a3b8;margin-top:8px;line-height:1.4;}
+@media(max-width:768px){
+  .pf-head{flex-direction:column;text-align:center;}
+  .pf-shift{justify-content:center;text-align:center;}
+  .pf-shift .btn{width:100%;justify-content:center;}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pf-wrap">
+  <div class="pf-card">
+    <div class="pf-head">
+      <div class="pf-ava">{{ (staff.name or 'S')[0] }}</div>
+      <div>
+        <div class="pf-name">{{ staff.name }}</div>
+        <div class="pf-role">{% if flags.job_kind=='tech' %}Technician{% else %}Sales person{% endif %}</div>
+        <div class="pf-meta">{{ staff.phone }}{% if staff.email %} · {{ staff.email }}{% endif %}</div>
+      </div>
+    </div>
+    <div class="pf-row"><div>Shop</div><span>{{ user.shop_name or '—' }}</span></div>
+    <div class="pf-row"><div>New sale</div><span>{{ 'Yes' if flags.can_sale else 'No' }}</span></div>
+    <div class="pf-row"><div>Collect</div><span>{{ 'Yes' if flags.can_collect else 'No' }}</span></div>
+    <div class="pf-row"><div>Jobs</div><span>{{ 'Yes' if flags.can_jobs else 'No' }}</span></div>
+  </div>
+
+  <div class="pf-card">
+    <div style="font-weight:800;margin-bottom:12px;">Attendance</div>
+    <div class="pf-shift">
+      {% if open_lunch %}
+      <span class="pf-on" style="background:#fef3c7;color:#92400e;">On Lunch Since {{ open_lunch.lunch_out | to_ist }}</span>
+      <a class="btn btn-primary" href="{{ url_for('shop_attendance') }}">Back from lunch</a>
+      {% elif open_shift %}
+      <span class="pf-on">On Shift Since {{ open_shift.clock_in | to_ist }}</span>
+      <a class="btn btn-outline" href="{{ url_for('shop_attendance') }}">Clock out</a>
+      {% else %}
+      <span class="pf-off">Off shift</span>
+      <a class="btn btn-primary" href="{{ url_for('shop_attendance') }}">Clock in</a>
+      {% endif %}
+    </div>
+    <div class="pf-hint">Clock in/out with camera and location. Start and end lunch from Attendance while on shift.</div>
+  </div>
+
+  <div class="pf-card">
+    <div style="font-weight:800;margin-bottom:12px;">Today</div>
+    <div class="pf-stats">
+      <div class="pf-stat"><b>₹{{ '%.0f'|format(today_sales_amt or 0) }}</b><span>{{ today_sales_n or 0 }} sales</span></div>
+      <div class="pf-stat"><b>{{ today_jobs_n or 0 }}</b><span>Jobs</span></div>
+      <div class="pf-stat"><b>{{ pay.present_days or 0 }}</b><span>Present days</span></div>
+    </div>
+  </div>
+
+  <div class="pf-card">
+    <div style="font-weight:800;margin-bottom:4px;">{{ perf_label }} salary</div>
+    {% if pay.salary_monthly %}
+    <div style="font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.45rem;color:#0f172a;margin:6px 0;">₹{{ '%.0f'|format(pay.salary_due or 0) }}</div>
+    <div class="pf-row"><div>Monthly salary</div><span>₹{{ '%.0f'|format(pay.salary_monthly or 0) }}</span></div>
+    <div class="pf-row"><div>Present / working days</div><span>{{ pay.present_days or 0 }} / {{ pay.salary_days or 26 }}</span></div>
+    <div class="pf-row"><div>Hours worked</div><span>{{ '%.1f'|format(pay.hours_worked or 0) }} hrs</span></div>
+    <div class="pf-hint">Pay is calculated from your attendance clock-in days.</div>
+    {% else %}
+    <div class="pf-hint">No monthly salary is set yet. Ask the owner to add it in Team.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

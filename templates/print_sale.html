@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{% if is_refund %}Refund SAL-{{ '%04d'|format(bill.bill_no) }}{% else %}Bill SAL-{{ '%04d'|format(bill.bill_no) }}{% endif %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root{--teal:#00BCD4;--dark:#0d1b2a;}
+*{box-sizing:border-box;margin:0;padding:0;}
+@page{size:A5 landscape;margin:0;}
+body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size:0.75rem;}
+.page-wrap{
+  width:210mm;max-width:210mm;min-height:148mm;margin:0 auto;
+  background:white;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.1);
+  overflow:visible;display:flex;flex-direction:column;
+}
+.inv-header{background:linear-gradient(135deg,var(--dark),#1a3a5c);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;}
+.header-left{display:flex;align-items:center;gap:12px;}
+.logo-img{width:44px;height:44px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,0.15);padding:3px;}
+.inv-logo{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.2rem;color:white;}
+.inv-logo span{color:var(--teal);}
+.inv-shop{color:rgba(255,255,255,0.6);font-size:0.7rem;margin-top:2px;}
+.inv-number{text-align:right;color:rgba(255,255,255,0.7);font-size:0.7rem;}
+.inv-number strong{display:block;font-size:1.1rem;color:white;font-family:'Exo 2',sans-serif;}
+.inv-info{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border-bottom:1px solid #e2e8f0;}
+.inv-info-cell{padding:8px 16px;border-right:1px solid #e2e8f0;}
+.inv-info-cell:last-child{border-right:none;}
+.info-label{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:2px;}
+.info-name{font-family:'Exo 2',sans-serif;font-weight:700;font-size:0.85rem;color:#1a2332;}
+.info-detail{font-size:0.72rem;color:#64748b;line-height:1.4;margin-top:2px;}
+.inv-body{padding:10px 16px;flex:1;display:flex;flex-direction:column;min-height:0;}
+.items-wrap{width:100%;margin-bottom:8px;flex:1;}
+.items-row{display:grid;grid-template-columns:minmax(0,1.4fr) 52px 92px 92px;gap:0;align-items:center;width:100%;}
+.items-row > div{padding:6px 8px;box-sizing:border-box;min-width:0;}
+.items-head{background:#f8fafc;border-bottom:2px solid #e2e8f0;}
+.items-head > div{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;}
+.items-line{border-bottom:1px solid #f1f5f9;}
+.items-line > div{font-size:0.75rem;}
+.items-row .c-qty,.items-row .c-price,.items-row .c-amt{text-align:right;}
+.inv-bottom{display:grid;grid-template-columns:1.2fr 0.8fr;gap:16px;margin-top:auto;padding-top:8px;align-items:end;}
+.payment-box{background:#f8fafc;border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.payment-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;}
+.pay-method{display:inline-block;background:#e0f7fa;color:#006064;padding:3px 10px;border-radius:999px;font-size:0.7rem;font-weight:700;}
+.summary-table{width:100%;border-collapse:collapse;}
+.summary-table td{padding:4px 8px;font-size:0.75rem;}
+.summary-table td:last-child{text-align:right;font-weight:600;}
+.summary-table .grand td{font-family:'Exo 2',sans-serif;font-size:0.9rem;font-weight:800;border-top:2px solid #e2e8f0;padding-top:6px;color:var(--teal);}
+.summary-table .balance td{color:#ef4444;font-weight:800;}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:0.7rem;font-weight:700;}
+.badge-paid{background:#d1fae5;color:#065f46;}
+.badge-partial{background:#fff7ed;color:#c2410c;}
+.badge-unpaid{background:#fee2e2;color:#991b1b;}
+.terms{font-size:0.65rem;color:#94a3b8;margin-top:8px;padding-top:6px;border-top:1px dashed #e2e8f0;line-height:1.5;}
+.inv-footer{background:#f8fafc;padding:8px 16px;text-align:center;color:#94a3b8;font-size:0.7rem;border-top:1px solid #e2e8f0;margin-top:auto;}
+.print-btn{text-align:center;margin:12px auto;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:0 8px;max-width:100%;box-sizing:border-box;}
+.print-btn button{padding:8px 20px;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;font-family:inherit;color:white;}
+.preview-frame{width:100%;overflow:hidden;display:flex;justify-content:center;}
+@media screen and (max-width:768px){
+  html,body{overflow-x:hidden;max-width:100%;}
+  body{padding-bottom:24px;}
+  .print-btn button{flex:1;min-width:104px;padding:10px 12px;font-size:0.78rem;}
+  .page-wrap{transform-origin:top center;}
+}
+@media print{
+  .print-btn,.preview-frame{display:contents;}
+  .print-btn{display:none !important;}
+  html,body{background:white;margin:0;padding:0;height:148mm;overflow:hidden;}
+  .page-wrap{box-shadow:none;border-radius:0;width:210mm;height:148mm;max-height:148mm;margin:0;overflow:hidden;transform:none !important;}
+}
+</style>
+</head>
+<body>
+<div class="print-btn">
+  <button onclick="window.print()" style="background:linear-gradient(135deg,var(--teal),#0097A7);">{% if is_refund %}Print Refund Receipt{% else %}Print Bill{% endif %}</button>
+  <button onclick="sharePDF()" style="background:#25D366;">Share PDF</button>
+  <button onclick="downloadPDF()" style="background:linear-gradient(135deg,#ef4444,#b91c1c);">Download PDF</button>
+  <button onclick="window.close()" style="background:#64748b;">Close</button>
+</div>
+<div class="preview-frame">
+<div class="page-wrap" id="invoice-content">
+  <div class="inv-header">
+    <div class="header-left">
+      {% if user.logo %}
+      <img src="{{ user.logo }}" alt="Logo" class="logo-img">
+      {% endif %}
+      <div>
+        <div class="inv-logo">Mobile<span>Fix</span> Pro</div>
+        <div class="inv-shop">{{ user.shop_name or 'My Shop' }}</div>
+      </div>
+    </div>
+    <div class="inv-number">
+      <small>{% if is_refund %}REFUND RECEIPT{% else %}SALES BILL{% endif %}</small>
+      <strong>SAL-{{ '%04d'|format(bill.bill_no) }}</strong>
+      <div style="margin-top:2px;font-size:0.65rem;color:rgba(255,255,255,0.6);">{{ bill.created_at | to_ist }}</div>
+    </div>
+  </div>
+  <div class="inv-info">
+    <div class="inv-info-cell">
+      <div class="info-label">From</div>
+      <div class="info-name">{{ user.shop_name or 'My Shop' }}</div>
+      <div class="info-detail">
+        {% if user.door_no or user.street %}
+          {{ user.door_no or '' }}{% if user.door_no and user.street %}, {% endif %}{{ user.street or '' }}<br>
+        {% endif %}
+        {% if user.city %}{{ user.city }}{% if user.pincode %} - {{ user.pincode }}{% endif %}<br>{% endif %}
+        {% if not (user.door_no or user.street or user.city) and user.address %}{{ user.address }}<br>{% endif %}
+        {{ user.phone }}
+        {% if bill.is_gst and user.gstin %}<br><span style="font-size:0.65rem;font-weight:700;color:#047857;">GSTIN: {{ user.gstin }}</span>{% endif %}
+      </div>
+    </div>
+    <div class="inv-info-cell">
+      <div class="info-label">Bill To</div>
+      <div class="info-name">{{ bill.customer_name }}</div>
+      <div class="info-detail">
+        {% if bill.customer_phone %}{{ bill.customer_phone }}{% else %}Walk-in{% endif %}
+        {% if bill.is_gst and bill.customer_address %}<br>{{ bill.customer_address }}{% endif %}
+        {% if bill.is_gst and bill.customer_gstin %}<br><span style="font-size:0.65rem;font-weight:700;color:#047857;">GSTIN: {{ bill.customer_gstin }}</span>{% endif %}
+        {% if bill.is_gst and bill.billing_state %}<br><span style="font-size:0.65rem;color:#64748b;">State: {{ bill.billing_state }}</span>{% endif %}
+      </div>
+    </div>
+    <div class="inv-info-cell">
+      <div class="info-label">{% if is_refund %}Return{% else %}Sale{% endif %}</div>
+      <div class="info-detail">
+        {% if is_refund %}
+        Returned: {{ (bill.refund_date or bill.created_at) | to_ist }}<br>
+        Original: {{ bill.created_at | to_ist }}
+        {% else %}
+        Date: {{ bill.created_at | to_ist }}<br>
+        Method: {{ bill.pay_method }}{% if bill.txn_id %}<br>Txn: {{ bill.txn_id }}{% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="inv-body">
+    <div class="items-wrap">
+      <div class="items-row items-head">
+        <div class="c-desc">Description</div>
+        <div class="c-qty">Qty</div>
+        <div class="c-price">Unit Price</div>
+        <div class="c-amt">Amount</div>
+      </div>
+      {% for item in lines %}
+      {% set sold = (item.qty or 0)|float %}
+      {% set ret = (item.returned_qty or 0)|float %}
+      {% set left = sold - ret %}
+      {% set show_qty = ret if is_refund else left %}
+      {% if not is_refund or ret > 0.0001 %}
+      <div class="items-row items-line">
+        <div class="c-desc">{{ item.name }}{% if item.sku %} <span style="color:#94a3b8;">({{ item.sku }})</span>{% endif %}{% if bill.is_gst and (item.hsn or item.hsn_code) %}<div style="color:#047857;font-size:.68rem;font-weight:700;">HSN {{ item.hsn or item.hsn_code }}</div>{% endif %}{% if is_refund and left > 0.0001 %}<div style="color:#64748b;font-size:.68rem;">Kept {{ '%g'|format(left) }} of {{ '%g'|format(sold) }}</div>{% elif not is_refund and ret > 0 %}<div style="color:#be123c;font-size:.68rem;">Returned {{ '%g'|format(ret) }} of {{ '%g'|format(sold) }}</div>{% endif %}</div>
+        <div class="c-qty">{{ '%g'|format(show_qty) }}</div>
+        <div class="c-price">₹{{ '%.2f'|format(item.price or 0) }}</div>
+        <div class="c-amt" style="font-weight:700;">₹{{ '%.2f'|format(show_qty * (item.price or 0)) }}</div>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+    <div class="inv-bottom">
+      <div>
+        <div class="payment-box">
+          <div class="payment-label">{% if is_refund %}Refund{% else %}Payment{% endif %}</div>
+          {% if bill.paid_status == 'Returned' %}
+          <span class="badge badge-unpaid">{% if is_refund %}REFUNDED{% else %}RETURNED{% endif %}</span>
+          {% elif is_refund %}
+          <span class="badge badge-partial">PARTIAL RETURN</span>
+          {% elif bill.paid_status == 'Partial' %}
+          <span class="badge badge-partial">PARTIAL / CREDIT</span>
+          {% elif bill.paid_status == 'Unpaid' %}
+          <span class="badge badge-unpaid">CREDIT</span>
+          {% else %}
+          <span class="badge badge-paid">PAID</span>
+          {% endif %}
+          {% if is_refund %}
+          <div class="pay-method">{{ bill.refund_method or '—' }}</div>
+          {% else %}
+          <div class="pay-method">{{ bill.pay_method }}{% if bill.txn_id %}<div style="font-size:.72rem;margin-top:4px;opacity:.85;">{{ bill.txn_id }}</div>{% endif %}</div>
+          {% endif %}
+        </div>
+        {% if bill.return_reason %}
+        <div class="terms" style="color:#7f1d1d;">
+          <strong>Return reason:</strong> {{ bill.return_reason }}
+        </div>
+        {% endif %}
+        {% if bill.is_gst %}
+        <div class="terms" style="color:#065f46;border-color:#a7f3d0;background:#ecfdf5;padding:6px 8px;border-radius:6px;">
+          <strong>Tax Invoice</strong> · GST @ {{ bill.gst_rate or 0 }}%<br>
+          {% set taxable = (bill.total or 0) / (1 + (bill.gst_rate or 0)/100) %}
+          Taxable Value: ₹{{ '%.2f'|format(taxable) }}
+          {% if (bill.igst or 0) > 0 %}
+          · IGST: ₹{{ '%.2f'|format(bill.igst) }}
+          {% else %}
+          · CGST: ₹{{ '%.2f'|format(bill.cgst or 0) }} · SGST: ₹{{ '%.2f'|format(bill.sgst or 0) }}
+          {% endif %}
+        </div>
+        {% else %}
+        <div class="terms">
+          Counter Sale. No GST Split On This Bill.<br>
+          Thank You For Choosing <strong>{{ user.shop_name or 'MobileFix Pro' }}</strong>!
+        </div>
+        {% endif %}
+      </div>
+      <div>
+        <table class="summary-table">
+          <tr><td style="color:#64748b;">Subtotal</td><td>₹{{ '%.2f'|format(bill.subtotal or 0) }}</td></tr>
+          {% if (bill.discount or 0) > 0 %}
+          <tr><td style="color:#64748b;">Discount</td><td style="color:#ef4444;">-₹{{ '%.2f'|format(bill.discount) }}</td></tr>
+          {% endif %}
+          {% if (bill.loyalty_points or 0) > 0 %}
+          <tr><td style="color:#64748b;">Points redeemed</td><td style="color:#b45309;">{{ bill.loyalty_points }} pts (−₹{{ '%.2f'|format(bill.loyalty_rupees or 0) }})</td></tr>
+          {% endif %}
+          <tr class="grand"><td>Total Amount</td><td>₹{{ '%.2f'|format(bill.total or 0) }}</td></tr>
+          {% if is_refund %}
+          <tr><td style="color:#16a34a;">Originally paid</td><td style="color:#16a34a;">₹{{ '%.2f'|format((collected or 0) + (bill.refund_amount or 0)) }}</td></tr>
+          <tr class="grand"><td>Refunded</td><td>₹{{ '%.2f'|format(bill.refund_amount or 0) }}</td></tr>
+          {% if bill.paid_status != 'Returned' %}
+          <tr><td style="color:#64748b;">Bill remaining</td><td>₹{{ '%.2f'|format(bill.total or 0) }}</td></tr>
+          {% endif %}
+          {% else %}
+          <tr><td style="color:#16a34a;">Paid</td><td style="color:#16a34a;">₹{{ '%.2f'|format(collected) }}</td></tr>
+          {% if (bill.refund_amount or 0)|float > 0.009 %}
+          <tr class="balance"><td>Refunded ({{ bill.refund_method or '—' }})</td><td>₹{{ '%.2f'|format(bill.refund_amount or 0) }}</td></tr>
+          {% endif %}
+          {% if balance > 0.01 %}
+          <tr class="balance"><td>Credit Due{% if bill.due_date %} ({{ bill.due_date }}){% endif %}</td><td>₹{{ '%.2f'|format(balance) }}</td></tr>
+          {% endif %}
+          {% endif %}
+        </table>
+      </div>
+    </div>
+  </div>
+  {% if user.google_review_link and not is_refund %}
+  <div style="background:#f0f9ff;border-top:1px solid #bae6fd;padding:8px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <div>
+      <div style="font-size:0.7rem;font-weight:700;color:#0369a1;">Happy with your purchase?</div>
+      <div style="font-size:0.65rem;color:#64748b;">Leave us a Google Review.</div>
+    </div>
+    <a href="{{ user.google_review_link }}" style="font-size:0.68rem;font-weight:700;color:#4285F4;text-decoration:none;" target="_blank">Rate Us on Google</a>
+  </div>
+  {% endif %}
+  {% if loyalty %}
+  <div style="background:#fffbeb;border-top:1px solid #fcd34d;padding:8px 16px;font-size:0.72rem;font-weight:700;color:#92400e;">
+    Loyalty Points: {{ loyalty.points }} (₹{{ '%.2f'|format(loyalty.value) }}) · ₹100 Spend = 10 Pts · 4 Pts = ₹1 · Redeem From 300 Pts On Sales
+  </div>
+  {% endif %}
+  <div class="inv-footer">
+    Generated by <strong>MobileFix Pro</strong> &nbsp;•&nbsp; SAL-{{ '%04d'|format(bill.bill_no) }} &nbsp;•&nbsp; {{ bill.created_at | to_ist }}
+  </div>
+</div>
+</div>
+<script>
+function fitBillPreview() {
+  const el = document.getElementById('invoice-content');
+  const frame = el && el.parentElement;
+  if (!el || !frame) return;
+  el.style.transform = '';
+  frame.style.height = '';
+  if (window.innerWidth > 768) return;
+  const avail = Math.max(280, window.innerWidth - 16);
+  const scale = Math.min(1, avail / el.offsetWidth);
+  el.style.transform = 'scale(' + scale + ')';
+  frame.style.height = (el.offsetHeight * scale) + 'px';
+}
+function billPdfOpts(name) {
+  return {
+    margin: 0,
+    filename: name,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0, backgroundColor: '#ffffff' },
+    jsPDF: { unit: 'in', format: 'a5', orientation: 'landscape' }
+  };
+}
+function withUnscaledBill(fn) {
+  const el = document.getElementById('invoice-content');
+  const frame = el.parentElement;
+  const prevT = el.style.transform;
+  const prevH = frame.style.height;
+  el.style.transform = '';
+  frame.style.height = '';
+  return Promise.resolve(fn(el)).finally(function() {
+    el.style.transform = prevT;
+    frame.style.height = prevH;
+  });
+}
+function makeBillPdf() {
+  const name = '{% if is_refund %}REFUND-{% endif %}SAL-{{ "%04d"|format(bill.bill_no) }}.pdf';
+  return withUnscaledBill(function(el) {
+    return html2pdf().set(billPdfOpts(name)).from(el).toPdf().get('pdf').then(function(pdf) {
+      while (pdf.internal.getNumberOfPages() > 1) {
+        pdf.deletePage(pdf.internal.getNumberOfPages());
+      }
+      return pdf;
+    });
+  });
+}
+function downloadPDF() {
+  const name = '{% if is_refund %}REFUND-{% endif %}SAL-{{ "%04d"|format(bill.bill_no) }}.pdf';
+  makeBillPdf().then(function(pdf) { pdf.save(name); });
+}
+async function sharePdfBlob(blob, filename, title) {
+  if (window.parent && window.parent !== window && typeof window.parent.sharePdfBlob === 'function') {
+    return window.parent.sharePdfBlob(blob, filename, title || filename, '');
+  }
+  var mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || (navigator.maxTouchPoints > 1 && /Macintosh/i.test(navigator.userAgent));
+  if (!mobile) {
+    var a = document.createElement('a');
+    var url = URL.createObjectURL(blob);
+    a.href = url; a.download = filename; a.click();
+    setTimeout(function() { URL.revokeObjectURL(url); }, 2500);
+    return;
+  }
+  const file = new File([blob], filename, { type: 'application/pdf' });
+  try {
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: title || filename });
+      return;
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(function() { URL.revokeObjectURL(a.href); }, 2500);
+}
+async function sharePDF() {
+  const name = '{% if is_refund %}REFUND-{% endif %}SAL-{{ "%04d"|format(bill.bill_no) }}.pdf';
+  const pdf = await makeBillPdf();
+  await sharePdfBlob(pdf.output('blob'), name, name.replace('.pdf',''));
+}
+window.addEventListener('load', fitBillPreview);
+window.addEventListener('resize', fitBillPreview);
+if (new URLSearchParams(window.location.search).get('download') === '1') {
+  window.addEventListener('load', () => setTimeout(downloadPDF, 600));
+}
+if (new URLSearchParams(window.location.search).get('share') === '1') {
+  window.addEventListener('load', () => setTimeout(sharePDF, 1500));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,656 @@
+{% extends 'base.html' %}
+{% block title %}Sales Billing{% endblock %}
+{% block page_title %}Sales Billing{% endblock %}
+{% block extra_head %}
+<style>
+.sales-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.sales-kpi .l{font-size:.72rem;font-weight:700;color:#0e7490;text-transform:uppercase;}
+.sales-kpi .n{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.35rem;color:#0f172a;}
+.hub-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.hub-card i{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;}
+.pay-method-btn{flex:1;padding:10px;border-radius:10px;border:2px solid #e2e8f0;background:white;cursor:pointer;font-size:0.85rem;font-weight:600;color:#475569;}
+.pay-method-btn.active{border-color:#00BCD4;background:#e0f7fa;color:#006064;}
+.pay-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+.sv-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;margin-bottom:10px;}
+.sv-k{font-size:.68rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;}
+.sv-name{font-family:'Exo 2',sans-serif;font-weight:800;font-size:1rem;}
+.sv-meta{font-size:.8rem;color:#64748b;margin-top:2px;word-break:break-word;}
+.sv-badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:800;}
+.sv-item{display:grid;grid-template-columns:minmax(0,1fr) 36px 84px;gap:8px;align-items:start;font-size:.82rem;padding:8px 0;border-bottom:1px solid #eef2f7;}
+.sv-item:last-child{border-bottom:none;}
+.sv-item span{min-width:0;word-break:break-word;}
+.sv-row{display:flex;justify-content:space-between;gap:12px;font-size:.88rem;padding:5px 0;}
+.sv-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.sale-act-remind{background:#f97316;color:white;}
+.sv-staff{margin-left:auto;text-align:right;min-width:110px;}
+.sv-ret{background:#fff1f2;border:1px solid #fecdd3;}
+.qty-btn{width:32px;height:32px;border-radius:8px;border:1.5px solid #cbd5e1;background:#fff;font-weight:800;cursor:pointer;flex-shrink:0;}
+.ret-line{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:.82rem;}
+.ret-line:last-child{border-bottom:none;}
+.ret-qty{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.modal-ded-nav { display: none; }
+@media(max-width:768px){
+  .modal-ded-nav { 
+    display: flex; gap: 10px; 
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: #fff; padding: 12px 10px calc(12px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid #e2e8f0; z-index: 1010;
+  }
+  .modal-ded-nav a, .modal-ded-nav button {
+    flex: 1; padding: 8px 10px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; text-align: center; border: none; cursor: pointer; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: #f1f5f9; color: #475569; font-family: inherit;
+  }
+  .modal-ded-nav button.nav-exit { background: #fee2e2; color: #dc2626; }
+  .modal-ded-nav a.nav-home { background: #e0f2fe; color: #0284c7; }
+  .modal-ded-nav a.nav-teams { background: #f3e8ff; color: #9333ea; }
+  #saleView .modal-exit { display: none !important; }
+  .sales-kpis,.hub-actions{grid-template-columns:1fr 1fr;}
+  .page-header{text-align:center;flex-direction:column;}
+  .page-header .btn{width:100%;justify-content:center;}
+  .pay-row{grid-template-columns:1fr 1fr;}
+  .sv-foot .btn{flex:1;justify-content:center;}
+  .sale-bills-head{flex-direction:column;align-items:stretch!important;}
+  .sale-bills-head .form-control{max-width:none!important;width:100%;}
+  .sale-mob-id{display:block!important;margin-top:2px;}
+  .mob-cards tbody tr:not(.expanded) td:not([data-label="Customer"]):not([data-label="Status"]){
+    display:none!important;
+  }
+  .mob-cards tbody td[data-label="Customer"]{
+    cursor:pointer;position:relative;padding-right:28px!important;
+    align-items:flex-start;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .mob-cards tbody td[data-label="Customer"]::after{
+    content:'\f078';
+    font-family:'Font Awesome 6 Free';font-weight:900;font-size:.95rem;
+    position:absolute;right:0;top:50%;transform:translateY(-50%);
+    color:var(--teal);transition:transform .3s cubic-bezier(0.175,0.885,0.32,1.275);
+  }
+  .mob-cards tbody tr.expanded td[data-label="Customer"]::after{
+    transform:translateY(-50%) rotate(180deg);
+  }
+  .mob-cards tbody tr.expanded td[data-label="Customer"]{
+    border-bottom:1px dashed #cbd5e1!important;
+    padding-bottom:12px!important;margin-bottom:6px;
+  }
+  .mob-cards tbody td[data-label="Customer"] strong{font-size:.95rem;display:block;line-height:1.25;}
+  .mob-cards tbody td[data-label="Customer"] .sale-cust{text-align:right;}
+  .mob-cards tbody td[data-label="Status"]{align-items:flex-start;padding-top:8px!important;}
+  .mob-cards tbody td[data-label="Actions"]{
+    margin-top:12px;padding-top:14px;
+    border-top:1px dashed #cbd5e1!important;justify-content:center;
+  }
+  .mob-cards tbody td[data-label="Actions"]>div{justify-content:center;width:100%;}
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Sales Billing</div>
+    <div class="page-subtitle">Counter Sales, Bills, And Stock</div>
+  </div>
+  <a href="{{ url_for('sale_new') }}" class="btn btn-primary"><i class="fas fa-plus"></i> New Sale</a>
+</div>
+<div class="sales-kpis">
+  <div class="sales-kpi"><div class="l">Today Bills</div><div class="n">{{ stats.today_n }}</div></div>
+  <div class="sales-kpi" style="border-left-color:#43A047;"><div class="l">Today Collected</div><div class="n">₹{{ '%.2f'|format(stats.today_amt) }}</div></div>
+  <div class="sales-kpi" style="border-left-color:#f59e0b;"><div class="l">Credit Due</div><div class="n" style="color:#d97706;">₹{{ '%.0f'|format(stats.credit_due) }}</div></div>
+  <div class="sales-kpi" style="border-left-color:#ef4444;"><div class="l">Low Stock</div><div class="n" style="color:#ef4444;">{{ stats.low_stock }}</div></div>
+</div>
+<div class="hub-actions">
+  <a class="hub-card" href="{{ url_for('sale_new') }}">
+    <i class="fas fa-cash-register" style="background:linear-gradient(135deg,#00BCD4,#26C6DA);"></i>
+    <div><strong>New Sale</strong><div style="font-size:.78rem;color:#64748b;">POS Bill</div></div>
+  </a>
+  <a class="hub-card" href="{{ url_for('sales_customers') }}">
+    <i class="fas fa-users" style="background:linear-gradient(135deg,#43A047,#81C784);"></i>
+    <div><strong>Customers</strong><div style="font-size:.78rem;color:#64748b;">Credit And Payments</div></div>
+  </a>
+  <a class="hub-card" href="{{ url_for('inventory') }}">
+    <i class="fas fa-boxes-stacked" style="background:linear-gradient(135deg,#FF9800,#FFC107);"></i>
+    <div><strong>Inventory</strong><div style="font-size:.78rem;color:#64748b;">Stock In / Warranty</div></div>
+  </a>
+  <a class="hub-card" href="{{ url_for('reports') }}">
+    <i class="fas fa-chart-line" style="background:linear-gradient(135deg,#8E24AA,#BA68C8);"></i>
+    <div><strong>Sales Reports</strong><div style="font-size:.78rem;color:#64748b;">Pay Method Totals</div></div>
+  </a>
+</div>
+<div class="card">
+  <div class="card-header" style="padding:16px 20px;">
+    <form method="GET" class="sale-bills-head" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;width:100%;" onsubmit="filterSalesBills();return false;">
+      <div style="font-family:'Exo 2',sans-serif;font-weight:800;flex:1;">Sales Bills</div>
+      <input type="search" name="q" id="saleSearch" value="{{ q }}" class="form-control" placeholder="Name, Phone, Bill No" style="max-width:220px;"
+             autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" oninput="filterSalesBills()">
+      <input type="date" name="date" value="{{ date_f }}" class="form-control" style="max-width:160px;" onchange="this.form.removeAttribute('onsubmit');this.form.submit()">
+      <button class="btn btn-primary" type="submit" title="Search" aria-label="Search"><i class="fas fa-search"></i></button>
+    </form>
+  </div>
+  <div class="card-body" style="padding-top:0;">
+    {% if bills %}
+    <div class="table-wrap mob-cards">
+      <table id="saleBillsTable">
+        <thead><tr><th class="mob-hide">Bill</th><th>Customer</th><th>Total</th><th>Pay</th><th>Status</th><th>Date</th><th></th></tr></thead>
+        <tbody>
+        {% for b in bills %}
+        <tr id="sale-row-{{ b.id }}">
+          <td data-label="Bill" class="mob-hide"><strong>SAL-{{ '%04d'|format(b.bill_no) }}</strong></td>
+          <td data-label="Customer" onclick="toggleSaleCard(this)">
+            <div class="sale-cust">
+              <strong>{{ b.customer_name }}</strong>
+              <small style="color:#94a3b8;display:block;">{{ b.customer_phone or '—' }}</small>
+              <small class="sale-mob-id" style="display:none;color:#94a3b8;font-size:0.72rem;">SAL-{{ '%04d'|format(b.bill_no) }}</small>
+            </div>
+          </td>
+          <td data-label="Total">₹{{ '%.2f'|format(b.total or 0) }}</td>
+          <td data-label="Pay">{{ pay_method_tag(b.pay_method) }}</td>
+          <td data-label="Status">
+            {% set st = b.paid_status or 'Paid' %}
+            {% set bal = b.balance if b.balance is defined else 0 %}
+            {% if st == 'Returned' %}
+            <span style="background:#fee2e2;color:#991b1b;padding:4px 10px;border-radius:999px;font-size:.75rem;font-weight:800;">Returned</span>
+            {% elif st == 'Partial' or (st != 'Unpaid' and bal > 0.01) %}
+            <span style="background:#fff7ed;color:#c2410c;padding:4px 10px;border-radius:999px;font-size:.75rem;font-weight:800;">Partial</span>
+            {% elif st == 'Unpaid' %}
+            <span style="background:#fef2f2;color:#ef4444;padding:4px 10px;border-radius:999px;font-size:.75rem;font-weight:800;">Credit</span>
+            {% else %}
+            <span style="background:#dcfce7;color:#16a34a;padding:4px 10px;border-radius:999px;font-size:.75rem;font-weight:800;">Paid</span>
+            {% endif %}
+            {% if bal > 0.01 and st != 'Returned' %}<br><small style="color:#ef4444;font-size:.72rem;font-weight:800;">Due ₹{{ '%.2f'|format(bal) }}</small>{% elif b.due_date and st in ('Partial','Unpaid') %}<br><small style="color:#f59e0b;font-size:.72rem;">Due {{ b.due_date }}</small>{% endif %}
+          </td>
+          <td data-label="Date">{{ b.created_at | to_ist }}</td>
+          <td data-label="Actions">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button type="button" class="sale-act sale-act-view" onclick="viewSale({{ b.id }})" title="View" aria-label="View"><i class="fas fa-eye"></i></button>
+              <a class="sale-act sale-act-print" href="{{ url_for('print_sale', bill_id=b.id) }}" target="_blank" title="Print" aria-label="Print"><i class="fas fa-print"></i></a>
+              <button type="button" class="sale-act sale-act-share" onclick="shareSalePDF({{ b.id }})" title="Share PDF" aria-label="Share PDF"><i class="fas fa-share-alt"></i></button>
+              {% if (st in ('Unpaid','Partial') or bal > 0.01) and st != 'Returned' and (is_owner or can_collect) %}
+              <button type="button" class="sale-act sale-act-collect" onclick="openCollect({{ b.id }})" title="Collect" aria-label="Collect"><i class="fas fa-rupee-sign"></i></button>
+              {% if b.customer_phone %}
+              <button type="button" class="sale-act sale-act-remind" onclick="sendSaleRemind({{ b.id }})" title="Payment Reminder" aria-label="Payment Reminder"><i class="fas fa-bell"></i></button>
+              {% endif %}
+              {% endif %}
+              <button type="button" class="sale-act sale-act-wa" onclick="sendSaleWA({{ b.id }})" title="Send bill message" aria-label="Send bill message"><i class="fab fa-whatsapp"></i></button>
+              {% if is_owner and st != 'Returned' %}
+              <button type="button" class="sale-act sale-act-return" onclick="openReturn({{ b.id }})" title="Return" aria-label="Return"><i class="fas fa-undo"></i></button>
+              {% endif %}
+              {% if st == 'Returned' or (b.refund_amount or 0)|float > 0.009 %}
+              <a class="sale-act sale-act-return" href="{{ url_for('print_sale_refund', bill_id=b.id) }}" target="_blank" title="Refund receipt" aria-label="Refund receipt"><i class="fas fa-file-invoice-dollar"></i></a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div id="saleSearchEmpty" style="display:none;text-align:center;padding:32px 16px;color:#94a3b8;">No matching bills.</div>
+    {% else %}
+    <div style="text-align:center;padding:48px;color:#94a3b8;">No sales bills yet. Start with New Sale.</div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="modal-overlay" id="saleView">
+  <div class="modal-box" style="max-width:480px; margin-bottom: 70px;">
+    <button type="button" class="modal-exit" onclick="document.getElementById('saleView').classList.remove('show')" title="Exit" aria-label="Exit">✕</button>
+    <div class="modal-title" id="svTitle">Bill</div>
+    <div class="modal-body" id="svBody" style="margin-top:10px;"></div>
+    <div class="sv-foot" id="svFoot"></div>
+  </div>
+  <div class="modal-ded-nav">
+    <a href="{{ url_for('dashboard') }}" class="nav-home"><i class="fas fa-home"></i> Home</a>
+    <a href="{{ url_for('shop_team') }}" class="nav-teams"><i class="fas fa-users"></i> Teams</a>
+    <button type="button" class="nav-exit" onclick="document.getElementById('saleView').classList.remove('show')"><i class="fas fa-times"></i> Exit</button>
+  </div>
+</div>
+<div class="modal-overlay" id="payModal">
+  <div class="modal-box" style="max-width:440px;">
+    <button type="button" class="modal-exit" onclick="document.getElementById('payModal').classList.remove('show')" title="Exit" aria-label="Exit">✕</button>
+    <div class="modal-title"><i class="fas fa-rupee-sign" style="color:#4CAF50;"></i> Collect Payment</div>
+    <div id="payModalInfo" style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:14px;font-size:0.875rem;"></div>
+    <div class="form-group">
+      <label class="form-label">Amount Received (₹)</label>
+      <input type="number" id="payAmount" class="form-control" min="0" step="0.01" oninput="updatePayBalance()">
+    </div>
+    <div id="dueAmountCard" style="background:#fff7ed;border:1.5px solid #fbbf24;border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:0.75rem;color:#92400e;font-weight:700;text-transform:uppercase;">Credit remaining</div>
+      </div>
+      <span id="payRemaining" style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.2rem;color:#ef4444;">—</span>
+    </div>
+    <label class="form-label">Payment Method</label>
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      {% for m in ['Cash','UPI','Card','Bank'] %}
+      <button type="button" class="pay-method-btn {% if m=='Cash' %}active{% endif %}" onclick="selectPayMethod(this,'{{ m }}')">{{ m }}</button>
+      {% endfor %}
+    </div>
+    <input type="hidden" id="selectedPayMethod" value="Cash">
+    <div id="collectTxnBox" class="form-group" style="display:none;">
+      <label class="form-label">Transaction ID <span style="color:#94a3b8;font-weight:600;">(optional)</span></label>
+      <input class="form-control" id="collectTxnEl" maxlength="80" placeholder="UPI / Card / Bank reference"
+             autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
+    </div>
+    <div id="dueDateBox" style="display:none;background:#fff7ed;border:1.5px solid #fbbf24;border-radius:10px;padding:12px;margin-bottom:14px;">
+      <label class="form-label">Due date for remaining credit</label>
+      <input type="date" id="payDueDate" class="form-control" min="{{ due_min }}" max="{{ due_max }}">
+      <small style="color:#b45309;font-size:.75rem;">Today through {{ due_max }} (15 days).</small>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button type="button" class="btn btn-primary" style="flex:1;background:linear-gradient(135deg,#4CAF50,#66BB6A);" onclick="confirmCollect()">Confirm Payment</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="returnModal">
+  <div class="modal-box" style="max-width:480px;">
+    <button type="button" class="modal-exit" onclick="document.getElementById('returnModal').classList.remove('show')" title="Exit" aria-label="Exit">✕</button>
+    <div class="modal-title"><i class="fas fa-undo" style="color:#ef4444;"></i> Return sale</div>
+    <div id="returnInfo" style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:14px;font-size:0.875rem;"></div>
+    <div class="form-group">
+      <label class="form-label">Return quantity</label>
+      <div id="returnLines" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:4px 12px;"></div>
+      <small style="color:#64748b;font-size:.75rem;">Use − / + to return part of a line. 0 skips that item.</small>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Return reason *</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+        {% for r in ['Defective','Wrong item','Customer changed mind','Damaged'] %}
+        <button type="button" class="pay-method-btn" style="flex:0 0 auto;padding:6px 10px;font-size:.78rem;" onclick="setReturnReason('{{ r }}')">{{ r }}</button>
+        {% endfor %}
+      </div>
+      <textarea id="returnReason" class="form-control" rows="2" placeholder="Why is this sale being returned?" style="resize:vertical;"></textarea>
+    </div>
+    <div id="refundAmtBox">
+      <div class="form-group">
+        <label class="form-label">Refund amount ₹ *</label>
+        <input class="form-control" id="returnRefundAmt" inputmode="decimal" placeholder="0.00" autocomplete="off" oninput="clampRefundAmt(true)" onblur="clampRefundAmt(false)">
+        <small id="returnRefundHint" style="color:#64748b;font-size:.75rem;"></small>
+      </div>
+    </div>
+    <p id="noRefundNote" style="display:none;font-size:.82rem;color:#64748b;margin-bottom:12px;">No amount was collected on this bill, so refund amount is ₹0. Choose how any later settlement is noted.</p>
+    <label class="form-label">Refund method *</label>
+    <div class="pay-row" style="margin-bottom:14px;">
+      {% for m in ['Cash','UPI','Card','Bank'] %}
+      <button type="button" class="pay-method-btn {% if m=='Cash' %}active{% endif %}" data-refund="{{ m }}" onclick="selectRefundMethod(this,'{{ m }}')">{{ m }}</button>
+      {% endfor %}
+    </div>
+    <input type="hidden" id="returnRefundMethod" value="">
+    <div style="display:flex;gap:10px;">
+      <button type="button" class="btn btn-primary" style="flex:1;background:linear-gradient(135deg,#ef4444,#dc2626);" onclick="confirmReturn()">Confirm Return</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const BILLS = JSON.parse({{ bills_json|tojson }});
+const IS_OWNER = {{ 'true' if is_owner else 'false' }};
+const SHOP = { name:{{ user.shop_name|default('My Shop')|tojson }}, phone:{{ (user.phone or '')|tojson }}, address:{{ user.address|default('')|tojson }}, review:{{ (user.google_review_link or '')|tojson }} };
+let curBillId = null, curTotal = 0, curPaid = 0, returnQtys = [];
+function findBill(id){ return BILLS.find(x => x.id == id); }
+async function shareSalePDF(id){
+  try {
+    await window.sharePrintPagePdf('/sales/'+id+'/print', { wait: 1200 });
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;
+    if (typeof showAlert === 'function') showAlert('Could not share PDF. Try Print instead.');
+    else alert('Could not share PDF.');
+  }
+}
+function filterSalesBills(){
+  const q = (document.getElementById('saleSearch')?.value || '').toLowerCase().trim();
+  const rows = document.querySelectorAll('#saleBillsTable tbody tr');
+  let n = 0;
+  rows.forEach(row => {
+    const hit = !q || row.textContent.toLowerCase().includes(q);
+    row.style.display = hit ? '' : 'none';
+    if (hit) n++;
+  });
+  const empty = document.getElementById('saleSearchEmpty');
+  if (empty) empty.style.display = rows.length && !n ? '' : 'none';
+}
+filterSalesBills();
+function toggleSaleCard(td){
+  const tr = td.closest('tr');
+  const wasOpen = tr.classList.contains('expanded');
+  document.querySelectorAll('.mob-cards tbody tr.expanded').forEach(r => r.classList.remove('expanded'));
+  if (!wasOpen) tr.classList.add('expanded');
+}
+function parseItems(b){ try { const x = JSON.parse(b.items||'[]'); return Array.isArray(x)?x:[]; } catch(e){ return []; } }
+function collectedOf(b){
+  const p = parseFloat(b.paid_amount||b.collected||0);
+  if (p <= 0.009 && (b.paid_status||'') === 'Paid') return parseFloat(b.total||0);
+  return p;
+}
+function toIST(s) {
+  if (!s) return '—';
+  const d = new Date(String(s).replace(' ', 'T') + (String(s).includes('+') ? '' : 'Z'));
+  if (isNaN(d)) return String(s).slice(0,16).replace('T',' ');
+  return d.toLocaleString('en-IN', {timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).replace(',','');
+}
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function servedByHtml(row){
+  if(!IS_OWNER) return '';
+  const name = String(row.staff_name||'OWNER').trim() || 'OWNER';
+  const label = (row.staff_id && name.toUpperCase()!=='OWNER') ? 'Sales person' : 'Handled by';
+  return `<div class="sv-staff"><div class="sv-k" style="margin-bottom:2px;">${label}</div><div style="font-weight:800;color:#0f172a;">${escHtml(name)}</div></div>`;
+}
+function viewSale(id){
+  const b = findBill(id); if(!b) return;
+  const items = parseItems(b);
+  const paid = collectedOf(b);
+  const returned = (b.paid_status || '') === 'Returned';
+  const bal = returned ? 0 : Math.max(0, parseFloat(b.total||0) - paid);
+  let st = b.paid_status || 'Paid';
+  if (!returned) {
+    if (bal <= 0.01) st = 'Paid';
+    else if (paid > 0.01) st = 'Partial';
+    else st = 'Unpaid';
+  }
+  const refund = parseFloat(b.refund_amount||0);
+  const badges = {
+    Returned: ['#991b1b','#fee2e2','RETURNED'],
+    Partial: ['#c2410c','#fff7ed','PARTIAL'],
+    Unpaid: ['#ef4444','#fef2f2','CREDIT'],
+    Paid: ['#16a34a','#dcfce7','PAID']
+  };
+  const bd = badges[st] || badges.Paid;
+  let html = `<div class="sv-box">
+    <div class="sv-k">Customer</div>
+    <div class="sv-name">${escHtml(b.customer_name||'')}</div>
+    <div class="sv-meta">${escHtml(b.customer_phone||'—')}</div>
+    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+      <span class="sv-badge" style="color:${bd[0]};background:${bd[1]};">${bd[2]}</span>
+      <span class="sv-meta">${escHtml(toIST(b.created_at))} · ${payMethodTag(b.pay_method||'')}${b.txn_id?' · '+escHtml(b.txn_id):''}</span>
+    </div>
+  </div>`;
+  html += `<div class="sv-box"><div class="sv-k">Items</div>`;
+  items.forEach(i => {
+    const sold=parseFloat(i.qty||0), ret=parseFloat(i.returned_qty||0), left=Math.max(0,sold-ret);
+    html += `<div class="sv-item"><span>${escHtml(i.name||'')}${ret>0?`<div class="sv-meta">Returned ${ret} of ${sold}</div>`:''}</span><span style="text-align:right;color:#64748b;">${left}</span><span style="text-align:right;font-weight:800;">₹${(left*parseFloat(i.price||0)).toFixed(2)}</span></div>`;
+  });
+  html += `</div>`;
+  html += `<div class="sv-box"><div class="sv-k">Totals</div>
+    <div class="sv-row"><span>Total</span><strong>₹${parseFloat(b.total||0).toFixed(2)}</strong></div>
+    <div class="sv-row"><span>Collected</span><strong style="color:#16a34a;">₹${paid.toFixed(2)}</strong></div>`;
+  if (!returned && bal > 0.01) {
+    html += `<div class="sv-row" style="color:#ef4444;"><span>Credit due${b.due_date?' · '+escHtml(b.due_date):''}</span><strong>₹${bal.toFixed(2)}</strong></div>`;
+  }
+  html += `</div>`;
+  if (returned || parseFloat(b.refund_amount||0)>0.009) {
+    html += `<div class="sv-box sv-ret"><div class="sv-k" style="color:#be123c;">Return</div>
+      <div class="sv-row"><span>Reason</span><strong>${escHtml(b.return_reason||'—')}</strong></div>
+      <div class="sv-row"><span>Refund</span><strong>₹${refund.toFixed(2)}</strong></div>
+      <div class="sv-row"><span>Method</span><strong>${escHtml(b.refund_method||'—')}</strong></div>
+      ${b.refund_date?`<div class="sv-meta">${escHtml(toIST(b.refund_date))}</div>`:''}
+    </div>`;
+  }
+  let foot = `<a class="btn btn-outline" href="/sales/${b.id}/print" target="_blank"><i class="fas fa-print"></i> Print</a>`;
+  foot += `<button type="button" class="btn btn-outline" style="background:#ef4444;color:#fff;border:none;" onclick="shareSalePDF(${b.id})"><i class="fas fa-file-pdf"></i> Share PDF</button>`;
+  if (String(b.customer_phone||'').replace(/\D/g,'').slice(-10).length === 10) {
+    foot += `<button type="button" class="btn btn-outline" style="background:#25D366;color:#fff;border:none;" onclick="sendSaleWA(${b.id})"><i class="fab fa-whatsapp"></i> Message</button>`;
+  }
+  if (returned || parseFloat(b.refund_amount||0)>0.009) foot += `<a class="btn btn-outline" href="/sales/${b.id}/print-refund" target="_blank"><i class="fas fa-file-invoice-dollar"></i> Receipt</a>`;
+  foot += servedByHtml(b);
+  document.getElementById('svTitle').textContent = 'SAL-' + String(b.bill_no).padStart(4,'0');
+  document.getElementById('svBody').innerHTML = html;
+  document.getElementById('svFoot').innerHTML = foot;
+  document.getElementById('saleView').classList.add('show');
+}
+function selectPayMethod(btn, m){
+  document.querySelectorAll('#payModal .pay-method-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('selectedPayMethod').value = m;
+  const box = document.getElementById('collectTxnBox');
+  if (box) box.style.display = ['UPI','Card','Bank'].includes(m) ? '' : 'none';
+}
+function openCollect(id){
+  if(!{{ (is_owner or can_collect)|tojson }}){ if(typeof showAlert==='function') showAlert('Collect is not allowed for this login.'); return; }
+  const b = findBill(id); if(!b) return;
+  curBillId = id;
+  curTotal = parseFloat(b.total||0);
+  curPaid = collectedOf(b);
+  const bal = Math.max(0, curTotal - curPaid);
+  document.getElementById('payModalInfo').innerHTML =
+    `<strong>SAL-${String(b.bill_no).padStart(4,'0')}</strong> · ${b.customer_name}<br>Balance due <strong>₹${bal.toFixed(2)}</strong>`;
+  document.getElementById('payAmount').value = bal.toFixed(2);
+  const dueEl = document.getElementById('payDueDate');
+  let due = b.due_date || '';
+  if (!due || due < dueEl.min || due > dueEl.max) due = dueEl.min;
+  dueEl.value = due;
+  const txnEl = document.getElementById('collectTxnEl');
+  if (txnEl) txnEl.value = '';
+  const method = document.getElementById('selectedPayMethod').value;
+  const box = document.getElementById('collectTxnBox');
+  if (box) box.style.display = ['UPI','Card','Bank'].includes(method) ? '' : 'none';
+  updatePayBalance();
+  document.getElementById('payModal').classList.add('show');
+}
+function updatePayBalance(){
+  const bal = Math.max(0, curTotal - curPaid);
+  let amt = parseFloat(document.getElementById('payAmount').value||0);
+  if (amt > bal + 0.005) { document.getElementById('payAmount').value = bal.toFixed(2); amt = bal; }
+  const remaining = Math.max(0, bal - amt);
+  document.getElementById('payRemaining').textContent = '₹' + remaining.toFixed(2);
+  document.getElementById('dueDateBox').style.display = remaining > 0.01 ? 'block' : 'none';
+}
+async function confirmCollect(){
+  const amt = parseFloat(document.getElementById('payAmount').value||0);
+  const bal = Math.max(0, curTotal - curPaid);
+  if (amt <= 0) { showAlert('Enter an amount greater than 0.'); return; }
+  if (amt > bal + 0.005) { showAlert('Amount cannot exceed balance due'); return; }
+  const remaining = Math.max(0, bal - amt);
+  const dueDate = document.getElementById('payDueDate').value;
+  if (remaining > 0.01 && !dueDate) { showAlert('Set a due date for the remaining credit.'); return; }
+  const dueEl = document.getElementById('payDueDate');
+  if (remaining > 0.01 && (dueDate < dueEl.min || dueDate > dueEl.max)) {
+    showAlert('Due date must be within 15 days from today.'); return;
+  }
+  const res = await fetch('/sales/'+curBillId+'/collect', {
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded','X-Requested-With':'XMLHttpRequest'},
+    body: new URLSearchParams({
+      amount_received: amt,
+      pay_method: document.getElementById('selectedPayMethod').value,
+      due_date: dueDate,
+      txn_id: document.getElementById('collectTxnEl') ? document.getElementById('collectTxnEl').value : ''
+    })
+  });
+  const data = await res.json();
+  if (data.ok) {
+    const b = findBill(curBillId);
+    const method = document.getElementById('selectedPayMethod').value;
+    const now = new Date();
+    if (b && amt > 0 && window.sharePaymentReceiptPdf) {
+      await window.sharePaymentReceiptPdf({
+        customer: b.customer_name,
+        refLabel: 'Bill',
+        refValue: 'SAL-'+String(b.bill_no).padStart(4,'0'),
+        date: now.getDate()+'/'+(now.getMonth()+1)+'/'+now.getFullYear(),
+        amount: amt,
+        method: method,
+        billTotal: curTotal,
+        totalPaid: curPaid + amt,
+        balance: remaining,
+        dueDate: remaining > 0.01 ? dueDate : '',
+        filename: 'Receipt_SAL-'+String(b.bill_no).padStart(4,'0')+'.pdf',
+        text: 'Payment receipt from '+(SHOP.name||'')
+      });
+    }
+    location.reload();
+  }
+  else showAlert(data.error || 'Could not save payment');
+}
+function sendSaleRemind(id) {
+  const b = findBill(id); if (!b) return;
+  const due = Math.max(0, parseFloat(b.total || 0) - collectedOf(b));
+  openWA(b.customer_phone, {
+    kind: 'payment_reminder',
+    vars: {
+      shop: SHOP.name, phone: SHOP.phone || '', address: SHOP.address || '',
+      name: b.customer_name || 'Customer', amount: due,
+      ref_text: 'Sale SAL-' + String(b.bill_no).padStart(4, '0'),
+      due_date: b.due_date || ''
+    }
+  });
+}
+function sendSaleWA(id){
+  const b = findBill(id); if(!b) return;
+  const ph = String(b.customer_phone||'').replace(/\D/g,'').slice(-10);
+  if (ph.length !== 10) { showAlert('Customer phone is missing or invalid'); return; }
+  const items = parseItems(b);
+  const paidNow = collectedOf(b);
+  const dueAmt = Math.max(0, parseFloat(b.total||0)-paidNow);
+  const lang = getWaLang();
+  let items_lines = '';
+  items.forEach(i => {
+    const left = Math.max(0, parseFloat(i.qty||0)-parseFloat(i.returned_qty||0));
+    items_lines += '- ' + left + ' x ' + i.name + ' @ Rs ' + parseFloat(i.price).toFixed(2) + ' = Rs ' + (left*parseFloat(i.price||0)).toFixed(2) + '\n';
+  });
+  openWA(ph, {
+    kind: 'sale_bill',
+    vars: {
+      shop: SHOP.name, address: SHOP.address || '', phone: SHOP.phone || '', review: SHOP.review || '',
+      name: b.customer_name, bill_no: b.bill_no, date: toIST(b.created_at),
+      pay_line: '*Payment:* ' + b.pay_method + ' (' + b.paid_status + ')' + (b.txn_id ? '\n*Txn ID:* ' + b.txn_id : ''),
+      items_lines: items_lines,
+      total: parseFloat(b.total||0), paid: paidNow, due: dueAmt, due_date: b.due_date || ''
+    }
+  });
+}
+async function openReturn(id){
+  const b = findBill(id); if(!b) return;
+  curBillId = id;
+  const items = parseItems(b);
+  returnQtys = items.map(i => Math.max(0, parseFloat(i.qty||0) - parseFloat(i.returned_qty||0)));
+  if (!returnQtys.some(q => q > 0.0001)) { showAlert('Nothing left to return on this bill'); return; }
+  document.getElementById('returnInfo').innerHTML =
+    `<strong>SAL-${String(b.bill_no).padStart(4,'0')}</strong> · ${escHtml(b.customer_name||'')}<br>Collected <strong>₹${collectedOf(b).toFixed(2)}</strong>`;
+  renderReturnLines();
+  document.getElementById('returnReason').value = '';
+  const methods = ['Cash','UPI','Card','Bank'];
+  const pref = methods.includes(b.pay_method) ? b.pay_method : 'Cash';
+  document.getElementById('returnRefundMethod').value = pref;
+  document.querySelectorAll('#returnModal .pay-method-btn[data-refund]').forEach(btn=>{
+    btn.classList.toggle('active', btn.getAttribute('data-refund') === pref);
+  });
+  syncReturnRefund();
+  document.getElementById('returnModal').classList.add('show');
+}
+function remainOf(i){ return Math.max(0, parseFloat(i.qty||0) - parseFloat(i.returned_qty||0)); }
+function fmtQty(n){ return Number.isInteger(n) ? String(n) : String(n); }
+function returnGoodsValue(){
+  const b = findBill(curBillId); if(!b) return 0;
+  const items = parseItems(b);
+  const origSub = items.reduce((s,i)=>s + parseFloat(i.qty||0)*parseFloat(i.price||0), 0);
+  const retSub = items.reduce((s,i,idx)=>s + (returnQtys[idx]||0)*parseFloat(i.price||0), 0);
+  const disc = parseFloat(b.orig_discount!=null ? b.orig_discount : b.discount||0);
+  const net = origSub > 0.0001 ? retSub * (1 - disc/origSub) : retSub;
+  return Math.round(net*100)/100;
+}
+function renderReturnLines(){
+  const b = findBill(curBillId); if(!b) return;
+  const items = parseItems(b);
+  const box = document.getElementById('returnLines');
+  if (!box) return;
+  let html = '';
+  items.forEach((i, idx) => {
+    const avail = remainOf(i);
+    if (avail <= 0.0001) return;
+    const q = returnQtys[idx]||0;
+    html += `<div class="ret-line"><div style="min-width:0;"><div style="font-weight:800;">${escHtml(i.name||'')}</div>
+      <div style="color:#94a3b8;font-size:.72rem;">Sold ${fmtQty(parseFloat(i.qty||0))}${parseFloat(i.returned_qty||0)>0?' · already returned '+fmtQty(parseFloat(i.returned_qty)):''}</div></div>
+      <div class="ret-qty"><button type="button" class="qty-btn" onclick="chgReturnQty(${idx},-1)">-</button>
+      <strong style="min-width:1.4em;text-align:center;">${fmtQty(q)}</strong>
+      <button type="button" class="qty-btn" onclick="chgReturnQty(${idx},1)">+</button></div></div>`;
+  });
+  box.innerHTML = html || '<div style="padding:10px 0;color:#94a3b8;font-size:.82rem;">Nothing left to return.</div>';
+}
+function chgReturnQty(i,d){
+  const b = findBill(curBillId); if(!b) return;
+  const items = parseItems(b);
+  const avail = remainOf(items[i]||{});
+  let n = (returnQtys[i]||0) + d;
+  if (n < 0) n = 0;
+  if (n > avail) n = avail;
+  returnQtys[i] = n;
+  renderReturnLines();
+  syncReturnRefund();
+}
+function refundMax(){
+  const b = findBill(curBillId);
+  if (!b) return 0;
+  return Math.min(collectedOf(b), returnGoodsValue());
+}
+function syncReturnRefund(){
+  const max = refundMax();
+  const paid = collectedOf(findBill(curBillId)||{});
+  const el = document.getElementById('returnRefundAmt');
+  if (el) el.value = max.toFixed(2);
+  const hint = document.getElementById('returnRefundHint');
+  if (hint) hint.textContent = 'Returned value ₹' + returnGoodsValue().toFixed(2) + ' · maximum refund ₹' + max.toFixed(2);
+  document.getElementById('refundAmtBox').style.display = paid > 0.01 ? '' : 'none';
+  document.getElementById('noRefundNote').style.display = paid > 0.01 ? 'none' : '';
+}
+function clampRefundAmt(fromTyping){
+  const el = document.getElementById('returnRefundAmt');
+  if (!el) return;
+  const max = refundMax();
+  const raw = String(el.value||'').trim().replace(/,/g,'');
+  let v = parseFloat(raw);
+  if (fromTyping) {
+    if (raw === '' || raw === '.' ) return;
+    if (isFinite(v) && v > max + 0.005) el.value = max.toFixed(2);
+    return;
+  }
+  if (!isFinite(v) || v < max - 0.005 || v > max + 0.005) el.value = max.toFixed(2);
+}
+function setReturnReason(txt){
+  document.getElementById('returnReason').value = txt;
+}
+function selectRefundMethod(btn, m){
+  document.querySelectorAll('#returnModal .pay-method-btn[data-refund]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('returnRefundMethod').value = m;
+}
+async function confirmReturn(){
+  const b = findBill(curBillId); if(!b) return;
+  const reason = (document.getElementById('returnReason').value||'').trim();
+  if (reason.length < 3) { showAlert('Enter a return reason'); return; }
+  const paid = collectedOf(b);
+  clampRefundAmt(false);
+  let refundAmt = parseFloat(document.getElementById('returnRefundAmt').value||0);
+  const maxRf = refundMax();
+  if (maxRf <= 0.01) refundAmt = 0;
+  else refundAmt = maxRf;
+  if (!returnQtys.some(q => q > 0.0001)) { showAlert('Select a quantity to return'); return; }
+  const method = document.getElementById('returnRefundMethod').value;
+  if (!['Cash','UPI','Card','Bank'].includes(method)) { showAlert('Select refund method: Cash, UPI, Card, or Bank'); return; }
+  const ok = await showConfirm('Return selected quantity'+(refundAmt>0.01?', and refund ₹'+refundAmt.toFixed(2)+' via '+method:'')+'?');
+  if (!ok) return;
+  const res = await fetch('/sales/'+curBillId+'/return', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
+    body: JSON.stringify({
+      reason, refund_amount: refundAmt, refund_method: method,
+      lines: returnQtys.map((qty, index) => ({index, qty}))
+    })
+  });
+  const data = await res.json();
+  if (!data.ok) { showAlert(data.error || 'Could not return sale'); return; }
+  document.getElementById('returnModal').classList.remove('show');
+  const ph = String(b.customer_phone||'').replace(/\D/g,'').slice(-10);
+  if (ph.length === 10) {
+    directWA(ph, {
+      kind: 'sale_refund',
+      vars: {
+        shop: SHOP.name, address: SHOP.address || '', phone: SHOP.phone || '',
+        name: b.customer_name, bill_no: b.bill_no, reason: reason,
+        refund: refundAmt, method: method, upi_note: ['UPI','Bank'].includes(method) && refundAmt > 0.01
+      }
+    });
+  }
+  window.open('/sales/'+curBillId+'/print-refund','_blank');
+  location.reload();
+}
+</script>
+{% endblock %}

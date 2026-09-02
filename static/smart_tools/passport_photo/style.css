@@ -1,0 +1,24 @@
+/* Custom styling for Passport Photo Maker */
+.upload-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 1rem;
+    padding: 1.5rem 1rem;
+    background: #f8fafc;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+.upload-zone:hover, .upload-zone.dragover {
+    border-color: #f59e0b;
+    background: #fffbeb;
+}
+.upload-zone.dragover {
+    transform: scale(1.02);
+}
+
+.cropper-container {
+    max-width: 100%;
+}
+#resultCanvas {
+    max-width: 100%;
+    height: auto;
+}

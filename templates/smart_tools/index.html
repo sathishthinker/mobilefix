@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Smart Tools - MobileFix Pro{% endblock %}
+{% block page_title %}Smart Tools{% endblock %}
+
+{% block extra_head %}
+<style>
+.hub-actions{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:20px;}
+.hub-card i{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;}
+@media(max-width:768px){
+  .hub-actions{grid-template-columns:1fr 1fr;}
+  .hub-hero{text-align:center;}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hub-hero" style="background: linear-gradient(90deg, #1E88E5 0%, #7E57C2 100%); padding: 22px 28px; border-radius: 16px; color: #fff; margin-bottom: 24px; box-shadow: 0 8px 20px rgba(30, 136, 229, 0.2);">
+  <h1 style="font-family: 'Exo 2', sans-serif; font-weight: 800; font-size: 1.5rem; margin: 0 0 6px 0; color: #fff;">Smart Tools</h1>
+  <div style="font-size: 0.9rem; opacity: 0.95;">Additional utilities to help with your daily operations.</div>
+</div>
+
+<div class="hub-actions">
+  <a class="hub-card" href="{{ url_for('e_aadhaar_print') }}">
+    <i class="fas fa-id-card" style="background:linear-gradient(135deg,#00BCD4,#0097A7);"></i>
+    <div><strong>e-Aadhaar</strong><div style="font-size:.78rem;color:#64748b;">Perfect ID Print</div></div>
+  </a>
+  <a class="hub-card" href="{{ url_for('smart_tools_doc_print') }}">
+    <i class="fas fa-id-badge" style="background:linear-gradient(135deg,#0ea5e9,#2563eb);"></i>
+    <div><strong>Document Print</strong><div style="font-size:.78rem;color:#64748b;">PAN, Voter, DL, Aadhaar</div></div>
+  </a>
+  <a class="hub-card" href="{{ url_for('id_card_generator') }}">
+    <i class="fas fa-address-card" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa);"></i>
+    <div><strong>ID Card Generator</strong><div style="font-size:.78rem;color:#64748b;">Custom ID Cards</div></div>
+  </a>
+  <a class="hub-card" href="{{ url_for('pdf_tools') }}">
+    <i class="fas fa-file-pdf" style="background:linear-gradient(135deg,#f43f5e,#fb7185);"></i>
+    <div><strong>Powerful PDF</strong><div style="font-size:.78rem;color:#64748b;">Merge, Split, Convert</div></div>
+  </a>
+  <a class="hub-card" href="{{ url_for('passport_photo_maker') }}">
+    <i class="fas fa-user-tie" style="background:linear-gradient(135deg,#f59e0b,#fbbf24);"></i>
+    <div><strong>Passport Photo</strong><div style="font-size:.78rem;color:#64748b;">Printable Sheets</div></div>
+  </a>
+</div>
+{% endblock %}

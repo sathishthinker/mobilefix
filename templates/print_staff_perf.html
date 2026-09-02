@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Performance {{ perf_label }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root{--teal:#00BCD4;--dark:#0d1b2a;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size:12px;}
+.toolbar{max-width:210mm;margin:16px auto 0;display:flex;gap:10px;justify-content:flex-end;padding:0 8px;}
+.toolbar button,.toolbar a{padding:10px 16px;border-radius:10px;font-weight:700;font-family:inherit;text-decoration:none;border:none;cursor:pointer;}
+.btn-pdf{background:#10b981;color:#fff;}
+.btn-back{background:#fff;color:#0f172a;border:1.5px solid #94a3b8;}
+.page{max-width:210mm;margin:12px auto 24px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.1);}
+.head{background:linear-gradient(135deg,var(--dark),#1a3a5c);padding:18px 22px;display:flex;justify-content:space-between;align-items:center;color:#fff;}
+.head-left{display:flex;align-items:center;gap:12px;}
+.logo-img{width:44px;height:44px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,.15);padding:3px;}
+.brand{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.2rem;}
+.brand span{color:var(--teal);}
+.shop{font-size:.72rem;opacity:.75;margin-top:2px;}
+.period{text-align:right;font-size:.78rem;}
+.period strong{display:block;font-family:'Exo 2',sans-serif;font-size:1rem;}
+.body{padding:18px 22px 22px;}
+.person{margin-bottom:22px;padding-bottom:8px;}
+.person + .person{border-top:2px solid #e2e8f0;padding-top:18px;page-break-before:always;}
+.who{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:12px;}
+.who h2{font-family:'Exo 2',sans-serif;font-size:1.05rem;margin:0;}
+.who p{margin:2px 0 0;font-size:.75rem;color:#64748b;font-weight:600;}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.kpi{border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;border-left:4px solid #ec4899;}
+.kpi .l{font-size:.62rem;font-weight:800;color:#64748b;text-transform:uppercase;}
+.kpi .n{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.05rem;color:#0f172a;margin-top:2px;}
+h3{font-family:'Exo 2',sans-serif;font-size:.82rem;margin:12px 0 6px;color:#0f172a;}
+table{width:100%;border-collapse:collapse;font-size:.72rem;}
+th{text-align:left;padding:7px 6px;background:#f8fafc;color:#64748b;font-size:.62rem;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #e2e8f0;}
+td{padding:6px;border-bottom:1px solid #f1f5f9;vertical-align:top;}
+.empty{color:#94a3b8;text-align:center;padding:12px;}
+.foot{margin-top:14px;font-size:.68rem;color:#64748b;text-align:center;}
+@media print{
+  .toolbar{display:none;}
+  body{background:#fff;}
+  .page{box-shadow:none;margin:0;border-radius:0;}
+}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <button type="button" class="btn-pdf" onclick="downloadPDF()">Download PDF</button>
+  <a class="btn-back" href="{{ url_for('shop_team', month=perf_month) }}">Back to Team</a>
+</div>
+<div class="page" id="report-content">
+  <div class="head">
+    <div class="head-left">
+      {% if user.logo %}<img class="logo-img" src="{{ user.logo }}" alt="">{% endif %}
+      <div>
+        <div class="brand">Mobile<span>Fix</span></div>
+        <div class="shop">{{ user.shop_name or 'Shop' }}</div>
+      </div>
+    </div>
+    <div class="period">
+      <strong>Sales person performance</strong>
+      {{ perf_label }}<br>
+      {{ from_date }} to {{ to_date }}
+    </div>
+  </div>
+  <div class="body">
+    {% for block in sheets %}
+    {% set st = block.staff %}
+    {% set sh = block.sheet %}
+    <div class="person">
+      <div class="who">
+        <div>
+          <h2>{{ st.name }}</h2>
+          <p>Sales person · {{ st.phone }}{% if st.email %} · {{ st.email }}{% endif %}</p>
+        </div>
+      </div>
+      <div class="kpis">
+        <div class="kpi" style="border-left-color:#00897B;">
+          <div class="l">Sales · {{ sh.sales_n }} bills</div>
+          <div class="n">₹{{ '%.2f'|format(sh.sales_amt) }}</div>
+          <div class="l" style="margin-top:4px;text-transform:none;font-weight:600;">Collected ₹{{ '%.2f'|format(sh.sales_collected) }} · Credit ₹{{ '%.2f'|format(sh.credit_amt or 0) }}</div>
+        </div>
+        <div class="kpi" style="border-left-color:#1E88E5;">
+          <div class="l">Jobs · {{ sh.jobs_n }}</div>
+          <div class="n">₹{{ '%.2f'|format(sh.jobs_amt) }}</div>
+        </div>
+        <div class="kpi" style="border-left-color:#7B1FA2;">
+          <div class="l">Returns {{ sh.returns_n or 0 }} · Comm {{ sh.commission_pct or 0 }}%</div>
+          <div class="n">₹{{ '%.2f'|format(sh.commission_amt or 0) }}</div>
+        </div>
+        <div class="kpi" style="border-left-color:#0d9488;">
+          <div class="l">Salary due · {{ sh.present_days or 0 }}/{{ sh.salary_days or 26 }} days</div>
+          <div class="n">₹{{ '%.2f'|format(sh.salary_due or 0) }}</div>
+          <div class="l" style="margin-top:4px;text-transform:none;font-weight:600;">Monthly ₹{{ '%.2f'|format(sh.salary_monthly or 0) }} · {{ '%.1f'|format(sh.hours_worked or 0) }} hrs</div>
+        </div>
+      </div>
+      <h3>Sales bills</h3>
+      <table>
+        <thead><tr><th>Bill</th><th>Date</th><th>Customer</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for b in sh.sales %}
+        <tr>
+          <td>SAL-{{ '%04d'|format(b.bill_no or 0) }}</td>
+          <td>{{ (b.created_at or '')[:10] }}</td>
+          <td>{{ b.customer_name }}<br><span style="color:#94a3b8;">{{ b.customer_phone or '' }}</span></td>
+          <td>₹{{ '%.2f'|format(b.total or 0) }}</td>
+          <td>{{ b.paid_status }}{% if b.pay_method %} · {{ b.pay_method }}{% endif %}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="empty">No sales this month</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <h3>Service jobs</h3>
+      <table>
+        <thead><tr><th>Job</th><th>Date</th><th>Customer</th><th>Device</th><th>Status</th><th>Est. Cost</th></tr></thead>
+        <tbody>
+        {% for j in sh.jobs %}
+        <tr>
+          <td>#{{ j.id }}</td>
+          <td>{{ (j.created_at or '')[:10] }}</td>
+          <td>{{ j.customer_name }}</td>
+          <td>{{ j.device_model or '—' }}</td>
+          <td>{{ j.status }}</td>
+          <td>{% if j.cost is not none %}₹{{ '%.2f'|format(j.cost) }}{% else %}—{% endif %}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty">No jobs this month</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <h3>Service invoices</h3>
+      <table>
+        <thead><tr><th>Invoice</th><th>Date</th><th>Customer</th><th>Amount</th><th>Paid</th></tr></thead>
+        <tbody>
+        {% for i in sh.invoices %}
+        <tr>
+          <td>INV-{{ i.id }}{% if i.job_id %} · #{{ i.job_id }}{% endif %}</td>
+          <td>{{ (i.created_at or '')[:10] }}</td>
+          <td>{{ i.customer_name }}</td>
+          <td>₹{{ '%.2f'|format(i.total or 0) }}</td>
+          <td>{{ i.paid }}{% if i.pay_method %} · {{ i.pay_method }}{% endif %}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="empty">No invoices this month</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endfor %}
+    <div class="foot">Generated by MobileFix Pro · {{ user.shop_name or '' }} · {{ perf_label }} · {{ from_date }} – {{ to_date }}</div>
+  </div>
+</div>
+<script>
+function downloadPDF(){
+  const shop = {{ (user.shop_name or 'Shop')|tojson }};
+  const who = {{ ((sheets[0].staff.name if single else 'Team') or 'Team')|tojson }};
+  html2pdf().set({
+    margin: 0.3,
+    filename: 'Perf_' + String(who).replace(/\s+/g,'_') + '_' + shop.replace(/\s+/g,'_') + '_{{ perf_month }}.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+  }).from(document.getElementById('report-content')).save();
+}
+if (new URLSearchParams(location.search).get('download') === '1') {
+  window.addEventListener('load', () => setTimeout(downloadPDF, 500));
+}
+</script>
+</body>
+</html>

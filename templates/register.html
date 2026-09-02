@@ -3,43 +3,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% include '_csrf.html' %}
 <title>MobileFix Pro — Register</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--teal:#00BCD4;--teal-dark:#0097A7;--teal-glow:rgba(0,188,212,0.25);}
+/* Remove default browser eye icon for password inputs (Edge/IE) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}
+
+:root{
+  --teal:#00BCD4;--teal-dark:#0097A7;--teal-glow:rgba(0,188,212,0.25);
+  --purple: #7c3aed;
+  --bg: #eef2ff;
+  --white: #ffffff;
+  --card: #ffffff;
+  --text: #1a2332;
+  --text-muted: #475569;
+  --border: #c4b5fd;
+  --danger: #ef4444;
+  --success: #10b981;
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'DM Sans',sans-serif;background:#0d1b2a;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background: linear-gradient(180deg,#ecfeff 0%,#f5f3ff 42%,#ecfdf5 100%);
+  color: var(--text);
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+}
 .bg-circles{position:fixed;inset:0;pointer-events:none;overflow:hidden;}
-.circle{position:absolute;border-radius:50%;opacity:0.05;background:var(--teal);}
-.circle:nth-child(1){width:500px;height:500px;top:-200px;right:-150px;}
-.circle:nth-child(2){width:350px;height:350px;bottom:-120px;left:-100px;}
-.auth-card{background:#fff;border-radius:24px;padding:40px;width:100%;max-width:500px;box-shadow:0 30px 80px rgba(0,0,0,0.3);position:relative;z-index:1;}
-.logo-row{display:flex;align-items:center;gap:14px;margin-bottom:28px;}
-.logo-icon{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:white;box-shadow:0 5px 16px var(--teal-glow);}
-.logo-text{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.35rem;color:#1a2332;line-height:1.1;}
+.circle { position:absolute; border-radius:50%; background:radial-gradient(circle, rgba(124,58,237,0.06), transparent 70%); }
+.circle:nth-child(1){width:800px;height:800px;top:-250px;right:-250px;}
+.circle:nth-child(2){width:500px;height:500px;bottom:-150px;left:-150px;background:radial-gradient(circle, rgba(6,182,212,0.06), transparent 70%);}
+.auth-card{
+  background:var(--card);border-radius:24px;padding:56px 52px;width:100%;max-width:660px;
+  box-shadow: 0 16px 48px rgba(124,58,237,0.12); border: 1.5px solid var(--border);
+  position:relative;z-index:1;
+}
+.logo-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:28px;}
+.logo-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:white;box-shadow:0 8px 24px var(--teal-glow);}
+.logo-text{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.8rem;color:var(--text);line-height:1.1;}
 .logo-text span{color:var(--teal);}
-h2{font-family:'Exo 2',sans-serif;font-weight:700;font-size:1.3rem;color:#1a2332;margin-bottom:5px;}
-p.sub{color:#6b7c93;font-size:0.85rem;margin-bottom:24px;}
-.trial-banner{background:linear-gradient(135deg,#e0f7fa,#b2ebf2);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:24px;border:1px solid #80deea;}
-.trial-banner i{color:var(--teal);font-size:1.2rem;}
-.trial-banner .trial-text{font-size:0.85rem;color:#00838f;font-weight:500;}
-.trial-banner strong{display:block;font-size:0.9rem;color:#006064;}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-.form-group{margin-bottom:16px;}
-.form-label{display:block;margin-bottom:6px;font-size:0.82rem;font-weight:600;color:#1a2332;}
+h2{font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.5rem;color:var(--text);margin-bottom:6px;text-align:center;}
+p.sub{color:var(--text-muted);font-size:0.95rem;margin-bottom:28px;text-align:center;font-weight:500;}
+.trial-banner{background:linear-gradient(135deg,#ecfeff,#e0f2fe);border-radius:16px;padding:16px 20px;display:flex;align-items:center;gap:14px;margin-bottom:28px;border:1.5px solid #a5f3fc;box-shadow:0 4px 16px rgba(8,145,178,0.08);}
+.trial-banner i{color:#0891b2;font-size:1.4rem;background:#cffafe;padding:12px;border-radius:12px;}
+.trial-banner .trial-text{font-size:0.85rem;color:#0e7490;font-weight:500;line-height:1.4;}
+.trial-banner strong{display:block;font-size:0.95rem;color:#083344;font-weight:800;margin-bottom:2px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:28px;}
+.form-group{margin-bottom:20px;}
+.form-label{display:block;margin-bottom:8px;font-size:0.88rem;font-weight:700;color:var(--text);}
 .input-wrap{position:relative;}
-.input-wrap i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:0.85rem;}
-.form-control{width:100%;padding:10px 13px 10px 38px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:0.875rem;font-family:inherit;color:#1a2332;transition:all 0.2s;}
-.form-control:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-glow);}
-textarea.form-control{padding-left:38px;resize:vertical;min-height:80px;}
-.btn-block{width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));color:white;font-size:1rem;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 6px 18px var(--teal-glow);transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;}
-.btn-block:hover{transform:translateY(-2px);}
-.link-row{text-align:center;font-size:0.875rem;color:#6b7c93;margin-top:18px;}
-.link-row a{color:var(--teal);font-weight:600;text-decoration:none;}
-.flash{padding:12px 16px;border-radius:10px;margin-bottom:14px;font-size:0.85rem;font-weight:500;display:flex;align-items:center;gap:8px;}
+.input-wrap > i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:0.95rem;}
+.form-control{width:100%;padding:12px 16px 12px 44px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.95rem;font-family:inherit;color:var(--text);background:#f8fafc;transition:all 0.2s;}
+.form-control:focus{outline:none;border-color:var(--teal);background:var(--white);box-shadow:0 0 0 4px var(--teal-glow);}
+.btn-block{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#0891b2,#7c3aed);color:white;font-size:1.05rem;font-weight:800;font-family:inherit;cursor:pointer;box-shadow:0 8px 20px rgba(124,58,237,.25);transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;}
+.btn-block:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(124,58,237,.35);}
+.link-row{text-align:center;font-size:0.9rem;color:var(--text-muted);margin-top:24px;font-weight:500;}
+.link-row a{color:var(--purple);font-weight:700;text-decoration:none;transition:color 0.2s;}
+.link-row a:hover{color:#6d28d9;text-decoration:underline;}
+.flash{padding:14px 18px;border-radius:12px;margin-bottom:20px;font-size:0.9rem;font-weight:600;display:flex;align-items:center;gap:10px;}
 .flash.error{background:#fee2e2;color:#991b1b;border:1px solid #fecaca;}
-.flash.success{background:#d1fae5;color:#065f46;}
+.flash.success{background:#d1fae5;color:#065f46;border:1px solid #a7f3d0;}
+@media (max-width: 540px) {
+  .auth-card{padding:32px 24px;border-radius:20px;border:none;box-shadow:0 8px 32px rgba(124,58,237,0.08);width:100%;max-width:100%;}
+  .grid-2{grid-template-columns:1fr;gap:16px;}
+  .logo-row{margin-bottom:24px;}
+  .logo-text{font-size:1.6rem;}
+  h2{font-size:1.35rem;}
+}
+.pwd-rule{font-size:0.8rem;color:#64748b;display:flex;align-items:center;gap:8px;transition:color .2s;font-weight:500;}
+.pwd-rule.pass{color:#16a34a;}
+.pwd-rule.pass i{color:#16a34a !important;}
 </style>
 </head>
 <body>
@@ -122,41 +159,46 @@ textarea.form-control{padding-left:38px;resize:vertical;min-height:80px;}
     <div class="form-group">
       <label class="form-label">Password <span style="color:#ef4444;">*</span>
         <button type="button" onclick="togglePwdInfo()" title="Password requirements"
-          style="background:none;border:none;cursor:pointer;color:#00BCD4;font-size:0.8rem;padding:0 4px;vertical-align:middle;">
+          style="background:none;border:none;cursor:pointer;color:#0891b2;font-size:0.85rem;padding:0 4px;vertical-align:middle;">
           <i class="fas fa-circle-info"></i>
         </button>
       </label>
       <div class="input-wrap">
         <i class="fas fa-lock"></i>
         <input type="password" name="password" id="pwdInput" class="form-control" placeholder="Create a strong password" required minlength="6" oninput="checkPwd(this.value)">
-        <span id="pwdToggle" onclick="togglePwd()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:0.85rem;"><i class="fas fa-eye" id="pwdEyeIcon"></i></span>
+        <span id="pwdToggle" onclick="togglePwd()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:0.95rem;transition:color 0.2s;"><i class="fas fa-eye" id="pwdEyeIcon" style="position:static; transform:none; left:auto; top:auto;"></i></span>
       </div>
       <!-- Strength bar -->
-      <div id="strengthBar" style="display:none;margin-top:8px;">
-        <div style="display:flex;gap:4px;margin-bottom:6px;">
-          <div id="sb1" style="flex:1;height:4px;border-radius:2px;background:#e2e8f0;transition:background .3s;"></div>
-          <div id="sb2" style="flex:1;height:4px;border-radius:2px;background:#e2e8f0;transition:background .3s;"></div>
-          <div id="sb3" style="flex:1;height:4px;border-radius:2px;background:#e2e8f0;transition:background .3s;"></div>
-          <div id="sb4" style="flex:1;height:4px;border-radius:2px;background:#e2e8f0;transition:background .3s;"></div>
+      <div id="strengthBar" style="display:none;margin-top:10px;">
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <div id="sb1" style="flex:1;height:6px;border-radius:3px;background:#e2e8f0;transition:background .3s;"></div>
+          <div id="sb2" style="flex:1;height:6px;border-radius:3px;background:#e2e8f0;transition:background .3s;"></div>
+          <div id="sb3" style="flex:1;height:6px;border-radius:3px;background:#e2e8f0;transition:background .3s;"></div>
+          <div id="sb4" style="flex:1;height:6px;border-radius:3px;background:#e2e8f0;transition:background .3s;"></div>
         </div>
-        <div id="strengthLabel" style="font-size:0.75rem;font-weight:600;margin-bottom:8px;"></div>
-        <div style="display:flex;flex-direction:column;gap:4px;">
-          <div id="r1" class="pwd-rule"><i class="fas fa-circle-xmark" style="color:#e2e8f0;font-size:0.7rem;"></i> <span>At least 6 characters</span></div>
-          <div id="r2" class="pwd-rule"><i class="fas fa-circle-xmark" style="color:#e2e8f0;font-size:0.7rem;"></i> <span>At least 1 uppercase letter (A–Z)</span></div>
-          <div id="r3" class="pwd-rule"><i class="fas fa-circle-xmark" style="color:#e2e8f0;font-size:0.7rem;"></i> <span>At least 1 number (0–9)</span></div>
-          <div id="r4" class="pwd-rule"><i class="fas fa-circle-xmark" style="color:#e2e8f0;font-size:0.7rem;"></i> <span>At least 1 special character (!@#$...)</span></div>
+        <div id="strengthLabel" style="font-size:0.8rem;font-weight:700;margin-bottom:10px;"></div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div id="r1" class="pwd-rule"><i class="fas fa-circle-xmark" style="color:#cbd5e1;font-size:0.85rem;"></i> <span>At least 6 characters</span></div>
+          <div id="r2" class="pwd-rule"><i class="fas fa-circle-xmark" style="color:#cbd5e1;font-size:0.85rem;"></i> <span>At least 1 uppercase letter (A–Z)</span></div>
+          <div id="r3" class="pwd-rule"><i class="fas fa-circle-xmark" style="color:#cbd5e1;font-size:0.85rem;"></i> <span>At least 1 number (0–9)</span></div>
+          <div id="r4" class="pwd-rule"><i class="fas fa-circle-xmark" style="color:#cbd5e1;font-size:0.85rem;"></i> <span>At least 1 special character (!@#$...)</span></div>
         </div>
       </div>
+    </div>
+    <div style="margin:20px 0;display:flex;align-items:flex-start;gap:10px;font-size:0.85rem;color:#475569;line-height:1.4;">
+      <input type="checkbox" id="agreeTerms" required style="margin-top:2px;width:16px;height:16px;accent-color:#0891b2;cursor:pointer;">
+      <label for="agreeTerms" style="cursor:pointer;font-weight:500;">
+        By registering you agree to our 
+        <a href="javascript:void(0)" onclick="openPolicyModal('{{ url_for('terms_page') }}', 'Terms of Service')" style="color:#0891b2;text-decoration:none;font-weight:700;">Terms</a>,
+        <a href="javascript:void(0)" onclick="openPolicyModal('{{ url_for('privacy_page') }}', 'Privacy Policy')" style="color:#0891b2;text-decoration:none;font-weight:700;">Privacy Policy</a> and
+        <a href="javascript:void(0)" onclick="openPolicyModal('{{ url_for('refund_policy_page') }}', 'Refund Policy')" style="color:#0891b2;text-decoration:none;font-weight:700;">Refund Policy</a>.
+      </label>
     </div>
     <button type="submit" class="btn-block"><i class="fas fa-rocket"></i> Start Free Trial</button>
   </form>
   <p class="link-row">Already have an account? <a href="{{ url_for('login') }}">Sign In</a></p>
+
 </div>
-<style>
-.pwd-rule{font-size:0.75rem;color:#64748b;display:flex;align-items:center;gap:6px;transition:color .2s;}
-.pwd-rule.pass{color:#16a34a;}
-.pwd-rule.pass i{color:#16a34a !important;}
-</style>
 <script>
 function togglePwdInfo(){
   const bar = document.getElementById('strengthBar');
@@ -165,8 +207,8 @@ function togglePwdInfo(){
 function togglePwd(){
   const inp=document.getElementById('pwdInput');
   const icon=document.getElementById('pwdEyeIcon');
-  if(inp.type==='password'){inp.type='text';icon.className='fas fa-eye-slash';}
-  else{inp.type='password';icon.className='fas fa-eye';}
+  if(inp.type==='password'){inp.type='text';icon.className='fas fa-eye-slash';icon.style.color='#7c3aed';}
+  else{inp.type='password';icon.className='fas fa-eye';icon.style.color='#94a3b8';}
 }
 function checkPwd(v){
   document.getElementById('strengthBar').style.display = v.length ? '' : 'none';
@@ -181,7 +223,7 @@ function checkPwd(v){
     const el=document.getElementById(r.id);
     const icon=el.querySelector('i');
     if(r.ok){el.className='pwd-rule pass';icon.className='fas fa-circle-check';score++;}
-    else{el.className='pwd-rule';icon.className='fas fa-circle-xmark';icon.style.color='#e2e8f0';}
+    else{el.className='pwd-rule';icon.className='fas fa-circle-xmark';icon.style.color='#cbd5e1';}
   });
   const bars=['sb1','sb2','sb3','sb4'];
   const colors=['#ef4444','#f97316','#eab308','#16a34a'];
@@ -197,6 +239,38 @@ function checkPwd(v){
   const lbl=document.getElementById('strengthLabel');
   if(score===0){lbl.textContent='';}
   else{lbl.textContent=labels[score-1].text;lbl.style.color=labels[score-1].color;}
+}
+(function(){
+  var k='mfp_device', t=null;
+  try{ t=localStorage.getItem(k); }catch(e){}
+  if(!t){
+    t=(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return (c==='x'?r:(r&0x3|0x8)).toString(16);}));
+    try{ localStorage.setItem(k,t); }catch(e){}
+  }
+  document.querySelectorAll('form').forEach(function(f){
+    var i=document.createElement('input'); i.type='hidden'; i.name='device_token'; i.value=t; f.appendChild(i);
+  });
+})();
+</script>
+
+<div id="policyModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;width:100%;max-width:800px;height:85vh;border-radius:24px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 48px rgba(0,0,0,0.2);">
+    <div style="padding:16px 24px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;background:#f8fafc;">
+      <h3 id="policyModalTitle" style="margin:0;font-family:'Exo 2',sans-serif;color:#0f172a;font-size:1.25rem;font-weight:800;">Policy</h3>
+      <button type="button" onclick="closePolicyModal()" style="background:none;border:none;font-size:1.5rem;color:#64748b;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%; transition:background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='none'">&times;</button>
+    </div>
+    <iframe id="policyIframe" src="" style="width:100%;flex:1;border:none;background:#fff;"></iframe>
+  </div>
+</div>
+<script>
+function openPolicyModal(url, title) {
+  document.getElementById('policyModalTitle').innerText = title;
+  document.getElementById('policyIframe').src = url;
+  document.getElementById('policyModal').style.display = 'flex';
+}
+function closePolicyModal() {
+  document.getElementById('policyModal').style.display = 'none';
+  document.getElementById('policyIframe').src = '';
 }
 </script>
 </body>

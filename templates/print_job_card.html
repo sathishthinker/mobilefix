@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ user.shop_name or 'Service Job Card' }}</title>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<style>
+@page { size: 210mm 148mm; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #eef1f4; }
+body { font-family: Arial, Helvetica, sans-serif; color: #111; }
+.no-print { text-align: center; padding: 14px; }
+.no-print button {
+  padding: 10px 22px; border: 1px solid #111; border-radius: 8px;
+  background: #fff; color: #111; font-weight: 800; cursor: pointer;
+}
+.sheet {
+  width: 210mm; height: 148mm;
+  margin: 0 auto 16px;
+  background: #fff;
+  padding: 7mm 9mm 6mm;
+  display: flex;
+  flex-direction: column;
+}
+.head {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8mm;
+  align-items: end;
+  padding-bottom: 4mm;
+  border-bottom: 2px solid #111;
+}
+.shop-name {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.shop-meta { margin: 4px 0 0; font-size: 9.5px; }
+.head-mid { text-align: right; }
+.card-k {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.job-no { margin-top: 2px; font-size: 20px; font-weight: 800; }
+#jobBar { width: 42mm; height: 16mm; }
+.body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 9mm;
+  padding: 6mm 0 3mm;
+  min-height: 0;
+}
+.left { border-right: 1px solid #111; padding-right: 8mm; }
+.col { display: flex; flex-direction: column; gap: 5mm; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+.k {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: #555;
+  margin-bottom: 2px;
+}
+.v { font-size: 14px; font-weight: 800; line-height: 1.3; }
+.happy .code {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: 6px;
+  padding-bottom: 2mm;
+  border-bottom: 2px solid #111;
+  display: inline-block;
+  min-width: 42mm;
+}
+.happy .tip { margin-top: 3px; font-size: 9px; }
+.chip {
+  display: inline-block;
+  border: 1.2px solid #111;
+  padding: 1.5px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.meta { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+.next {
+  margin-top: auto;
+  font-size: 10px;
+  font-weight: 700;
+}
+.foot {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10mm;
+  align-items: end;
+  padding-top: 4mm;
+  border-top: 2px solid #111;
+}
+.sign .line { margin-top: 8mm; border-bottom: 1.2px solid #111; }
+.brand { font-size: 10px; font-weight: 800; letter-spacing: 0.6px; padding-bottom: 1mm; }
+@media print {
+  html, body { width: 210mm; height: 148mm; background: #fff; overflow: hidden; }
+  .no-print { display: none !important; }
+  .sheet { margin: 0; }
+}
+</style>
+</head>
+<body>
+{% set addr = (user.address or '') %}
+{% if not addr %}
+  {% set bits = [] %}
+  {% if user.door_no %}{% set bits = bits + [user.door_no] %}{% endif %}
+  {% if user.street %}{% set bits = bits + [user.street] %}{% endif %}
+  {% if user.city %}{% set bits = bits + [user.city] %}{% endif %}
+  {% set addr = bits|join(', ') %}
+  {% if user.pincode %}{% set addr = (addr + ' - ' + user.pincode) if addr else user.pincode %}{% endif %}
+{% endif %}
+{% set paid = (job.advance_amount or 0)|float %}
+{% set job_no = 'JOB-' ~ job.id %}
+
+<div class="no-print">
+  <button type="button" onclick="window.print()">Print Landscape</button>
+</div>
+
+<div class="sheet">
+  <div class="head">
+    <div>
+      <h1 class="shop-name">{{ user.shop_name or 'My Shop' }}</h1>
+      <p class="shop-meta">{{ addr }}{% if user.phone %} | {{ user.phone }}{% endif %}</p>
+    </div>
+    <div class="head-mid">
+      <div class="card-k">Service Job Card</div>
+      <div class="job-no">{{ job_no }}</div>
+    </div>
+    <svg id="jobBar"></svg>
+  </div>
+
+  <div class="body">
+    <div class="left col">
+      <div class="pair">
+        <div><div class="k">Customer</div><div class="v">{{ job.customer_name }}</div></div>
+        <div><div class="k">Phone</div><div class="v">{{ job.customer_phone }}</div></div>
+      </div>
+      <div class="pair">
+        <div><div class="k">Device</div><div class="v">{{ job.device_model }}</div></div>
+        <div><div class="k">IMEI</div><div class="v">{{ job.imei_billing or job.imei or '—' }}</div></div>
+      </div>
+      <div><div class="k">Issue</div><div class="v">{{ job.issue or '—' }}</div></div>
+      <div><div class="k">Received with</div><div class="v">{{ (job.received_without or '')|trim or '—' }}</div></div>
+      <div><div class="k">Notes</div><div class="v">{{ job.notes or '—' }}</div></div>
+    </div>
+
+    <div class="col">
+      <div class="happy">
+        <div class="k">Happy Code</div>
+        <div class="code">{{ job.happy_code or '—' }}</div>
+        <div class="tip">Customer must show this code at collection</div>
+      </div>
+      <div class="meta">
+        <div><div class="k">Date in</div><div class="v">{{ (job.created_at or '')[:16].replace('T', ' ') }}</div></div>
+        <div><div class="k">Expected</div><div class="v">{{ job.expected_return or '—' }}</div></div>
+        <div><div class="k">Status</div><div class="v"><span class="chip">{{ job.status or '—' }}</span></div></div>
+        <div><div class="k">Paid</div><div class="v">{% if paid > 0 %}₹{{ '%.2f'|format(paid) }}{% else %}—{% endif %}</div></div>
+      </div>
+      <div class="next">Keep this card. Quote and status updates are against {{ job_no }}.</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="sign"><div class="k">Customer signature</div><div class="line"></div></div>
+    <div class="sign"><div class="k">Tech signature</div><div class="line"></div></div>
+    <div class="brand">MobileFix Pro</div>
+  </div>
+</div>
+<script>
+JsBarcode('#jobBar', {{ job_no|tojson }}, {
+  format: 'CODE128',
+  width: 1.2,
+  height: 28,
+  displayValue: false,
+  margin: 0,
+  lineColor: '#111',
+  background: '#fff'
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<meta name="csrf-token" content="{{ csrf_token }}">
+<script>
+(function () {
+  var token = {{ csrf_token|tojson }};
+  window.CSRF_TOKEN = token;
+  window.esc = window.esc || function (s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  };
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!form || String(form.method || 'get').toLowerCase() !== 'post') return;
+    if (form.querySelector('input[name="_csrf"]')) return;
+    var i = document.createElement('input');
+    i.type = 'hidden';
+    i.name = '_csrf';
+    i.value = token;
+    form.appendChild(i);
+  }, true);
+  var origFetch = window.fetch;
+  window.fetch = function (url, opts) {
+    opts = opts || {};
+    var method = String(opts.method || 'GET').toUpperCase();
+    if (token && method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+      var headers = new Headers(opts.headers || {});
+      if (!headers.has('X-CSRFToken')) headers.set('X-CSRFToken', token);
+      opts.headers = headers;
+    }
+    return origFetch.call(this, url, opts);
+  };
+})();
+</script>

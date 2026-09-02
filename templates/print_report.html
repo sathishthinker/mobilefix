@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Report {{ from_date }} – {{ to_date }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root{--teal:#00BCD4;--dark:#0d1b2a;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size:12px;}
+.toolbar{max-width:210mm;margin:16px auto 0;display:flex;gap:10px;justify-content:flex-end;padding:0 8px;}
+.toolbar button,.toolbar a{padding:10px 16px;border-radius:10px;font-weight:700;font-family:inherit;text-decoration:none;border:none;cursor:pointer;}
+.btn-pdf{background:#10b981;color:#fff;}
+.btn-back{background:#fff;color:#0f172a;border:1.5px solid #94a3b8;}
+.page{max-width:210mm;margin:12px auto 24px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.1);}
+.head{background:linear-gradient(135deg,var(--dark),#1a3a5c);padding:18px 22px;display:flex;justify-content:space-between;align-items:center;color:#fff;}
+.head-left{display:flex;align-items:center;gap:12px;}
+.logo-img{width:44px;height:44px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,.15);padding:3px;}
+.brand{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.2rem;}
+.brand span{color:var(--teal);}
+.shop{font-size:.72rem;opacity:.75;margin-top:2px;}
+.period{text-align:right;font-size:.78rem;}
+.period strong{display:block;font-family:'Exo 2',sans-serif;font-size:1rem;}
+.body{padding:18px 22px 22px;}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+.kpi{border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;border-left:4px solid #00BCD4;}
+.kpi .l{font-size:.65rem;font-weight:700;color:#64748b;text-transform:uppercase;}
+.kpi .n{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.25rem;color:#0f172a;}
+.revs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.rev{border-radius:10px;padding:14px 16px;color:#fff;}
+.rev .l{font-size:.72rem;font-weight:700;opacity:.9;}
+.rev .n{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.4rem;margin-top:4px;}
+table{width:100%;border-collapse:collapse;font-size:.72rem;}
+th{text-align:left;padding:8px 6px;background:#f8fafc;color:#64748b;font-size:.62rem;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #e2e8f0;}
+td{padding:7px 6px;border-bottom:1px solid #f1f5f9;vertical-align:top;}
+.foot{margin-top:14px;font-size:.68rem;color:#64748b;text-align:center;}
+@media print{
+  .toolbar{display:none;}
+  body{background:#fff;}
+  .page{box-shadow:none;margin:0;border-radius:0;}
+}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <button type="button" class="btn-pdf" onclick="downloadPDF()"><i></i> Download PDF</button>
+  <a class="btn-back" href="{{ url_for('reports', **{'from': from_date, 'to': to_date, 'job_status': job_status}) }}">Back to Reports</a>
+</div>
+<div class="page" id="report-content">
+  <div class="head">
+    <div class="head-left">
+      {% if user.logo %}<img class="logo-img" src="{{ user.logo }}" alt="">{% endif %}
+      <div>
+        <div class="brand">Mobile<span>Fix</span></div>
+        <div class="shop">{{ user.shop_name or 'Shop Report' }}</div>
+      </div>
+    </div>
+    <div class="period">
+      <strong>{% if app_area=='sales' %}Sales Report{% else %}Service Report{% endif %}</strong>
+      {{ from_date }} to {{ to_date }}<br>
+      {% if app_area=='sales' %}Counter sales{% else %}Status: {{ job_status }}{% endif %}
+    </div>
+  </div>
+  <div class="body">
+    {% if app_area == 'sales' %}
+    <div class="revs">
+      <div class="rev" style="background:linear-gradient(135deg,#00897B,#26A69A);">
+        <div class="l">Counter sales ({{ sales.bills }} bills)</div>
+        <div class="n">₹{{ '%.2f'|format(sales.amount) }}</div>
+      </div>
+      <div class="rev" style="background:linear-gradient(135deg,#ef4444,#f87171);">
+        <div class="l">Low stock items</div>
+        <div class="n">{{ sales.low_stock }}</div>
+      </div>
+    </div>
+    {% if sales.by_method %}
+    <table>
+      <thead><tr><th>Pay method</th><th>Bills</th><th>Amount</th></tr></thead>
+      <tbody>
+      {% for m in sales.by_method %}
+      <tr><td>{{ m.method }}</td><td>{{ m.n }}</td><td>₹{{ '%.2f'|format(m.amt) }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+    {% else %}
+    <div class="kpis">
+      <div class="kpi" style="border-left-color:#FF5722;"><div class="l">Total Jobs</div><div class="n">{{ stats.total }}</div></div>
+      <div class="kpi" style="border-left-color:#FF9800;"><div class="l">Pending</div><div class="n">{{ stats.pending }}</div></div>
+      <div class="kpi" style="border-left-color:#4CAF50;"><div class="l">Delivered</div><div class="n">{{ stats.delivered }}</div></div>
+      <div class="kpi" style="border-left-color:#795548;"><div class="l">Cancelled</div><div class="n">{{ stats.cancelled }}</div></div>
+      <div class="kpi" style="border-left-color:#03A9F4;"><div class="l">Rework</div><div class="n">{{ stats.rework }}</div></div>
+      <div class="kpi" style="border-left-color:#9C27B0;"><div class="l">Ready</div><div class="n">{{ stats.ready }}</div></div>
+      <div class="kpi" style="border-left-color:#1E88E5;"><div class="l">Partial</div><div class="n">{{ stats.partial }}</div></div>
+      <div class="kpi" style="border-left-color:#E53935;"><div class="l">Overdue</div><div class="n">{{ stats.overdue }}</div></div>
+    </div>
+    <div class="revs">
+      <div class="rev" style="background:linear-gradient(135deg,#00BCD4,#4DD0E1);">
+        <div class="l">Period Revenue (Delivered)</div>
+        <div class="n">₹{{ '%.2f'|format(stats.period_revenue) }}</div>
+      </div>
+      <div class="rev" style="background:linear-gradient(135deg,#FF5722,#FF8A65);">
+        <div class="l">Booked Value</div>
+        <div class="n">₹{{ '%.2f'|format(stats.booked_value) }}</div>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Customer</th><th>Device</th><th>Status</th><th>Amount</th><th>Booked</th></tr>
+      </thead>
+      <tbody>
+        {% for job in report_jobs %}
+        <tr>
+          <td>#{{ job.id }}</td>
+          <td>{{ job.customer_name }}<br><span style="color:#94a3b8;">{{ job.customer_phone }}</span></td>
+          <td>{{ job.device_model }}</td>
+          <td>{{ job.status }}</td>
+          <td>{% if job.cost %}₹{{ '%.2f'|format(job.cost) }}{% else %}—{% endif %}</td>
+          <td>{{ (job.created_at or '')[:10] }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:20px;">No jobs in this filter.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+    <div class="foot">Generated by MobileFix Pro · {{ user.shop_name or '' }} · {{ from_date }} – {{ to_date }}</div>
+  </div>
+</div>
+<script>
+function downloadPDF(){
+  const shop = {{ (user.shop_name or 'Shop')|tojson }};
+  html2pdf().set({
+    margin: 0.3,
+    filename: 'Report_' + shop.replace(/\s+/g,'_') + '_{{ from_date }}_{{ to_date }}.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+  }).from(document.getElementById('report-content')).save();
+}
+if (new URLSearchParams(location.search).get('download') === '1') {
+  window.addEventListener('load', () => setTimeout(downloadPDF, 500));
+}
+</script>
+</body>
+</html>

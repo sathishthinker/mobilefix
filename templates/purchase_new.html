@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}New Purchase{% endblock %}
+{% block content %}
+<div style="padding:16px;">
+  <h2>New Purchase Bill</h2>
+  <div class="box" style="margin-top:16px;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div class="form-group">
+        <label class="form-label">Bill No *</label>
+        <input type="text" id="billNo" class="form-control" placeholder="Vendor Invoice No">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Invoice Date *</label>
+        <input type="date" id="invDate" class="form-control">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Vendor Name *</label>
+        <input type="text" id="vName" class="form-control">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Vendor GSTIN</label>
+        <input type="text" id="vGstin" class="form-control" style="text-transform:uppercase;" maxlength="15">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Vendor State</label>
+        <input type="text" id="vState" class="form-control" style="text-transform:uppercase;" placeholder="Auto-filled from GSTIN">
+      </div>
+    </div>
+    
+    <hr style="margin:20px 0;">
+    
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
+      <div class="form-group">
+        <label class="form-label">Subtotal (₹)</label>
+        <input type="number" id="subtotal" class="form-control" value="0" oninput="calc()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">GST Rate (%)</label>
+        <select id="gstRate" class="form-control" onchange="calc()">
+          <option value="0">0%</option>
+          <option value="5">5%</option>
+          <option value="12">12%</option>
+          <option value="18" selected>18%</option>
+          <option value="28">28%</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tax Amount (₹)</label>
+        <input type="number" id="taxAmt" class="form-control" readonly style="background:#f1f5f9;">
+      </div>
+    </div>
+    <div style="font-size:24px; font-weight:bold; text-align:right; margin-top:16px;">
+      Total: ₹<span id="tot">0.00</span>
+    </div>
+    
+    <div style="margin-top:20px;">
+      <button class="btn btn-primary" onclick="save()">Save Purchase</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('invDate').valueAsDate = new Date();
+if (window.bindGstinState) bindGstinState(document.getElementById('vGstin'), document.getElementById('vState'));
+
+function calc() {
+  const sub = parseFloat(document.getElementById('subtotal').value || 0);
+  const rate = parseFloat(document.getElementById('gstRate').value || 0);
+  const tax = sub * (rate / 100);
+  document.getElementById('taxAmt').value = tax.toFixed(2);
+  document.getElementById('tot').textContent = (sub + tax).toFixed(2);
+}
+
+async function save() {
+  const billNo = document.getElementById('billNo').value.trim();
+  const invDate = document.getElementById('invDate').value;
+  const vName = document.getElementById('vName').value.trim();
+  if(!billNo || !invDate || !vName) return showAlert('Please fill required fields');
+  
+  const sub = parseFloat(document.getElementById('subtotal').value || 0);
+  const rate = parseFloat(document.getElementById('gstRate').value || 0);
+  const tax = sub * (rate / 100);
+  
+  const shopState = "{{ user.state or '' }}".toUpperCase();
+  const vState = document.getElementById('vState').value.trim().toUpperCase();
+  function gstCode(s){ const m=String(s||'').match(/(\d{2})/); return m?m[1]:String(s||'').trim().toUpperCase(); }
+  
+  let cgst=0, sgst=0, igst=0;
+  if(vState && shopState && gstCode(vState) !== gstCode(shopState)) {
+    igst = tax;
+  } else {
+    cgst = tax/2;
+    sgst = tax/2;
+  }
+  
+  const payload = {
+    bill_no: billNo,
+    invoice_date: invDate,
+    vendor_name: vName,
+    vendor_gstin: document.getElementById('vGstin').value.trim(),
+    vendor_state: vState,
+    subtotal: sub,
+    cgst: cgst,
+    sgst: sgst,
+    igst: igst,
+    total: sub + tax,
+    items: []
+  };
+  
+  const res = await fetch('/purchases/new', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  });
+  if(res.ok) {
+    window.location.href = '/purchases';
+  } else {
+    showAlert('Error saving purchase');
+  }
+}
+</script>
+{% endblock %}

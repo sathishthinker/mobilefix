@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Item log — {{ item.name }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root{--teal:#00BCD4;--dark:#0d1b2a;}
+*{box-sizing:border-box;margin:0;padding:0;}
+@page{size:A4;margin:10mm;}
+body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size:12px;}
+.print-btn{max-width:210mm;margin:14px auto 0;display:flex;gap:8px;justify-content:flex-end;padding:0 8px;}
+.print-btn button{padding:10px 16px;border:none;border-radius:10px;color:#fff;font-weight:700;font-family:inherit;cursor:pointer;}
+.page-wrap{max-width:210mm;margin:12px auto 28px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.1);}
+.inv-header{background:linear-gradient(135deg,var(--dark),#1a3a5c);padding:16px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;}
+.header-left{display:flex;align-items:center;gap:12px;min-width:0;}
+.logo-img{width:48px;height:48px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,.15);padding:3px;flex-shrink:0;}
+.inv-logo{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.15rem;color:#fff;}
+.inv-logo span{color:var(--teal);}
+.inv-shop{color:rgba(255,255,255,.7);font-size:.72rem;margin-top:2px;}
+.inv-number{text-align:right;color:rgba(255,255,255,.75);font-size:.7rem;flex-shrink:0;}
+.inv-number strong{display:block;font-size:1.05rem;color:#fff;font-family:'Exo 2',sans-serif;}
+.shop-bar{display:grid;grid-template-columns:1.2fr 1fr;border-bottom:1px solid #e2e8f0;}
+.shop-cell{padding:12px 22px;}
+.shop-cell + .shop-cell{border-left:1px solid #e2e8f0;}
+.info-label{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:#94a3b8;margin-bottom:3px;}
+.info-name{font-family:'Exo 2',sans-serif;font-weight:800;font-size:.95rem;}
+.info-detail{font-size:.78rem;color:#64748b;line-height:1.45;margin-top:2px;}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid #e2e8f0;}
+.meta div{padding:10px 16px;border-right:1px solid #e2e8f0;}
+.meta div:last-child{border-right:none;}
+.meta .v{font-weight:800;margin-top:2px;}
+.body{padding:16px 22px 8px;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;padding:8px 8px;background:#f8fafc;color:#64748b;font-size:.65rem;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #e2e8f0;}
+td{padding:8px;border-bottom:1px solid #f1f5f9;vertical-align:top;font-size:.78rem;}
+td.num{text-align:right;white-space:nowrap;font-weight:700;}
+.kind{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.68rem;font-weight:800;text-transform:uppercase;}
+.k-sale{background:#dbeafe;color:#1d4ed8;}
+.k-return{background:#ccfbf1;color:#0f766e;}
+.k-stock_in{background:#dcfce7;color:#15803d;}
+.k-adjust{background:#ffedd5;color:#c2410c;}
+.k-warranty{background:#ede9fe;color:#6d28d9;}
+.k-warranty_in{background:#dcfce7;color:#15803d;}
+.k-create{background:#e0f7fa;color:#006064;}
+.k-update{background:#f1f5f9;color:#475569;}
+.empty{text-align:center;color:#94a3b8;padding:28px;}
+.inv-footer{background:#f8fafc;padding:10px 22px 12px;text-align:center;color:#64748b;font-size:.7rem;border-top:1px solid #e2e8f0;line-height:1.55;}
+.inv-footer strong{color:#0f172a;}
+@media print{
+  .print-btn{display:none;}
+  body{background:#fff;}
+  .page-wrap{box-shadow:none;margin:0;border-radius:0;}
+}
+@media(max-width:700px){
+  .meta{grid-template-columns:1fr 1fr;}
+  .shop-bar{grid-template-columns:1fr;}
+  .shop-cell + .shop-cell{border-left:none;border-top:1px solid #e2e8f0;}
+}
+</style>
+</head>
+<body>
+<div class="print-btn">
+  <button type="button" onclick="window.print()" style="background:linear-gradient(135deg,#00BCD4,#0097A7);">Print</button>
+  <button type="button" onclick="downloadPDF()" style="background:linear-gradient(135deg,#ef4444,#b91c1c);">Download PDF</button>
+  <button type="button" onclick="window.close()" style="background:#64748b;">Close</button>
+</div>
+<div class="page-wrap" id="log-content">
+  <div class="inv-header">
+    <div class="header-left">
+      {% if user.logo %}<img class="logo-img" src="{{ user.logo }}" alt="">{% endif %}
+      <div>
+        <div class="inv-logo">Mobile<span>Fix</span> Pro</div>
+        <div class="inv-shop">{{ user.shop_name or 'My Shop' }}</div>
+      </div>
+    </div>
+    <div class="inv-number">
+      <small>INVENTORY LOG</small>
+      <strong>{{ item.name }}</strong>
+      <div style="margin-top:2px;">{{ generated_at | to_ist }}</div>
+    </div>
+  </div>
+  <div class="shop-bar">
+    <div class="shop-cell">
+      <div class="info-label">Shop</div>
+      <div class="info-name">{{ user.shop_name or 'My Shop' }}</div>
+      <div class="info-detail">
+        {% if user.door_no or user.street %}
+        {{ user.door_no or '' }}{% if user.door_no and user.street %}, {% endif %}{{ user.street or '' }}<br>
+        {% endif %}
+        {% if user.city %}{{ user.city }}{% if user.pincode %} - {{ user.pincode }}{% endif %}<br>{% endif %}
+        {% if not (user.door_no or user.street or user.city) and user.address %}{{ user.address }}<br>{% endif %}
+        {% if user.phone %}{{ user.phone }}{% endif %}
+      </div>
+    </div>
+    <div class="shop-cell">
+      <div class="info-label">Item</div>
+      <div class="info-name">{{ item.name }}</div>
+      <div class="info-detail">
+        {% if item.sku %}SKU {{ item.sku }}<br>{% endif %}
+        {% if item.serial_no %}Serial Number {{ item.serial_no }}<br>{% endif %}
+        {{ item.category or '—' }} · {{ item.unit or 'PCS' }}
+      </div>
+    </div>
+  </div>
+  <div class="meta">
+    <div><div class="info-label">On hand</div><div class="v">{{ '%g'|format(item.qty|float) }}</div></div>
+    <div><div class="info-label">Sell price</div><div class="v">₹{{ '%.2f'|format(item.sell_price or 0) }}</div></div>
+    <div><div class="info-label">Cost</div><div class="v">₹{{ '%.2f'|format(item.cost_price or 0) }}</div></div>
+    <div><div class="info-label">Entries</div><div class="v">{{ events|length }}</div></div>
+  </div>
+  <div class="body">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:22%;">Date</th>
+          <th style="width:16%;">Type</th>
+          <th>Details</th>
+          <th style="width:12%;text-align:right;">Qty</th>
+          <th style="width:12%;text-align:right;">On hand</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in events %}
+        <tr>
+          <td>{{ e.created_at | to_ist }}</td>
+          <td><span class="kind k-{{ e.kind }}">{{ e.title }}</span></td>
+          <td>{{ e.summary }}</td>
+          <td class="num">{% if e.qty_delta is not none %}{{ '%+g'|format(e.qty_delta) }}{% else %}—{% endif %}</td>
+          <td class="num">{% if e.qty_after is not none %}{{ '%g'|format(e.qty_after) }}{% else %}—{% endif %}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="empty">No changes recorded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="inv-footer">
+    Generated by <strong>MobileFix Pro</strong> — inventory &amp; sales billing software<br>
+    mobilefix.cloud &nbsp;•&nbsp; {{ user.shop_name or 'Shop' }} &nbsp;•&nbsp; Printed {{ generated_at | to_ist }}
+  </div>
+</div>
+<script>
+function pdfName(){
+  const name = {{ (item.name or 'item')|tojson }}.replace(/[\\/:*?"<>|]+/g,' ').replace(/\s+/g,' ').trim();
+  const sku = {{ (item.sku or '')|tojson }}.replace(/[\\/:*?"<>|]+/g,'').trim();
+  return 'item-log-' + name + (sku ? '-' + sku : '') + '.pdf';
+}
+function downloadPDF(){
+  html2pdf().set({
+    margin: 0.35,
+    filename: pdfName(),
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+  }).from(document.getElementById('log-content')).save();
+}
+if (new URLSearchParams(window.location.search).get('download') === '1') {
+  window.addEventListener('load', () => setTimeout(downloadPDF, 600));
+}
+</script>
+</body>
+</html>

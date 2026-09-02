@@ -1,6 +1,12 @@
 {% extends 'base.html' %}
-{% block title %}Admin — MobileFix Pro{% endblock %}
-{% block page_title %}Admin Panel{% endblock %}
+{% block title %}Admin — MobileFix Pro
+
+{% endblock %}
+
+{% block page_title %}Admin Panel
+
+{% endblock %}
+
 {% block extra_head %}
 <style>
 .rtab {
@@ -11,35 +17,265 @@
 }
 .rtab.active { color: #00BCD4; border-bottom-color: #00BCD4; }
 .rtab:hover { color: #1a2332; }
+.admin-chip{border:1.5px solid #e2e8f0;background:#f8fafc;color:#475569;border-radius:999px;padding:5px 12px;font-size:.75rem;font-weight:800;cursor:pointer;font-family:inherit;}
+.admin-chip.on{background:#ecfeff;border-color:#67e8f9;color:#0e7490;}
+.admin-act.days{background:#0ea5e9;}
+.shop-sec-label{font-size:.7rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin:0 0 8px;}
+.admin-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;}
+.admin-kpi{background:white;border-radius:14px;padding:16px;box-shadow:0 4px 14px rgba(0,0,0,0.07);}
+.admin-shops-head{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.tab-short{display:none;}
+@media(max-width:768px){
+  .admin-page-head{display:none;}
+  .admin-kpis{
+    display:grid !important;
+    grid-template-columns:repeat(3,1fr) !important;
+    gap:6px;
+    margin-bottom:16px;
+  }
+  .admin-kpi{
+    padding:10px 4px;
+    border-radius:10px;
+    min-width:0;
+    min-height:80px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.05);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .admin-kpi-wide{grid-column:auto;}
+  .admin-kpi-mob-hide{display:none !important;}
+  .admin-kpi .admin-kpi-head{
+    margin-bottom:4px;
+    justify-content:center;
+    flex-wrap:nowrap;
+    gap:4px !important;
+  }
+  .admin-kpi .admin-kpi-head i{font-size:0.85rem !important;}
+  .admin-kpi .admin-kpi-label{font-size:0.75rem !important;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .admin-kpi .admin-kpi-val{font-size:1.4rem !important;line-height:1.1;margin-top:2px;font-weight:900;}
+  
+  .admin-shops-head{flex-direction:column;align-items:stretch;gap:12px;}
+  .admin-shops-head > div:last-child { display: flex; flex-wrap: nowrap; gap: 8px; width:100%; }
+  .admin-shops-head .form-control{max-width:100% !important;width:100%;flex:1;min-width:0;}
+  .admin-shops-head .btn{flex-shrink:0;}
+  
+  #adminPlanFilters {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  .plan-filter-box {
+    width: 100%;
+    min-width: 0 !important;
+    padding: 10px 8px;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    gap: 6px !important;
+  }
+  .plan-filter-box .plan-icon {
+    width: 32px; height: 32px; font-size: 1rem;
+  }
+  .plan-filter-box .plan-count {
+    font-size: 1.1rem;
+  }
+  
+  .card-header{padding:14px 14px 12px !important;}
+  .card-body{padding:12px 14px !important;}
+  .rtab{padding:8px 10px;font-size:0.75rem;}
+  .tab-full{display:none;}
+  .tab-short{display:inline;}
+  #toast{bottom:108px !important;right:12px !important;left:12px !important;}
+  #shopsTable tbody td[data-label="Contact"],
+  #shopsTable tbody td[data-label="Subscription"],
+  #shopsTable tbody td[data-label="Joined"],
+  #shopsTable tbody td[data-label="Status"],
+  #shopsTable tbody td[data-label="Actions"]{display:none !important;}
+  #shopsTable tbody td[data-label="Shop"]::before,
+  #shopsTable tbody td[data-label="Status"]::before,
+  #shopsTable tbody td[data-label="Actions"]::before{display:none !important;}
+  #shopsTable tbody tr{
+    display:block !important;
+    padding:12px 14px !important;
+    margin-bottom:8px;
+    border-radius:12px;
+    border:1px solid #f1f5f9;
+    box-shadow:0 2px 6px rgba(0,0,0,0.04);
+  }
+  #shopsTable tbody td[data-label="Shop"]{
+    padding:0 !important;
+    border:none !important;
+    margin:0 !important;
+    display:block !important;
+    min-width:0;
+  }
+  #shopsTable tbody tr:last-child{margin-bottom:0;}
+  .admin-acts{justify-content:center;flex-wrap:wrap;}
+  #shopDetailBody > div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important;}
+  #shopDetailBody > div[style*="repeat(3,1fr)"]{grid-template-columns:repeat(2,1fr) !important;}
+  #shopDetailBody .shop-detail-head{
+    flex-direction:column !important;
+    align-items:center !important;
+    text-align:center;
+  }
+  #shopDetailBody .shop-detail-meta{
+    text-align:center;
+  }
+  #shopDetailBody .shop-detail-users,
+  #shopDetailBody .shop-detail-users > div{
+    text-align:center;
+    justify-content:center !important;
+  }
+  #shopDetailBody .shop-detail-staff{
+    justify-content:center !important;
+  }
+  .admin-reports-card{margin-top:16px !important;}
+  .admin-reports-card .card-header{padding:14px 14px 0 !important;}
+  .admin-reports-card .admin-rtab-row{margin:0 -14px;padding:0 14px 0;}
+  .admin-report-table{overflow:visible !important;}
+  .admin-report-table .table-wrap{overflow-x:visible !important;}
+  .admin-report-table table{min-width:0 !important;width:100% !important;table-layout:auto !important;}
+  .admin-report-table thead{display:none !important;}
+  .admin-report-table tbody tr{
+    display:grid !important;
+    gap:8px 10px;
+    padding:12px 14px !important;
+    margin-bottom:8px;
+    border-radius:12px;
+    border:1px solid #f1f5f9;
+    box-shadow:0 2px 6px rgba(0,0,0,.04);
+    background:#fff;
+  }
+  .admin-report-table tbody tr:last-child{margin-bottom:0;}
+  .admin-report-table tbody td{
+    display:none !important;
+    padding:0 !important;
+    border:none !important;
+    min-height:0 !important;
+    width:auto !important;
+    text-align:left !important;
+  }
+  .admin-report-table tbody td::before{display:none !important;}
+  .admin-report-table tbody td[data-label="Shop"]{
+    display:block !important;
+    grid-column:1 / -1;
+    cursor:pointer;
+  }
+  .admin-report-table tbody td[data-label="Shop"] > div{text-align:left !important;}
+  .admin-report-table tbody td[data-label="Shop"] strong{
+    color:#00BCD4 !important;
+    font-size:0.88rem !important;
+    display:block;
+    line-height:1.3;
+  }
+  .admin-report-table tbody td[data-label="Shop"] div[style*="color:#94a3b8"]{
+    font-size:0.74rem !important;
+    margin-top:2px;
+  }
+  .admin-report-table tbody td.admin-rpt-m{
+    display:block !important;
+    background:#f8fafc;
+    border-radius:10px !important;
+    padding:8px 6px !important;
+    text-align:center !important;
+  }
+  .admin-report-table tbody td.admin-rpt-m::before{
+    display:block !important;
+    content:attr(data-label);
+    font-size:0.62rem;
+    font-weight:800;
+    color:#94a3b8;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    margin-bottom:4px;
+  }
+  #tab-perf .admin-report-table tbody tr{grid-template-columns:repeat(3,1fr);}
+  #tab-sales .admin-report-table tbody tr{grid-template-columns:repeat(3,1fr);}
+  #tab-trial .admin-report-table tbody tr{grid-template-columns:repeat(2,1fr);}
+  .admin-report-table tbody td[data-label="Actions"],
+  .admin-report-table tbody td[data-label="Cancelled"],
+  .admin-report-table tbody td[data-label="Active"],
+  .admin-report-table tbody td[data-label="Unpaid"],
+  .admin-report-table tbody td[data-label="Avg Days"],
+  .admin-report-table tbody td[data-label="Phone"],
+  .admin-report-table tbody td[data-label="Trial Start"],
+  .admin-report-table tbody td[data-label="Returns"]{display:none !important;}
+  .admin-report-table tbody td.admin-rpt-m .badge,
+  .admin-report-table tbody td.admin-rpt-m span[style*="border-radius:999px"]{
+    font-size:0.72rem !important;
+    padding:2px 8px !important;
+  }
+  .admin-report-table tbody td.admin-rpt-m span[style*="font-family:'Exo 2'"]{
+    font-size:0.95rem !important;
+  }
+  #tab-trial .admin-report-table tbody td[data-label="Plan"],
+  #tab-trial .admin-report-table tbody td[data-label="Status"]{display:block !important;}
+  .admin-shops-card .card-header .form-control{font-size:16px;}
+}
+.admin-report-table table{width:100%;min-width:980px;table-layout:fixed;}
+.admin-report-table thead th,
+.admin-report-table tbody td{
+  text-align:center !important;
+  vertical-align:middle;
+  padding:12px 8px;
+}
+.admin-report-table thead th:first-child,
+.admin-report-table tbody td:first-child{
+  text-align:left !important;
+  width:22%;
+}
+.admin-report-table tbody td[data-label="Actions"]{width:72px;text-align:center !important;}
+.admin-report-table thead th:last-child{width:72px;}
+#tab-trial .admin-report-table thead th:last-child{width:auto;}
+.admin-report-table tbody td span{display:inline-block;}
+
+.sd-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); }
+.sd-card-header { font-size: 0.8rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
+.sd-grid { display: grid; gap: 12px; }
+.sd-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.sd-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.sd-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.sd-actions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+.sd-actions-grid .admin-act { width: 100%; height: 38px; justify-content: center; font-size: 0.78rem; font-weight: 700; }
 </style>
+
+
 {% endblock %}
+
 {% block content %}
-<div class="page-header">
+<div class="page-header admin-page-head">
   <div>
     <div class="page-title">Admin Panel</div>
-    <div class="page-subtitle">Platform overview & shop management</div>
+    <div class="page-subtitle">Platform Overview & Shop Management</div>
   </div>
 </div>
 
 <!-- Platform KPIs -->
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;">
+<div class="admin-kpis">
   {% set pkpis = [
     ('Total Shops',    total,                     '#00BCD4', 'fa-store'),
     ('Active/Trial',   active_count,              '#4CAF50', 'fa-check-circle'),
     ('Expired',        expired_count,             '#FF9800', 'fa-clock'),
-    ('Disabled',       disabled_count,            '#ef4444', 'fa-ban'),
-    ('Platform Jobs',  platform.total_jobs,       '#9C27B0', 'fa-tools'),
+    ('Quiet 15d',      platform.quiet or 0,       '#64748b', 'fa-moon'),
     ('Jobs Today',     platform.jobs_today,       '#1E88E5', 'fa-calendar-day'),
-    ('Total Invoices', platform.total_invoices,   '#FF5722', 'fa-file-invoice'),
+    ('Sales Today',    platform.sales_today or 0, '#00897B', 'fa-cash-register'),
+    ('Sales ₹ Today',  '₹' ~ '{:,.0f}'.format(platform.sales_today_amt or 0), '#16a34a', 'fa-rupee-sign'),
+    ('Credit Due ₹',   '₹' ~ '{:,.0f}'.format(platform.sales_credit or 0), '#dc2626', 'fa-file-invoice'),
+    ('Low Stock',      platform.low_stock or 0,   '#ef4444', 'fa-boxes-stacked'),
+    ('On Shift Now',   platform.open_shifts or 0, '#7c3aed', 'fa-user-clock'),
+    ('Login Devices',  platform.devices or 0,     '#0ea5e9', 'fa-mobile-screen-button'),
     ('New This Month', new_this_month,            '#03A9F4', 'fa-user-plus'),
   ] %}
   {% for label, value, color, icon in pkpis %}
-  <div style="background:white;border-radius:14px;padding:16px;box-shadow:0 4px 14px rgba(0,0,0,0.07);border-left:4px solid {{ color }};">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+  <div class="admin-kpi{% if loop.index in [6, 8] %} admin-kpi-mob-hide{% endif %}" style="border-left:4px solid {{ color }};">
+    <div class="admin-kpi-head" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
       <i class="fas {{ icon }}" style="color:{{ color }};font-size:0.9rem;"></i>
-      <div style="font-size:0.75rem;font-weight:600;color:#6b7c93;">{{ label }}</div>
+      <div class="admin-kpi-label" style="font-size:0.75rem;font-weight:600;color:#6b7c93;">{{ label }}</div>
     </div>
-    <div style="font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.8rem;color:{{ color }};">{{ value }}</div>
+    <div class="admin-kpi-val" style="font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.8rem;color:{{ color }};">{{ value }}</div>
   </div>
   {% endfor %}
 </div>
@@ -50,22 +286,92 @@
   <div style="font-weight:700;color:#c2410c;margin-bottom:10px;"><i class="fas fa-exclamation-triangle"></i> {{ expiring|length }} Shop{{ 's' if expiring|length > 1 }} Expiring Within 7 Days</div>
   <div style="display:flex;flex-wrap:wrap;gap:8px;">
     {% for u in expiring %}
-    <div style="background:white;border-radius:10px;padding:8px 14px;font-size:0.82rem;border:1px solid #fed7aa;">
+    {% set wa_digits = (u.phone or '')|replace(' ','')|replace('-','')|replace('+','') %}
+    {% if wa_digits|length == 10 %}{% set wa_digits = '91' ~ wa_digits %}{% endif %}
+    {% set wa_msg = 'Hi ' ~ (u.shop_name or 'there') ~ ', your MobileFix Pro plan expires in ' ~ (u.days_left|string) ~ ' days. Please renew to keep Jobs and Sales running.' %}
+    <div style="background:white;border-radius:10px;padding:8px 14px;font-size:0.82rem;border:1px solid #fed7aa;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
       <strong>{{ u.shop_name or 'Unnamed' }}</strong>
-      <span style="color:#ef4444;margin-left:6px;font-weight:700;">{{ u.days_left }}d left</span>
-      <span style="color:#94a3b8;margin-left:6px;">{{ u.phone }}</span>
+      <span style="color:#ef4444;font-weight:700;">{{ u.days_left }}d left</span>
+      <span style="color:#94a3b8;">{{ u.phone }}</span>
+      {% if wa_digits|length >= 10 %}
+      <a href="https://wa.me/{{ wa_digits }}?text={{ wa_msg|urlencode }}" target="_blank" rel="noopener" title="Remind on WhatsApp" style="color:#16a34a;font-weight:800;text-decoration:none;"><i class="fab fa-whatsapp"></i> Remind</a>
+      {% endif %}
     </div>
     {% endfor %}
   </div>
 </div>
 {% endif %}
 
+
 <!-- Shops Table -->
-<div class="card">
+<div class="card admin-shops-card">
   <div class="card-header" style="padding:20px 24px 16px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;">
+    <div class="admin-shops-head">
       <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:1rem;">All Registered Shops</div>
-      <input type="text" id="adminSearch" class="form-control" placeholder="🔍  Search shops..." style="max-width:240px;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <a class="btn btn-outline" href="{{ url_for('admin_shops_csv') }}" style="padding:8px 12px;font-size:.78rem;"><i class="fas fa-file-csv"></i> CSV</a>
+        <form method="get" action="{{ url_for('admin_dashboard') }}" style="display:flex;gap:8px;align-items:center;">
+          <input type="hidden" name="status" value="{{ shop_status or 'all' }}">
+          <input type="hidden" name="plan" value="{{ shop_plan or 'all' }}">
+          <input type="search" id="adminSearch" name="q" value="{{ shop_q or '' }}" class="form-control" placeholder="Search shops, phone, GSTIN..." style="max-width:240px;" autocomplete="off">
+        </form>
+      </div>
+    </div>
+    <div class="admin-shop-filters" id="adminShopFilters" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;">
+      <div style="font-size:0.8rem;font-weight:700;color:#64748b;display:flex;align-items:center;margin-right:4px;min-width:90px;">Status:</div>
+      <a class="admin-chip {% if (shop_status or 'all')=='all' %}on{% endif %}" href="{{ url_for('admin_dashboard', q=shop_q, status='all', plan=shop_plan) }}">All {{ total }}</a>
+      <a class="admin-chip {% if shop_status=='trial' %}on{% endif %}" href="{{ url_for('admin_dashboard', q=shop_q, status='trial', plan=shop_plan) }}">Trial</a>
+      <a class="admin-chip {% if shop_status=='active' %}on{% endif %}" href="{{ url_for('admin_dashboard', q=shop_q, status='active', plan=shop_plan) }}">Active</a>
+      <a class="admin-chip {% if shop_status=='expired' %}on{% endif %}" href="{{ url_for('admin_dashboard', q=shop_q, status='expired', plan=shop_plan) }}">Expired {{ expired_count }}</a>
+      <a class="admin-chip {% if shop_status=='disabled' %}on{% endif %}" href="{{ url_for('admin_dashboard', q=shop_q, status='disabled', plan=shop_plan) }}">Disabled {{ disabled_count }}</a>
+      <a class="admin-chip {% if shop_status=='quiet' %}on{% endif %}" href="{{ url_for('admin_dashboard', q=shop_q, status='quiet', plan=shop_plan) }}">Quiet {{ platform.quiet or 0 }}</a>
+      <a class="admin-chip {% if shop_status=='expiring' %}on{% endif %}" href="{{ url_for('admin_dashboard', q=shop_q, status='expiring', plan=shop_plan) }}">Expiring {{ expiring|length }}</a>
+    </div>
+    <style>
+    a.admin-chip{text-decoration:none;display:inline-flex;align-items:center;}
+    a.plan-filter-box{text-decoration:none;color:inherit;}
+    .plan-filter-box {
+        background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+        padding: 12px 16px; display: flex; align-items: center; gap: 12px;
+        cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        min-width: 140px;
+    }
+    .plan-filter-box:hover {
+        border-color: #cbd5e1; transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.04);
+    }
+    .plan-filter-box.on {
+        border-color: #0891b2; background: #ecfeff; box-shadow: 0 0 0 1px #0891b2;
+    }
+    .plan-filter-box .plan-icon {
+        width: 36px; height: 36px; border-radius: 8px; display: flex;
+        align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .plan-filter-box .plan-info { flex: 1; }
+    .plan-filter-box .plan-name { font-size: 0.8rem; font-weight: 700; color: #475569; }
+    .plan-filter-box.on .plan-name { color: #0f172a; }
+    .plan-filter-box .plan-count { font-size: 1.15rem; font-weight: 800; color: #0f172a; line-height: 1; margin-top: 4px; }
+    </style>
+    <div class="admin-shop-filters" id="adminPlanFilters" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:20px;margin-bottom:8px;">
+      <a class="plan-filter-box {% if (shop_plan or 'all')=='all' %}on{% endif %}" href="{{ url_for('admin_dashboard', q=shop_q, status=shop_status, plan='all') }}">
+        <div class="plan-icon" style="background:#f1f5f9;color:#64748b;"><i class="fas fa-layer-group"></i></div>
+        <div class="plan-info"><div class="plan-name">All Plans</div><div class="plan-count">{{ total }}</div></div>
+      </a>
+      <a class="plan-filter-box {% if shop_plan=='trial' %}on{% endif %}" href="{{ url_for('admin_dashboard', q=shop_q, status=shop_status, plan='trial') }}">
+        <div class="plan-icon" style="background:#fef3c7;color:#d97706;"><i class="fas fa-gift"></i></div>
+        <div class="plan-info"><div class="plan-name">Free Trial</div><div class="plan-count">{{ plan_counts.trial }}</div></div>
+      </a>
+      <a class="plan-filter-box {% if shop_plan=='diamond' %}on{% endif %}" href="{{ url_for('admin_dashboard', q=shop_q, status=shop_status, plan='diamond') }}">
+        <div class="plan-icon" style="background:#e0f2fe;color:#0284c7;"><i class="fas fa-gem"></i></div>
+        <div class="plan-info"><div class="plan-name">Diamond</div><div class="plan-count">{{ plan_counts.diamond }}</div></div>
+      </a>
+      <a class="plan-filter-box {% if shop_plan=='platinum' %}on{% endif %}" href="{{ url_for('admin_dashboard', q=shop_q, status=shop_status, plan='platinum') }}">
+        <div class="plan-icon" style="background:#ede9fe;color:#7c3aed;"><i class="fas fa-medal"></i></div>
+        <div class="plan-info"><div class="plan-name">Platinum</div><div class="plan-count">{{ plan_counts.platinum }}</div></div>
+      </a>
+      <a class="plan-filter-box {% if shop_plan=='enterprise' %}on{% endif %}" href="{{ url_for('admin_dashboard', q=shop_q, status=shop_status, plan='enterprise') }}">
+        <div class="plan-icon" style="background:#d1fae5;color:#059669;"><i class="fas fa-building"></i></div>
+        <div class="plan-info"><div class="plan-name">Enterprise</div><div class="plan-count">{{ plan_counts.enterprise }}</div></div>
+      </a>
     </div>
   </div>
   <div class="card-body" style="padding-top:0;">
@@ -77,10 +383,15 @@
         </thead>
         <tbody>
           {% for u in users %}
-          <tr id="row-{{ u.id }}">
-            <td data-label="Shop" onclick="openShopDetail({{ u.id }})" style="cursor:pointer;">
-              <strong style="color:#00BCD4;">{{ u.shop_name or '(No name)' }}</strong>
-              <div style="font-size:0.78rem;color:#94a3b8;margin-top:2px;">{{ u.address or 'No address set' }}</div>
+          <tr id="row-{{ u.id }}" data-filter="{{ u.filter_key or 'active' }}" data-quiet="{{ u.quiet or 0 }}" data-expiring="{{ 1 if u.status in ('trial','active') and u.days_left <= 7 else 0 }}" data-plan="{{ u.plan_tier }}">
+            <td data-label="Shop" onclick="openShopDetail({{ u.id }})" style="cursor:pointer;overflow:hidden;">
+              <strong style="color:#00BCD4;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ u.shop_name or '(No name)' }}</strong>
+              <div style="font-size:0.78rem;color:#94a3b8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ u.city or u.address or 'No address set' }}</div>
+              <div style="font-size:0.72rem;font-weight:700;margin-top:3px;{% if u.gstin %}color:#0f766e{% else %}color:#94a3b8{% endif %}">{% if u.gstin %}GSTIN {{ u.gstin }}{% else %}GST not set{% endif %}</div>
+              <div id="staff-count-{{ u.id }}" style="font-size:0.75rem;font-weight:700;color:#0f766e;margin-top:4px;">
+                <i class="fas fa-users"></i> {{ u.staff_on or 0 }}/{{ u.staff_cap or 0 }} users
+                · Last {{ u.last_login_ist or 'Never' }}
+              </div>
             </td>
             <td data-label="Contact">
               <div style="font-size:0.85rem;">📞 {{ u.phone }}</div>
@@ -106,7 +417,7 @@
             <td data-label="Subscription">
               <div style="font-size:0.82rem;color:#64748b;">
                 {% if u.subscription_plan %}
-                  Plan: <strong>{{ u.subscription_plan }}</strong><br>
+                  Plan: <strong>{{ plan_display_name(u.subscription_plan) }}</strong><br>
                   Ends: {{ u.subscription_end[:10] if u.subscription_end else '—' }}
                 {% elif u.trial_start %}
                   Trial started:<br>{{ u.trial_start[:10] }}
@@ -117,29 +428,9 @@
             </td>
             <td data-label="Joined" style="color:#94a3b8;font-size:0.82rem;">{{ u.created_at[:10] }}</td>
             <td data-label="Actions">
-              <div class="action-dropdown" id="dd-{{ u.id }}">
-                <button class="dd-trigger" onclick="toggleDd('{{ u.id }}')">
-                  Actions <i class="fas fa-chevron-down" style="font-size:0.7rem;margin-left:4px;"></i>
-                </button>
-                <div class="dd-menu" id="ddm-{{ u.id }}">
-                  <button onclick="toggleAccount({{ u.id }});closeDd('{{ u.id }}')" id="toggle-btn-{{ u.id }}"
-                    class="dd-item {% if u.enabled %}danger{% else %}success{% endif %}">
-                    <i class="fas fa-{% if u.enabled %}ban{% else %}check{% endif %}"></i>
-                    <span id="toggle-text-{{ u.id }}">{% if u.enabled %}Disable{% else %}Enable{% endif %}</span>
-                  </button>
-                  <button onclick="openSubModal({{ u.id }},'{{ u.shop_name }}');closeDd('{{ u.id }}')" class="dd-item primary">
-                    <i class="fas fa-calendar-plus"></i> Set Plan
-                  </button>
-                  <button onclick="openHistory({{ u.id }},'{{ u.shop_name|replace("'","\\'") }}');closeDd('{{ u.id }}')" class="dd-item teal">
-                    <i class="fas fa-history"></i> History
-                  </button>
-                  <button onclick="openImeiSettings({{ u.id }},'{{ u.shop_name|replace("'","\\'") }}',{{ u.imei_skip or 0 }});closeDd('{{ u.id }}')" class="dd-item" style="color:#FF9800;">
-                    <i class="fas fa-barcode"></i> IMEI Settings
-                  </button>
-                  <button onclick="deleteUser({{ u.id }},'{{ u.shop_name }}');closeDd('{{ u.id }}')" class="dd-item danger">
-                    <i class="fas fa-trash"></i> Delete
-                  </button>
-                </div>
+              <div class="admin-acts">
+                <button type="button" class="admin-act view" title="View shop" onclick="openShopDetail({{ u.id }})"><i class="fas fa-eye"></i></button>
+                
               </div>
             </td>
           </tr>
@@ -147,6 +438,20 @@
         </tbody>
       </table>
     </div>
+    {% if shop_pages and shop_pages > 1 %}
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 0 4px;font-size:.82rem;font-weight:700;color:#64748b;">
+      <span>Showing {{ users|length }} of {{ shop_shown }} shops</span>
+      <div style="display:flex;gap:8px;">
+        {% if shop_page > 1 %}
+        <a class="btn btn-outline" href="{{ url_for('admin_dashboard', q=shop_q, status=shop_status, plan=shop_plan, page=shop_page-1) }}">Prev</a>
+        {% endif %}
+        <span>Page {{ shop_page }} / {{ shop_pages }}</span>
+        {% if shop_page < shop_pages %}
+        <a class="btn btn-outline" href="{{ url_for('admin_dashboard', q=shop_q, status=shop_status, plan=shop_plan, page=shop_page+1) }}">Next</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
     {% else %}
     <div style="text-align:center;padding:60px;color:#94a3b8;">
       <i class="fas fa-store" style="font-size:3rem;margin-bottom:16px;display:block;opacity:0.2;"></i>
@@ -157,17 +462,19 @@
 </div>
 
 <!-- Reports Section -->
-<div class="card" style="margin-top:24px;">
+<div class="card admin-reports-card" style="margin-top:24px;">
   <div class="card-header" style="padding:20px 24px 0;">
     <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:1rem;margin-bottom:16px;">
       <i class="fas fa-chart-bar" style="color:#00BCD4;"></i> Platform Reports
     </div>
     <!-- Tabs -->
-    <div style="display:flex;gap:4px;border-bottom:2px solid #f1f5f9;margin:0 -24px;padding:0 24px;overflow-x:auto;white-space:nowrap;">
-      <button class="rtab active" onclick="showTab('perf',this)">📊 Shop Performance</button>
-      <button class="rtab" onclick="showTab('trial',this)">🎯 Trial Tracker</button>
-      <button class="rtab" onclick="showTab('brand',this)">📱 Top Brands</button>
-      <button class="rtab" onclick="showTab('activity',this)">📅 Daily Activity</button>
+    <div class="admin-rtab-row" style="display:flex;gap:4px;border-bottom:2px solid #f1f5f9;margin:0 -24px;padding:0 24px;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;">
+      <button class="rtab active" onclick="showTab('perf',this)"><span class="tab-full">Shop Performance</span><span class="tab-short">Service</span></button>
+      <button class="rtab" onclick="showTab('sales',this)"><span class="tab-full">Sales Summary</span><span class="tab-short">Sales</span></button>
+      <button class="rtab" onclick="showTab('trial',this)"><span class="tab-full">Trial Tracker</span><span class="tab-short">Trial</span></button>
+      <button class="rtab" onclick="showTab('health',this)"><span class="tab-full">Shop Health</span><span class="tab-short">Health</span></button>
+      <button class="rtab" onclick="showTab('brand',this)"><span class="tab-full">Top Brands</span><span class="tab-short">Brands</span></button>
+      <button class="rtab" onclick="showTab('activity',this)"><span class="tab-full">Daily Activity</span><span class="tab-short">Daily</span></button>
     </div>
   </div>
   <div class="card-body" style="padding-top:20px;">
@@ -175,47 +482,106 @@
     <!-- Tab: Shop Performance -->
     <div id="tab-perf" class="rtab-panel">
       {% if shop_perf %}
-      <div class="table-wrap">
+      <div class="table-wrap mob-cards admin-report-table">
         <table>
           <thead>
             <tr>
               <th>Shop</th><th>Total Jobs</th><th>Delivered</th><th>Cancelled</th>
-              <th>Active</th><th>Unpaid Active</th><th>Avg Days</th><th>Revenue (Paid)</th>
+              <th>Active</th><th>Unpaid Active</th><th>Avg Days</th><th>Revenue (Paid)</th><th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {% for s in shop_perf %}
             <tr>
-              <td>
-                <strong style="font-size:0.85rem;">{{ s.shop_name or '—' }}</strong>
-                <div style="font-size:0.76rem;color:#94a3b8;">{{ s.phone }}</div>
+              <td data-label="Shop" onclick="openShopDetail({{ s.id }})" style="cursor:pointer;">
+                <div>
+                  <strong style="font-size:0.85rem;display:block;">{{ s.shop_name or '—' }}</strong>
+                  <div style="font-size:0.76rem;color:#94a3b8;">{{ s.phone }}</div>
+                </div>
               </td>
-              <td style="text-align:center;">
+              <td data-label="Jobs" class="admin-rpt-m" style="text-align:center;">
                 <span style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.1rem;color:#1a2332;">{{ s.total_jobs }}</span>
               </td>
-              <td style="text-align:center;">
+              <td data-label="Delivered" class="admin-rpt-m" style="text-align:center;">
                 <span style="background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">{{ s.delivered }}</span>
               </td>
-              <td style="text-align:center;">
+              <td data-label="Cancelled" style="text-align:center;">
                 <span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">{{ s.cancelled }}</span>
               </td>
-              <td style="text-align:center;">
+              <td data-label="Active" style="text-align:center;">
                 <span style="background:#e0f2fe;color:#0369a1;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">{{ s.active_jobs }}</span>
               </td>
-              <td style="text-align:center;">
+              <td data-label="Unpaid" style="text-align:center;">
                 {% if s.unpaid_active > 0 %}
                 <span style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">{{ s.unpaid_active }}</span>
                 {% else %}
                 <span style="color:#94a3b8;font-size:0.78rem;">—</span>
                 {% endif %}
               </td>
-              <td style="text-align:center;font-size:0.82rem;color:#64748b;">
+              <td data-label="Avg Days" style="text-align:center;font-size:0.82rem;color:#64748b;">
                 {% if s.total_jobs > 0 %}{{ s.avg_days }} days{% else %}—{% endif %}
               </td>
-              <td style="text-align:right;">
+              <td data-label="Revenue" class="admin-rpt-m" style="text-align:right;">
                 <span style="font-family:'Exo 2',sans-serif;font-weight:800;color:#10b981;font-size:0.95rem;">
                   ₹{{ '{:,.0f}'.format(s.total_revenue) }}
                 </span>
+              </td>
+              <td data-label="Actions" style="text-align:center;">
+                <button type="button" class="admin-act view" title="View shop" onclick="openShopDetail({{ s.id }})"><i class="fas fa-eye"></i></button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:40px;color:#94a3b8;">No data yet</div>
+      {% endif %}
+    </div>
+
+    <!-- Tab: Sales Summary -->
+    <div id="tab-sales" class="rtab-panel" style="display:none;">
+      {% if shop_perf %}
+      <div class="table-wrap mob-cards admin-report-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Shop</th><th>Bills</th><th>Collected</th><th>Credit Due</th><th>Returns</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in shop_perf %}
+            <tr>
+              <td data-label="Shop" onclick="openShopDetail({{ s.id }})" style="cursor:pointer;">
+                <div>
+                  <strong style="font-size:0.85rem;display:block;">{{ s.shop_name or '—' }}</strong>
+                  <div style="font-size:0.76rem;color:#94a3b8;">{{ s.phone }}</div>
+                </div>
+              </td>
+              <td data-label="Bills" class="admin-rpt-m" style="text-align:center;">
+                <span style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.1rem;color:#1a2332;">{{ s.sales_bills or 0 }}</span>
+              </td>
+              <td data-label="Collected" class="admin-rpt-m" style="text-align:right;">
+                <span style="font-family:'Exo 2',sans-serif;font-weight:800;color:#10b981;font-size:0.95rem;">
+                  ₹{{ '{:,.0f}'.format(s.sales_collected or 0) }}
+                </span>
+              </td>
+              <td data-label="Credit" class="admin-rpt-m" style="text-align:right;">
+                {% if (s.sales_credit or 0) > 0 %}
+                <span style="font-family:'Exo 2',sans-serif;font-weight:800;color:#dc2626;font-size:0.95rem;">₹{{ '{:,.0f}'.format(s.sales_credit) }}</span>
+                {% else %}
+                <span style="color:#94a3b8;font-size:0.78rem;">—</span>
+                {% endif %}
+              </td>
+              <td data-label="Returns" style="text-align:center;">
+                {% if (s.sales_returns or 0) > 0 %}
+                <span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">{{ s.sales_returns }}</span>
+                {% else %}
+                <span style="color:#94a3b8;font-size:0.78rem;">—</span>
+                {% endif %}
+              </td>
+              <td data-label="Actions" style="text-align:center;">
+                <button type="button" class="admin-act view" title="View shop" onclick="openShopDetail({{ s.id }})"><i class="fas fa-eye"></i></button>
               </td>
             </tr>
             {% endfor %}
@@ -230,7 +596,7 @@
     <!-- Tab: Trial Tracker -->
     <div id="tab-trial" class="rtab-panel" style="display:none;">
       {% if trial_tracker %}
-      <div class="table-wrap">
+      <div class="table-wrap mob-cards admin-report-table">
         <table>
           <thead>
             <tr><th>Shop</th><th>Phone</th><th>Trial Start</th><th>Plan</th><th>Jobs Done</th><th>Revenue</th><th>Conversion</th></tr>
@@ -238,34 +604,39 @@
           <tbody>
             {% for t in trial_tracker %}
             <tr>
-              <td><strong style="font-size:0.85rem;">{{ t.shop_name or '—' }}</strong></td>
-              <td style="font-size:0.82rem;color:#64748b;">{{ t.phone }}</td>
-              <td style="font-size:0.82rem;color:#64748b;">{{ t.trial_start or '—' }}</td>
-              <td>
+              <td data-label="Shop" onclick="openShopDetail({{ t.id }})" style="cursor:pointer;">
+                <div>
+                  <strong style="font-size:0.85rem;display:block;">{{ t.shop_name or '—' }}</strong>
+                  <div style="font-size:0.76rem;color:#94a3b8;">{{ t.phone }}</div>
+                </div>
+              </td>
+              <td data-label="Phone" style="font-size:0.82rem;color:#64748b;">{{ t.phone }}</td>
+              <td data-label="Trial Start" style="font-size:0.82rem;color:#64748b;">{{ t.trial_start or '—' }}</td>
+              <td data-label="Plan" class="admin-rpt-m">
                 {% if t.subscription_plan %}
-                <span style="background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">{{ t.subscription_plan }}</span>
+                <span style="background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">{{ plan_display_name(t.subscription_plan) }}</span>
                 {% else %}
                 <span style="background:#fef9c3;color:#a16207;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">Trial</span>
                 {% endif %}
               </td>
-              <td style="text-align:center;">
+              <td data-label="Jobs" class="admin-rpt-m" style="text-align:center;">
                 <span style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1rem;
                   color:{% if t.jobs_done >= 5 %}#10b981{% elif t.jobs_done >= 1 %}#f59e0b{% else %}#ef4444{% endif %}">
                   {{ t.jobs_done }}
                 </span>
               </td>
-              <td style="text-align:right;font-family:'Exo 2',sans-serif;font-weight:700;color:#10b981;">
+              <td data-label="Revenue" class="admin-rpt-m" style="text-align:right;font-family:'Exo 2',sans-serif;font-weight:700;color:#10b981;">
                 ₹{{ '{:,.0f}'.format(t.revenue) }}
               </td>
-              <td>
+              <td data-label="Status" class="admin-rpt-m">
                 {% if t.subscription_plan %}
-                <span style="background:#d1fae5;color:#065f46;font-size:0.76rem;font-weight:700;padding:3px 10px;border-radius:999px;">✅ Converted</span>
+                <span style="background:#d1fae5;color:#065f46;font-size:0.76rem;font-weight:700;padding:3px 10px;border-radius:999px;">Converted</span>
                 {% elif t.jobs_done >= 5 %}
-                <span style="background:#dbeafe;color:#1d4ed8;font-size:0.76rem;font-weight:700;padding:3px 10px;border-radius:999px;">🔥 Hot Lead</span>
+                <span style="background:#dbeafe;color:#1d4ed8;font-size:0.76rem;font-weight:700;padding:3px 10px;border-radius:999px;">Hot Lead</span>
                 {% elif t.jobs_done >= 1 %}
-                <span style="background:#fef9c3;color:#a16207;font-size:0.76rem;font-weight:700;padding:3px 10px;border-radius:999px;">👀 Engaged</span>
+                <span style="background:#fef9c3;color:#a16207;font-size:0.76rem;font-weight:700;padding:3px 10px;border-radius:999px;">Engaged</span>
                 {% else %}
-                <span style="background:#fee2e2;color:#991b1b;font-size:0.76rem;font-weight:700;padding:3px 10px;border-radius:999px;">❄️ No Activity</span>
+                <span style="background:#fee2e2;color:#991b1b;font-size:0.76rem;font-weight:700;padding:3px 10px;border-radius:999px;">No Activity</span>
                 {% endif %}
               </td>
             </tr>
@@ -275,6 +646,50 @@
       </div>
       {% else %}
       <div style="text-align:center;padding:40px;color:#94a3b8;">No data yet</div>
+      {% endif %}
+    </div>
+
+    <!-- Tab: Shop Health -->
+    <div id="tab-health" class="rtab-panel" style="display:none;">
+      {% if health_shops %}
+      <div class="table-wrap mob-cards admin-report-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Shop</th><th>Last Login</th><th>Devices</th><th>Today Jobs</th>
+              <th>Today Sales</th><th>Low Stock</th><th>On Shift</th><th>Hours</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in health_shops %}
+            <tr>
+              <td data-label="Shop" onclick="openShopDetail({{ s.id }})" style="cursor:pointer;">
+                <div>
+                  <strong style="font-size:0.85rem;display:block;">{{ s.shop_name or '—' }}</strong>
+                  <div style="font-size:0.76rem;color:#94a3b8;">{{ s.phone }}{% if s.quiet %} · Quiet{% endif %}</div>
+                </div>
+              </td>
+              <td data-label="Last Login" class="admin-rpt-m" style="font-size:0.78rem;color:{% if s.quiet %}#dc2626{% else %}#64748b{% endif %};font-weight:700;">{{ s.last_login_ist or 'Never' }}</td>
+              <td data-label="Devices" class="admin-rpt-m">{{ s.devices_n or 0 }}</td>
+              <td data-label="Jobs Today" class="admin-rpt-m">{{ s.jobs_today or 0 }}</td>
+              <td data-label="Sales Today" class="admin-rpt-m">{{ s.sales_today or 0 }} · ₹{{ '{:,.0f}'.format(s.sales_today_amt or 0) }}</td>
+              <td data-label="Low Stock" class="admin-rpt-m">
+                {% if (s.low_stock or 0) > 0 %}
+                <span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">{{ s.low_stock }}</span>
+                {% else %}<span style="color:#94a3b8;">—</span>{% endif %}
+              </td>
+              <td data-label="On Shift" class="admin-rpt-m">{{ s.open_shifts or 0 }}</td>
+              <td data-label="Hours" class="admin-rpt-m" style="font-size:0.78rem;color:#64748b;">{{ s.shop_open_time or '09:00' }}–{{ s.shop_close_time or '21:00' }}</td>
+              <td data-label="Actions" style="text-align:center;">
+                <button type="button" class="admin-act view" title="View shop" onclick="openShopDetail({{ s.id }})"><i class="fas fa-eye"></i></button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:40px;color:#94a3b8;">No shop health data yet</div>
       {% endif %}
     </div>
 
@@ -324,30 +739,42 @@
 
 <!-- Subscription Modal -->
 <div class="modal-overlay" id="subModal">
-  <div class="modal-box">
+  <div class="modal-box" style="max-width:560px;">
     <div class="modal-title"><i class="fas fa-calendar-plus" style="color:#00BCD4;"></i> Set Subscription Plan</div>
     <p style="font-size:0.85rem;color:#94a3b8;margin-top:6px;">Shop: <strong id="subShopName"></strong></p>
     <div class="modal-body">
-      <div style="font-size:0.82rem;color:#6b7c93;margin-bottom:16px;">Select a plan to activate. This will start counting from today.</div>
-      <div class="plan-grid">
-        <button class="plan-btn" onclick="selectPlan('30d',this)">
-          <div class="plan-name">30 Days</div>
-          <div class="plan-desc">Short-term access</div>
+      <div style="font-size:0.78rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">Package</div>
+      <div class="plan-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px;">
+        <button type="button" class="plan-btn" data-tier="diamond" onclick="selectTier('diamond',this)">
+          <div class="plan-name">Diamond</div>
+          <div class="plan-desc">Owner + 1 staff</div>
         </button>
-        <button class="plan-btn" onclick="selectPlan('1y',this)">
-          <div class="plan-name">1 Year</div>
-          <div class="plan-desc">365 days access</div>
+        <button type="button" class="plan-btn" data-tier="platinum" onclick="selectTier('platinum',this)">
+          <div class="plan-name">Platinum</div>
+          <div class="plan-desc">Owner + 2 staff</div>
         </button>
-        <button class="plan-btn" onclick="selectPlan('2y',this)">
-          <div class="plan-name">2 Years</div>
-          <div class="plan-desc">730 days access</div>
-        </button>
-        <button class="plan-btn" onclick="selectPlan('3y',this)">
-          <div class="plan-name">3 Years</div>
-          <div class="plan-desc">1095 days access</div>
+        <button type="button" class="plan-btn" data-tier="enterprise" onclick="selectTier('enterprise',this)">
+          <div class="plan-name">Enterprise</div>
+          <div class="plan-desc">Owner + 3 or more</div>
         </button>
       </div>
-      <div style="display:flex;gap:10px;margin-top:20px;">
+      <div style="font-size:0.78rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">Duration</div>
+      <div class="plan-grid" style="grid-template-columns:repeat(3,1fr);">
+        <button type="button" class="plan-btn" data-dur="1y" onclick="selectDur('1y',this)">
+          <div class="plan-name">1 Year</div>
+          <div class="plan-desc">365 days</div>
+        </button>
+        <button type="button" class="plan-btn" data-dur="2y" onclick="selectDur('2y',this)">
+          <div class="plan-name">2 Years</div>
+          <div class="plan-desc">730 days</div>
+        </button>
+        <button type="button" class="plan-btn" data-dur="3y" onclick="selectDur('3y',this)">
+          <div class="plan-name">3 Years</div>
+          <div class="plan-desc">1095 days</div>
+        </button>
+      </div>
+      <div id="planPickHint" style="font-size:0.8rem;color:#64748b;margin-top:12px;font-weight:600;">Pick a package and a duration.</div>
+      <div style="display:flex;gap:10px;margin-top:18px;">
         <button class="btn btn-primary" style="flex:1;" id="confirmPlanBtn" onclick="confirmPlan()" disabled>
           <i class="fas fa-check"></i> Activate Plan
         </button>
@@ -359,7 +786,7 @@
 
 <!-- Subscription History Modal -->
 <div class="modal-overlay" id="historyModal">
-  <div class="modal-box" style="max-width:540px;">
+  <div class="modal-box" style="max-width:720px;">
     <div class="modal-title"><i class="fas fa-history" style="color:#00BCD4;"></i> Subscription History</div>
     <p style="font-size:0.85rem;color:#94a3b8;margin-top:4px;">Shop: <strong id="historyShopName"></strong></p>
     <div class="modal-body" id="historyBody" style="margin-top:14px;max-height:360px;overflow-y:auto;">
@@ -367,6 +794,20 @@
     </div>
     <div style="margin-top:18px;text-align:right;">
       <button class="btn btn-ghost" onclick="closeHistory()" style="background:#f1f5f9;border-radius:10px;cursor:pointer;border:none;font-family:inherit;color:#64748b;padding:10px 20px;">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Shop Change Log Modal -->
+<div class="modal-overlay" id="shopLogModal">
+  <div class="modal-box" style="max-width:720px;">
+    <div class="modal-title"><i class="fas fa-clipboard-list" style="color:#334155;"></i> Shop Change Log</div>
+    <p style="font-size:0.85rem;color:#94a3b8;margin-top:4px;">Shop: <strong id="shopLogShopName"></strong></p>
+    <div class="modal-body" id="shopLogBody" style="margin-top:14px;max-height:420px;overflow-y:auto;">
+      <div style="text-align:center;padding:30px;color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+    </div>
+    <div style="margin-top:18px;text-align:right;">
+      <button class="btn btn-ghost" onclick="closeShopLog()" style="background:#f1f5f9;border-radius:10px;cursor:pointer;border:none;font-family:inherit;color:#64748b;padding:10px 20px;">Close</button>
     </div>
   </div>
 </div>
@@ -412,11 +853,7 @@
         <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
           <div style="font-size:0.82rem;color:#166534;font-weight:600;margin-bottom:6px;"><i class="fas fa-key"></i> Shop PIN</div>
           <div style="display:flex;align-items:center;gap:10px;">
-            <span id="imeiPinDisplay" style="font-family:'Exo 2',sans-serif;font-size:1.4rem;font-weight:900;letter-spacing:6px;color:#1a2332;">••••••</span>
-            <button type="button" onclick="toggleStoredPin()" id="storedPinBtn"
-              style="padding:4px 10px;border:1.5px solid #e2e8f0;border-radius:7px;background:white;cursor:pointer;font-size:0.75rem;font-weight:600;color:#64748b;font-family:inherit;">
-              <i class="fas fa-eye"></i> Show
-            </button>
+            <span id="imeiPinDisplay" style="font-family:'Exo 2',sans-serif;font-size:1rem;font-weight:800;color:#1a2332;">PIN is set</span>
           </div>
         </div>
         <div style="font-size:0.8rem;color:#94a3b8;margin-bottom:14px;">This shop's IMEI field is currently optional. The owner can skip IMEI during delivery without any PIN.</div>
@@ -432,12 +869,59 @@
   </div>
 </div>
 
+<!-- Admin password confirm -->
+<div class="modal-overlay modal-center" id="adminPwModal" style="z-index:10060;">
+  <div class="modal-box" style="max-width:400px;">
+    <div id="adminPwIco" style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.25rem;margin:0 auto 12px;"><i class="fas fa-lock"></i></div>
+    <div class="modal-title" id="adminPwTitle" style="text-align:center;padding-right:0;">Confirm with admin password</div>
+    <p id="adminPwMsg" style="text-align:center;font-size:.85rem;font-weight:600;color:#334155;margin:6px 0 0;line-height:1.5;">Enter the admin login password to continue.</p>
+    <div class="modal-body" style="margin-top:16px;">
+      <div style="position:relative;">
+        <input type="password" id="adminPwInput" class="form-control" placeholder="Admin login password" autocomplete="current-password" style="padding-right:40px;">
+        <span onclick="toggleAdminPw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#475569;font-size:0.85rem;"><i class="fas fa-eye" id="adminPwEye"></i></span>
+      </div>
+      <div id="adminPwError" style="display:none;color:#b91c1c;font-size:.78rem;font-weight:700;text-align:center;margin-top:8px;"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button type="button" class="btn btn-primary" id="adminPwOk" style="flex:1;padding:12px;"><i class="fas fa-check"></i> Confirm</button>
+        <button type="button" onclick="closeAdminPw(false)" style="padding:12px 18px;background:#f1f5f9;border:none;border-radius:10px;cursor:pointer;font-family:inherit;color:#64748b;font-weight:700;">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Shop Detail Modal -->
+<div class="modal-overlay" id="shopDetailModal">
+  <div class="modal-box modal-center" style="max-width:900px;max-height:88vh;overflow:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div class="modal-title" style="margin-bottom:0;"><i class="fas fa-store" style="color:#00BCD4;"></i> Shop Details</div>
+      <button type="button" onclick="closeShopDetail()"
+        style="background:#475569;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;color:#fff;font-size:1rem;display:flex;align-items:center;justify-content:center;" title="Exit" aria-label="Exit">✕</button>
+    </div>
+    <div id="shopDetailBody"></div>
+    <input type="file" id="shopRestoreFile" accept="application/json,.json" style="display:none;">
+  </div>
+</div>
+
+<!-- Admin Notes Log Modal -->
+<div class="modal-overlay" id="adminNotesLogModal" style="z-index: 10500;">
+  <div class="modal-box modal-center" style="max-width:600px;max-height:80vh;display:flex;flex-direction:column;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="modal-title" style="margin-bottom:0;"><i class="fas fa-list-ul" style="color:#64748b;"></i> Admin Notes History</div>
+      <button type="button" onclick="closeAdminNotesLog()" style="background:#475569;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;color:#fff;font-size:1rem;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <div id="adminNotesLogBody" style="flex:1;overflow-y:auto;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:16px;"></div>
+  </div>
+</div>
+
 <!-- Toast -->
-<div id="toast" style="position:fixed;bottom:24px;right:24px;background:#1a2332;color:white;padding:14px 20px;border-radius:12px;font-size:0.875rem;font-weight:500;z-index:9999;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.2);">
+<div id="toast" style="position:fixed;bottom:24px;right:24px;background:#1a2332;color:white;padding:14px 20px;border-radius:12px;font-size:0.875rem;font-weight:500;z-index:11000;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.2);">
   <i class="fas fa-check-circle" style="color:#00BCD4;margin-right:8px;"></i>
   <span id="toastMsg"></span>
 </div>
+
+
 {% endblock %}
+
 
 {% block scripts %}
 <script>
@@ -449,40 +933,55 @@ function showTab(name, btn) {
 }
 </script>
 <style>
-.action-dropdown { position:relative; display:inline-block; }
-.dd-trigger { background:white; border:1.5px solid #e2e8f0; border-radius:8px; padding:6px 12px; font-size:0.82rem; font-weight:600; color:#475569; cursor:pointer; font-family:inherit; white-space:nowrap; transition:all .15s; }
-.dd-trigger:hover { border-color:#00BCD4; color:#00BCD4; }
-.dd-menu { display:none; position:absolute; right:0; top:calc(100% + 4px); background:white; border:1.5px solid #e2e8f0; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.12); min-width:150px; z-index:200; overflow:hidden; }
-.dd-menu.open { display:block; animation:ddIn .12s ease; }
-@keyframes ddIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-.dd-item { display:flex; align-items:center; gap:8px; width:100%; padding:10px 14px; border:none; background:white; font-size:0.83rem; font-weight:600; cursor:pointer; font-family:inherit; color:#475569; transition:background .1s; }
-.dd-item:hover { background:#f8fafc; }
-.dd-item.danger { color:#ef4444; }
-.dd-item.danger:hover { background:#fee2e2; }
-.dd-item.success { color:#10b981; }
-.dd-item.success:hover { background:#d1fae5; }
-.dd-item.primary { color:#00BCD4; }
-.dd-item.primary:hover { background:#e0f7fa; }
-.dd-item.teal { color:#0097A7; }
-.dd-item.teal:hover { background:#e0f7fa; }
+.admin-acts{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.admin-act{
+  width:34px;height:34px;padding:0;border:none;border-radius:10px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:.85rem;
+  box-shadow:0 2px 6px rgba(0,0,0,.12);flex-shrink:0;text-decoration:none;
+}
+.admin-act.view{background:#0ea5e9;}
+.admin-act.plan{background:linear-gradient(135deg,#00BCD4,#0097A7);}
+.admin-act.hist{background:#64748b;}
+.admin-act.imei{background:#F57C00;}
+.admin-act.off{background:#ef4444;}
+.admin-act.on{background:#16a34a;}
+.admin-act.del{background:#b91c1c;}
+.admin-act.reset{background:#7c3aed;}
+.admin-act.log{background:#334155;}
+.admin-act.pages{background:#0f766e;}
+.admin-act.backup{background:#0369a1;}
+.admin-act.restore{background:#0f766e;}
+.admin-act.call{background:#2563eb;}
+.admin-act.wa{background:#25D366;}
+.admin-act.up{background:#0d9488;}
+.admin-act.down{background:#475569;}
+.admin-act:hover{transform:translateY(-1px);filter:brightness(1.05);}
+.shop-detail-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;}
+.shop-detail-acts .admin-act{width:auto;height:36px;padding:0 12px;gap:6px;font-size:.78rem;font-weight:800;font-family:inherit;}
+.shop-sec-label{font-size:.72rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;margin:0 0 8px;}
+
+.sd-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); }
+.sd-card-header { font-size: 0.8rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
+.sd-grid { display: grid; gap: 12px; }
+.sd-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.sd-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.sd-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.sd-actions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+.sd-actions-grid .admin-act { width: 100%; height: 38px; justify-content: center; font-size: 0.78rem; font-weight: 700; gap: 6px; }
+.sd-stats-details summary::-webkit-details-marker { display:none; }
+.sd-stats-details[open] summary #stats-chevron { transform: rotate(180deg); }
 </style>
 <script>
-let currentUid = null, selectedPlan = null;
-
-function toggleDd(uid) {
-  const menu = document.getElementById('ddm-' + uid);
-  const isOpen = menu.classList.contains('open');
-  document.querySelectorAll('.dd-menu.open').forEach(m => m.classList.remove('open'));
-  if (!isOpen) menu.classList.add('open');
+let currentUid = null, selectedPlan = null, selectedTier = null, selectedDur = null;
+const PLAN_LABELS = {
+  '30d':'30 Days','1y':'Diamond · 1 Year','2y':'Platinum · 2 Years','3y':'Enterprise · 3 Years',
+  'diamond_1y':'Diamond · 1 Year','diamond_2y':'Diamond · 2 Years','diamond_3y':'Diamond · 3 Years',
+  'platinum_1y':'Platinum · 1 Year','platinum_2y':'Platinum · 2 Years','platinum_3y':'Platinum · 3 Years',
+  'enterprise_1y':'Enterprise · 1 Year','enterprise_2y':'Enterprise · 2 Years','enterprise_3y':'Enterprise · 3 Years'
+};
+function planLabel(code) {
+  return PLAN_LABELS[code] || code || '—';
 }
-function closeDd(uid) {
-  document.getElementById('ddm-' + uid)?.classList.remove('open');
-}
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('.action-dropdown')) {
-    document.querySelectorAll('.dd-menu.open').forEach(m => m.classList.remove('open'));
-  }
-});
 
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -491,45 +990,122 @@ function showToast(msg) {
   setTimeout(() => t.style.display = 'none', 3000);
 }
 
-async function toggleAccount(uid) {
-  const txt = document.getElementById(`toggle-text-${uid}`).textContent.trim();
-  const action = txt === 'Disable' ? 'disable' : 'enable';
-  const icon = action === 'disable' ? '⛔' : '✅';
-  if (!await showConfirm(`Are you sure you want to ${action} this shop account?`, icon)) return;
-  try {
-    const res = await fetch(`/admin/toggle/${uid}`, {method:'POST'});
-    if (!res.ok) { if(res.status===401){location.href='/login';} else showToast('Error: '+res.status); return; }
-    const data = await res.json();
-    const btn = document.getElementById(`toggle-btn-${uid}`);
-    const sp = document.getElementById(`toggle-text-${uid}`);
-    const ic = btn.querySelector('i');
-    if (data.enabled) {
-      btn.className = 'dd-item danger'; sp.textContent = 'Disable'; ic.className = 'fas fa-ban';
-      showToast('Account enabled');
-    } else {
-      btn.className = 'dd-item success'; sp.textContent = 'Enable'; ic.className = 'fas fa-check';
-      showToast('Account disabled');
+let _adminPwDone = null;
+function askAdminPassword(title, msg) {
+  return new Promise(res => {
+    _adminPwDone = res;
+    document.getElementById('adminPwTitle').textContent = title || 'Confirm with admin password';
+    document.getElementById('adminPwMsg').textContent = msg || 'Enter the admin login password to continue.';
+    document.getElementById('adminPwError').style.display = 'none';
+    document.getElementById('adminPwInput').value = '';
+    document.getElementById('adminPwInput').type = 'password';
+    document.getElementById('adminPwEye').className = 'fas fa-eye';
+    document.getElementById('adminPwModal').classList.add('show');
+    setTimeout(() => document.getElementById('adminPwInput').focus(), 80);
+  });
+}
+function closeAdminPw(ok) {
+  const inp = document.getElementById('adminPwInput');
+  const pw = (inp.value || '').trim();
+  const err = document.getElementById('adminPwError');
+  if (ok) {
+    if (!pw) {
+      err.textContent = 'Enter the admin login password.';
+      err.style.display = '';
+      inp.focus();
+      return;
     }
+    document.getElementById('adminPwModal').classList.remove('show');
+    const done = _adminPwDone; _adminPwDone = null;
+    if (done) done(pw);
+    return;
+  }
+  document.getElementById('adminPwModal').classList.remove('show');
+  const done = _adminPwDone; _adminPwDone = null;
+  if (done) done(null);
+}
+function toggleAdminPw() {
+  const inp = document.getElementById('adminPwInput');
+  const icon = document.getElementById('adminPwEye');
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  icon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
+}
+document.getElementById('adminPwOk').addEventListener('click', () => closeAdminPw(true));
+document.getElementById('adminPwInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); closeAdminPw(true); }
+});
+document.getElementById('adminPwModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAdminPw(false);
+});
+
+async function toggleAccount(uid) {
+  const u = shopRec(uid);
+  const enabled = !!(u && u.enabled);
+  let password = '';
+  if (enabled) {
+    password = await askAdminPassword('Disable shop', 'Enter the admin login password to disable this shop.');
+    if (!password) return;
+  } else if (!await showConfirm('Are you sure you want to enable this shop account?', '✅')) {
+    return;
+  }
+  try {
+    const res = await fetch(`/admin/toggle/${uid}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({password})
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      if (res.status===401){location.href='/login'; return;}
+      showToast(data.error || ('Error: '+res.status));
+      return;
+    }
+    if (u) u.enabled = data.enabled ? 1 : 0;
+    showToast(data.enabled ? 'Account enabled' : 'Account disabled');
+    const modal = document.getElementById('shopDetailModal');
+    if (modal && modal.classList.contains('show')) openShopDetail(uid);
   } catch(e) { showToast('Network error. Please try again.'); }
 }
 
 function openSubModal(uid, name) {
   currentUid = uid;
   selectedPlan = null;
+  selectedTier = null;
+  selectedDur = null;
   document.getElementById('subShopName').textContent = name;
   document.getElementById('confirmPlanBtn').disabled = true;
-  document.querySelectorAll('.plan-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('planPickHint').textContent = 'Pick a package and a duration.';
+  document.querySelectorAll('#subModal .plan-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('subModal').classList.add('show');
 }
 function closeSubModal() {
   document.getElementById('subModal').classList.remove('show');
-  currentUid = null; selectedPlan = null;
+  currentUid = null; selectedPlan = null; selectedTier = null; selectedDur = null;
 }
-function selectPlan(plan, btn) {
-  selectedPlan = plan;
-  document.querySelectorAll('.plan-btn').forEach(b => b.classList.remove('selected'));
+function selectTier(tier, btn) {
+  selectedTier = tier;
+  document.querySelectorAll('#subModal [data-tier]').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
-  document.getElementById('confirmPlanBtn').disabled = false;
+  syncPlanPick();
+}
+function selectDur(dur, btn) {
+  selectedDur = dur;
+  document.querySelectorAll('#subModal [data-dur]').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  syncPlanPick();
+}
+function syncPlanPick() {
+  const hint = document.getElementById('planPickHint');
+  const go = document.getElementById('confirmPlanBtn');
+  if (selectedTier && selectedDur) {
+    selectedPlan = selectedTier + '_' + selectedDur;
+    hint.textContent = planLabel(selectedPlan) + ' — starts from today.';
+    go.disabled = false;
+  } else {
+    selectedPlan = null;
+    hint.textContent = 'Pick a package and a duration.';
+    go.disabled = true;
+  }
 }
 async function confirmPlan() {
   if (!currentUid || !selectedPlan) return;
@@ -546,14 +1122,119 @@ async function confirmPlan() {
     }
   } catch(e) { showToast('Network error. Please try again.'); }
 }
-async function deleteUser(uid, name) {
-  if (!await showDanger(`Delete shop "${name}" and all their data? This cannot be undone.`)) return;
+async function factoryResetShop(uid, name) {
+  const password = await askAdminPassword(
+    'Factory data reset',
+    `Wipe all jobs, invoices, sales, stock, loyalty, attendance, and staff for "${name}"? The shop login and plan stay. This cannot be undone.`
+  );
+  if (!password) return;
   try {
-    const res = await fetch(`/admin/delete/${uid}`, {method:'POST'});
-    if (!res.ok) { if(res.status===401){location.href='/login';} else showToast('Error: '+res.status); return; }
-    const data = await res.json();
+    const res = await fetch(`/admin/reset/${uid}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({password})
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      if (res.status===401){location.href='/login'; return;}
+      showToast(data.error || ('Error: '+res.status));
+      return;
+    }
+    const p = (SHOP_PERF||[]).find(x => x.id == uid);
+    if (p) {
+      p.total_jobs = 0; p.delivered = 0; p.cancelled = 0; p.active_jobs = 0;
+      p.unpaid_active = 0; p.avg_days = 0; p.total_revenue = 0;
+      p.sales_bills = 0; p.sales_collected = 0; p.sales_credit = 0; p.sales_returns = 0;
+    }
+    const u = shopRec(uid);
+    if (u) { u.staff_list = []; u.staff_n = 0; u.staff_on = 0; }
+    showToast('Shop data reset. Login and plan kept.');
+    openShopDetail(uid);
+  } catch(e) { showToast('Network error. Please try again.'); }
+}
+function backupFilename(res, name) {
+  const disp = res.headers.get('Content-Disposition') || '';
+  const m = /filename="?([^"]+)"?/i.exec(disp);
+  if (m && m[1]) return m[1];
+  const shop = String(name||'shop').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40) || 'shop';
+  return shop + '-backup.json';
+}
+async function backupShop(uid, name) {
+  const password = await askAdminPassword(
+    'Shop backup',
+    `Download a backup of "${name}"? Jobs, invoices, sales, stock, loyalty, attendance, and staff are included. Login password is not. Enter the admin login password.`
+  );
+  if (!password) return;
+  try {
+    const res = await fetch(`/admin/backup/${uid}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({password})
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      if (res.status===401){location.href='/login'; return;}
+      showToast(data.error || ('Error: '+res.status));
+      return;
+    }
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = backupFilename(res, name);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    showToast('Backup downloaded.');
+  } catch(e) { showToast('Network error. Please try again.'); }
+}
+async function restoreShop(uid, name) {
+  const input = document.getElementById('shopRestoreFile');
+  if (!input) return;
+  input.value = '';
+  input.onchange = async function() {
+    const file = input.files && input.files[0];
+    input.onchange = null;
+    input.value = '';
+    if (!file) return;
+    const password = await askAdminPassword(
+      'Restore shop backup',
+      `Replace all jobs, invoices, sales, stock, loyalty, attendance, and staff for "${name}" with this backup? The shop login and plan stay. Current shop data is overwritten. Enter the admin login password.`
+    );
+    if (!password) return;
+    const fd = new FormData();
+    fd.append('password', password);
+    fd.append('file', file);
+    try {
+      const res = await fetch(`/admin/restore/${uid}`, {method:'POST', body: fd});
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (res.status===401){location.href='/login'; return;}
+        showToast(data.error || ('Error: '+res.status));
+        return;
+      }
+      showToast(`Restore complete. ${data.jobs||0} jobs · ${data.bills||0} sales bills · ${data.staff||0} staff.`);
+      setTimeout(() => location.reload(), 1200);
+    } catch(e) { showToast('Network error. Please try again.'); }
+  };
+  input.click();
+}
+async function deleteUser(uid, name) {
+  const password = await askAdminPassword('Delete shop', `Delete "${name}" and all their data? Enter the admin login password. This cannot be undone.`);
+  if (!password) return;
+  try {
+    const res = await fetch(`/admin/delete/${uid}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({password})
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      if (res.status===401){location.href='/login'; return;}
+      showToast(data.error || ('Error: '+res.status));
+      return;
+    }
     if (data.success) {
-      document.getElementById(`row-${uid}`).remove();
+      const row = document.getElementById(`row-${uid}`);
+      if (row) row.remove();
+      closeShopDetail();
       showToast('Shop deleted successfully');
     }
   } catch(e) { showToast('Network error. Please try again.'); }
@@ -564,8 +1245,59 @@ document.getElementById('subModal').addEventListener('click', function(e) {
 document.getElementById('historyModal').addEventListener('click', function(e) {
   if (e.target === this) closeHistory();
 });
+document.getElementById('shopLogModal').addEventListener('click', function(e) {
+  if (e.target === this) closeShopLog();
+});
 
-const PLAN_LABELS = {'30d':'30 Days','1y':'1 Year','2y':'2 Years','3y':'3 Years'};
+const SHOP_LOG_META = {
+  account: {label:'Account', color:'#64748b', icon:'fa-power-off'},
+  plan: {label:'Plan', color:'#00BCD4', icon:'fa-calendar-plus'},
+  seats: {label:'Seats', color:'#0d9488', icon:'fa-users'},
+  imei: {label:'IMEI', color:'#F57C00', icon:'fa-barcode'},
+  backup: {label:'Backup', color:'#0369a1', icon:'fa-download'},
+  restore: {label:'Restore', color:'#0f766e', icon:'fa-upload'},
+  factory_reset: {label:'Factory Reset', color:'#7c3aed', icon:'fa-rotate-left'},
+  delete: {label:'Delete', color:'#b91c1c', icon:'fa-trash'},
+  notes: {label:'Notes', color:'#475569', icon:'fa-sticky-note'},
+};
+
+function titleWords(s) {
+  return String(s || '').replace(/\b([a-z])/g, (_, c) => c.toUpperCase());
+}
+
+async function openShopLog(uid, name) {
+  document.getElementById('shopLogShopName').textContent = name;
+  document.getElementById('shopLogBody').innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+  document.getElementById('shopLogModal').classList.add('show');
+  const res = await fetch(`/admin/shop-log/${uid}`);
+  const data = await res.json().catch(() => []);
+  if (!data.length) {
+    document.getElementById('shopLogBody').innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;"><i class="fas fa-inbox" style="font-size:1.5rem;display:block;margin-bottom:10px;opacity:0.3;"></i>No admin changes recorded yet.</div>';
+    return;
+  }
+  let html = '<div style="display:flex;flex-direction:column;gap:10px;">';
+  data.forEach((r, i) => {
+    const meta = SHOP_LOG_META[r.action] || {label: titleWords((r.action||'Change').replace(/_/g,' ')), color:'#64748b', icon:'fa-pen'};
+    html += `<div style="background:${i%2===0?'#f8fafc':'white'};border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 14px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+          <span style="background:${meta.color}20;color:${meta.color};padding:4px 10px;border-radius:999px;font-size:0.72rem;font-weight:800;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">
+            <i class="fas ${meta.icon}"></i> ${escHtml(meta.label)}
+          </span>
+          <span style="font-size:0.82rem;color:#475569;line-height:1.4;">${escHtml(titleWords(r.detail||'—'))}</span>
+        </div>
+        <span style="font-size:0.75rem;color:#94a3b8;white-space:nowrap;font-weight:600;">${escHtml(r.at||'—')}</span>
+      </div>
+      <div style="font-size:0.72rem;color:#94a3b8;margin-top:6px;">By ${escHtml(r.admin_name||'Admin')}</div>
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById('shopLogBody').innerHTML = html;
+}
+function closeShopLog() {
+  document.getElementById('shopLogModal').classList.remove('show');
+}
+
 async function openHistory(uid, name) {
   document.getElementById('historyShopName').textContent = name;
   document.getElementById('historyBody').innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
@@ -576,14 +1308,16 @@ async function openHistory(uid, name) {
     document.getElementById('historyBody').innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;"><i class="fas fa-inbox" style="font-size:1.5rem;display:block;margin-bottom:10px;opacity:0.3;"></i>No subscription history yet.</div>';
     return;
   }
-  const planColors = {'30d':'#00BCD4','1y':'#4CAF50','2y':'#9C27B0','3y':'#FF5722'};
+  const planColors = {'30d':'#00BCD4','1y':'#00BCD4','2y':'#7B1FA2','3y':'#F57C00'};
   let html = '<table style="width:100%;border-collapse:collapse;">';
   html += '<thead><tr style="font-size:0.72rem;color:#94a3b8;text-transform:uppercase;"><th style="padding:6px 10px;text-align:left;">Plan</th><th style="padding:6px 10px;text-align:left;">Start</th><th style="padding:6px 10px;text-align:left;">Expiry</th><th style="padding:6px 10px;text-align:left;">Activated On</th></tr></thead><tbody>';
   data.forEach((r, i) => {
-    const color = planColors[r.plan] || '#64748b';
+    const color = (r.plan||'').includes('enterprise') || r.plan==='3y' ? '#F57C00'
+      : (r.plan||'').includes('platinum') || r.plan==='2y' ? '#7B1FA2'
+      : (r.plan||'').includes('diamond') || r.plan==='1y' ? '#00BCD4' : '#64748b';
     const bg = i % 2 === 0 ? '#f8fafc' : 'white';
     html += `<tr style="background:${bg};font-size:0.85rem;">
-      <td style="padding:10px;"><span style="background:${color}20;color:${color};padding:3px 10px;border-radius:999px;font-weight:700;font-size:0.78rem;">${PLAN_LABELS[r.plan]||r.plan}</span></td>
+      <td style="padding:10px;"><span style="background:${color}20;color:${color};padding:3px 10px;border-radius:999px;font-weight:700;font-size:0.78rem;white-space:nowrap;">${planLabel(r.plan)}</span></td>
       <td style="padding:10px;color:#475569;">${r.start_date||'—'}</td>
       <td style="padding:10px;color:#475569;">${r.end_date||'—'}</td>
       <td style="padding:10px;color:#94a3b8;font-size:0.78rem;">${(r.activated_at||'').substring(0,16)}</td>
@@ -596,23 +1330,22 @@ function closeHistory() {
   document.getElementById('historyModal').classList.remove('show');
 }
 // ── IMEI Settings ──
-let _imeiUid = null, _imeiSkip = 0, _storedPin = '', _pinVisible = false;
+let _imeiUid = null, _imeiSkip = 0, _pinSet = false;
 function openImeiSettings(uid, name, imeiSkip) {
-  _imeiUid = uid; _imeiSkip = imeiSkip; _storedPin = ''; _pinVisible = false;
+  _imeiUid = uid; _imeiSkip = imeiSkip; _pinSet = false;
   document.getElementById('imeiShopName').textContent = name;
   document.getElementById('imeiPinInput').value = '';
   document.getElementById('imeiPinInput').type = 'password';
   document.getElementById('imeiPinEye').innerHTML = '<i class="fas fa-eye"></i>';
-  refreshImeiModal(imeiSkip, '');
+  refreshImeiModal(imeiSkip, false);
   document.getElementById('imeiModal').classList.add('show');
-  // Fetch current status (including stored pin for admin)
   fetch(`/admin/shops/${uid}/imei_status`).then(r=>r.json()).then(d=>{
-    _storedPin = d.pin || '';
+    _pinSet = !!d.pin_set;
     _imeiSkip = d.imei_skip;
-    refreshImeiModal(d.imei_skip, d.pin || '');
+    refreshImeiModal(d.imei_skip, d.pin_set);
   });
 }
-function refreshImeiModal(skip, pin) {
+function refreshImeiModal(skip, pinSet) {
   const badge = document.getElementById('imeiStatusIcon');
   const statusText = document.getElementById('imeiStatusText');
   const statusSub = document.getElementById('imeiStatusSub');
@@ -625,8 +1358,7 @@ function refreshImeiModal(skip, pin) {
     statusSub.textContent = 'Owner can skip IMEI freely during delivery.';
     disPanel.style.display = 'none';
     enPanel.style.display = 'block';
-    pinDisp.textContent = pin ? '••••••' : '(not set)';
-    _pinVisible = false;
+    if (pinDisp) pinDisp.textContent = pinSet ? 'PIN is set' : 'No PIN on file';
   } else {
     badge.innerHTML = '<span style="background:#fee2e2;color:#991b1b;padding:5px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;"><i class="fas fa-lock"></i> IMEI Required</span>';
     statusText.textContent = 'IMEI is mandatory for this shop';
@@ -641,13 +1373,7 @@ function toggleImeiPin() {
   if (inp.type === 'password') { inp.type = 'text'; btn.innerHTML = '<i class="fas fa-eye-slash"></i>'; }
   else { inp.type = 'password'; btn.innerHTML = '<i class="fas fa-eye"></i>'; }
 }
-function toggleStoredPin() {
-  const disp = document.getElementById('imeiPinDisplay');
-  const btn = document.getElementById('storedPinBtn');
-  _pinVisible = !_pinVisible;
-  disp.textContent = _pinVisible ? (_storedPin || '(not set)') : '••••••';
-  btn.innerHTML = _pinVisible ? '<i class="fas fa-eye-slash"></i> Hide' : '<i class="fas fa-eye"></i> Show';
-}
+function toggleStoredPin() { /* PIN value is never sent to the browser */ }
 async function submitImeiToggle(action) {
   const body = { action };
   if (action === 'disable') {
@@ -675,86 +1401,445 @@ document.getElementById('imeiModal').addEventListener('click', function(e) {
   if (e.target === this) closeImeiModal();
 });
 
-function filterShops() {
-  const q = document.getElementById('adminSearch').value.toLowerCase().trim();
-  document.querySelectorAll('#shopsTable tr:not(thead tr)').forEach(row => {
-    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
-  });
-}
-document.getElementById('adminSearch').addEventListener('input', filterShops);
-
 // ── Shop Detail Modal ──────────────────────────────────────────────
 const USERS_DETAIL = {{ users | tojson }};
 const SHOP_PERF    = {{ shop_perf | tojson }};
+const SHOP_CACHE = {};
+function shopRec(uid) {
+  return SHOP_CACHE[uid] || (USERS_DETAIL||[]).find(x => x.id == uid);
+}
 
-function openShopDetail(uid) {
-  const u = USERS_DETAIL.find(x => x.id == uid);
-  if (!u) return;
-  const p = SHOP_PERF.find(x => x.id == uid) || {};
+async function openShopDetail(uid) {
+  const box = document.getElementById('shopDetailBody');
+  if (box) box.innerHTML = '<div style="text-align:center;padding:32px;color:#94a3b8;font-weight:700;">Loading…</div>';
+  const modal = document.getElementById('shopDetailModal');
+  if (modal) modal.classList.add('show');
+  let u, p;
+  try {
+    const res = await fetch('/admin/shops/'+uid+'/detail');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'fail');
+    u = data.user;
+    p = data.perf || {};
+    SHOP_CACHE[uid] = u;
+  } catch (err) {
+    u = shopRec(uid);
+    p = (SHOP_PERF||[]).find(x => x.id == uid) || {};
+    if (!u) {
+      if (box) box.innerHTML = '<div style="padding:24px;color:#b91c1c;font-weight:700;">Could not load this shop.</div>';
+      return;
+    }
+  }
   const statusColor = {trial:'#a16207',active:'#065f46',trial_expired:'#991b1b',expired:'#991b1b'}[u.status] || '#64748b';
   const statusBg    = {trial:'#fef9c3',active:'#d1fae5',trial_expired:'#fee2e2',expired:'#fee2e2'}[u.status] || '#f1f5f9';
   const statusLabel = {trial:'Trial',active:'Active',trial_expired:'Expired',expired:'Expired'}[u.status] || 'Disabled';
   document.getElementById('shopDetailBody').innerHTML = `
-    <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px;">
-      <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#00BCD4,#0097A7);display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:white;flex-shrink:0;">
-        <i class="fas fa-store"></i>
+    <!-- Top Banner -->
+    <div style="background: linear-gradient(135deg, #0f172a, #1e293b); border-radius: 14px; padding: 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 16px; color: white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+      <div style="width: 56px; height: 56px; border-radius: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+        <i class="fas fa-store" style="color: #00BCD4;"></i>
+      </div>
+      <div style="flex: 1;">
+        <div style="font-family: 'Exo 2', sans-serif; font-weight: 800; font-size: 1.3rem; margin-bottom: 4px;">${escHtml(u.shop_name || '—')}</div>
+        <div style="font-size: 0.85rem; color: #94a3b8; display: flex; align-items: center; gap: 6px;">
+          <i class="fas fa-map-marker-alt"></i> ${escHtml(u.address || 'No address')}
+        </div>
       </div>
       <div>
-        <div style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.1rem;color:#1a2332;">${u.shop_name || '—'}</div>
-        <div style="font-size:0.8rem;color:#94a3b8;margin-top:2px;">${u.address || 'No address'}</div>
-        <span style="background:${statusBg};color:${statusColor};border-radius:999px;padding:2px 10px;font-size:0.75rem;font-weight:700;display:inline-block;margin-top:6px;">
-          ${statusLabel}${u.days_left > 0 ? ' · ' + u.days_left + 'd left' : ''}
+        <span style="background: ${statusBg}; color: ${statusColor}; border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; font-weight: 800; border: 1px solid currentColor;">
+          ${statusLabel}${u.days_left > 0 ? ' &bull; ' + u.days_left + 'd' : ''}
         </span>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
-      <div style="background:#f8fafc;border-radius:10px;padding:12px;">
-        <div style="font-size:0.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Contact</div>
-        <div style="font-size:0.85rem;font-weight:600;color:#1a2332;"><i class="fas fa-phone" style="color:#00BCD4;width:14px;"></i> ${u.phone || '—'}</div>
-        <div style="font-size:0.8rem;color:#64748b;margin-top:4px;word-break:break-all;"><i class="fas fa-envelope" style="color:#94a3b8;width:14px;"></i> ${u.email || '—'}</div>
+
+    <!-- Meta Grid -->
+    <div class="sd-grid sd-grid-2">
+      <div class="sd-card" style="margin-bottom:0;">
+        <div class="sd-card-header"><i class="fas fa-address-card" style="color:#0ea5e9;"></i> Contact & Account</div>
+        <div style="font-size:0.85rem;font-weight:700;color:#1e293b;margin-bottom:6px;"><i class="fas fa-phone" style="width:16px;color:#94a3b8;"></i> ${escHtml(u.phone || '—')}</div>
+        <div style="font-size:0.8rem;color:#475569;margin-bottom:10px;"><i class="fas fa-envelope" style="width:16px;color:#94a3b8;"></i> ${escHtml(u.email || '—')}</div>
+        <div style="font-size:0.78rem;font-weight:700;margin-bottom:10px;${u.gstin ? 'color:#0f766e' : 'color:#94a3b8'}"><i class="fas fa-file-invoice" style="width:16px;"></i> ${u.gstin ? 'GSTIN ' + escHtml(u.gstin) : 'GST not set'}</div>
+        <div style="display:flex;gap:8px;font-size:0.75rem;flex-wrap:wrap;">
+            <span style="background:#f1f5f9;padding:4px 8px;border-radius:6px;font-weight:600;color:#475569;white-space:nowrap;"><i class="fas fa-calendar-plus" style="color:#0ea5e9;"></i> Joined: ${(u.created_at||'').slice(0,10) || '—'}</span>
+            <span style="background:#f1f5f9;padding:4px 8px;border-radius:6px;font-weight:600;color:#475569;white-space:nowrap;"><i class="fas fa-sign-in-alt" style="color:#8b5cf6;"></i> Login: ${escHtml((u.last_login_ist||'Never').split(' ')[0])}</span>
+        </div>
       </div>
-      <div style="background:#f8fafc;border-radius:10px;padding:12px;">
-        <div style="font-size:0.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Subscription</div>
-        <div style="font-size:0.85rem;font-weight:600;color:#1a2332;">${u.subscription_plan ? 'Plan: ' + u.subscription_plan : 'Free Trial'}</div>
-        <div style="font-size:0.78rem;color:#64748b;margin-top:4px;">${u.subscription_end ? 'Ends: ' + u.subscription_end.slice(0,10) : (u.trial_start ? 'Started: ' + u.trial_start.slice(0,10) : '—')}</div>
+      
+      <div class="sd-card" style="margin-bottom:0;">
+        <div class="sd-card-header"><i class="fas fa-crown" style="color:#f59e0b;"></i> Subscription details <button type="button" class="admin-act plan" data-uid="${u.id}" data-act="plan" style="margin-left:auto;width:auto;height:26px;padding:0 10px;font-size:0.75rem;white-space:nowrap;border-radius:6px;"><i class="fas fa-edit"></i> Edit Plan</button></div>
+        <div style="font-size:0.9rem;font-weight:800;color:#1e293b;margin-bottom:4px;">${u.subscription_plan ? planLabel(u.subscription_plan) : 'Free Trial'}</div>
+        <div style="font-size:0.8rem;color:#64748b;margin-bottom:12px;">${u.subscription_end ? 'Expires: <strong>' + u.subscription_end.slice(0,10) + '</strong>' : (u.trial_start ? 'Started: <strong>' + u.trial_start.slice(0,10) + '</strong>' : '—')}</div>
+        
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+            <button type="button" class="admin-act days" data-uid="${u.id}" data-act="extend" data-days="7" style="background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;width:auto;padding:0 10px;white-space:nowrap;">+7 Days</button>
+            <button type="button" class="admin-act days" data-uid="${u.id}" data-act="extend" data-days="15" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;width:auto;padding:0 10px;white-space:nowrap;">+15 Days</button>
+            <button type="button" class="admin-act days" data-uid="${u.id}" data-act="extend" data-days="30" style="background:#dcfce3;color:#166534;border:1px solid #bbf7d0;width:auto;padding:0 10px;white-space:nowrap;">+30 Days</button>
+        </div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
-      ${statBox('Total Jobs', p.total_jobs ?? '—', '#00BCD4', 'fa-wrench')}
-      ${statBox('Delivered', p.delivered ?? '—', '#16a34a', 'fa-check-circle')}
-      ${statBox('Active', p.active_jobs ?? '—', '#f59e0b', 'fa-clock')}
-      ${statBox('Cancelled', p.cancelled ?? '—', '#ef4444', 'fa-times-circle')}
-      ${statBox('Revenue ₹', p.total_revenue != null ? parseFloat(p.total_revenue).toFixed(0) : '—', '#7C3AED', 'fa-rupee-sign')}
-      ${statBox('Unpaid', p.unpaid_active ?? '—', '#dc2626', 'fa-exclamation-circle')}
+    <details class="sd-stats-details" style="margin-top:16px;margin-bottom:16px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+        <summary style="padding:14px 18px;font-weight:700;color:#1e293b;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;user-select:none;background:#f8fafc;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:0.9rem;">
+                <i class="fas fa-chart-pie" style="color:#6366f1;font-size:1.1rem;"></i> Shop Performance & Limits
+            </div>
+            <i class="fas fa-chevron-down" style="font-size:0.85rem;color:#94a3b8;transition:transform 0.3s;" id="stats-chevron"></i>
+        </summary>
+        <div style="padding:16px;background:#fff;border-top:1px solid #e2e8f0;">
+    
+    <div class="sd-card" style="margin-top:0;">
+        <div class="sd-card-header"><i class="fas fa-users" style="color:#10b981;"></i> Team & Limits</div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center;">
+            <div>
+                <div style="font-size:0.75rem;color:#64748b;font-weight:700;text-transform:uppercase;">Staff Seats</div>
+                <div style="font-size:1.1rem;font-weight:800;color:#0f766e;">${u.staff_on||0} / ${u.staff_cap||0}</div>
+                <div style="font-size:0.7rem;color:#94a3b8;margin-top:2px;">(Plan ${Math.max(0,(u.staff_cap||0)-(u.extra_staff||0))} + ${u.extra_staff||0} Extra)</div>
+            </div>
+            <div style="width:1px;height:40px;background:#e2e8f0;"></div>
+            <div>
+                <div style="font-size:0.75rem;color:#64748b;font-weight:700;text-transform:uppercase;">Devices</div>
+                <div style="font-size:1.1rem;font-weight:800;color:#4338ca;" id="device-count-${u.id}">${u.devices_n||0} / ${u.device_cap||1}</div>
+            </div>
+            <div style="width:1px;height:40px;background:#e2e8f0;"></div>
+            <div>
+                <div style="font-size:0.75rem;color:#64748b;font-weight:700;text-transform:uppercase;">Settings</div>
+                <div style="font-size:0.8rem;font-weight:700;color:#334155;margin-top:2px;"><i class="fas fa-clock" style="color:#f59e0b;"></i> ${escHtml(u.shop_open_time||'09:00')}–${escHtml(u.shop_close_time||'21:00')}</div>
+                <div style="font-size:0.8rem;font-weight:700;color:#334155;margin-top:2px;"><i class="fas fa-barcode" style="color:#f97316;"></i> IMEI: ${u.imei_skip ? 'Optional' : 'Required'}</div>
+            </div>
+            
+            <div style="flex:1;background:#f8fafc;padding:12px;border-radius:8px;border:1px solid #e2e8f0;">
+                <div style="font-size:0.75rem;font-weight:700;color:#475569;margin-bottom:8px;">Active Staff</div>
+                ${staffListHtml(u.staff_list)}
+            </div>
+        </div>
     </div>
-    <div style="background:#f8fafc;border-radius:10px;padding:12px;font-size:0.8rem;color:#64748b;display:flex;gap:20px;flex-wrap:wrap;">
-      <span><i class="fas fa-calendar-plus" style="color:#00BCD4;"></i> Joined: <strong>${(u.created_at||'').slice(0,10) || '—'}</strong></span>
-      <span><i class="fas fa-barcode" style="color:#FF9800;"></i> IMEI: <strong>${u.imei_skip ? 'Optional' : 'Required'}</strong></span>
-      <span><i class="fas fa-power-off" style="color:${u.enabled ? '#16a34a' : '#ef4444'};"></i> Account: <strong>${u.enabled ? 'Active' : 'Disabled'}</strong></span>
+
+    <div class="sd-grid sd-grid-2" style="margin-bottom:16px;">
+        <div class="sd-card" style="margin-bottom:0;">
+            <div class="sd-card-header"><i class="fas fa-wrench" style="color:#0ea5e9;"></i> Service Records</div>
+            <div class="sd-grid sd-grid-3">
+                ${statBox('Total Jobs', p.total_jobs ?? '—', '#00BCD4', 'fa-wrench')}
+                ${statBox('Delivered', p.delivered ?? '—', '#16a34a', 'fa-check-circle')}
+                ${statBox('Active', p.active_jobs ?? '—', '#f59e0b', 'fa-clock')}
+                ${statBox('Cancelled', p.cancelled ?? '—', '#ef4444', 'fa-times-circle')}
+                ${statBox('Revenue ₹', p.total_revenue != null ? parseFloat(p.total_revenue).toFixed(0) : '—', '#7C3AED', 'fa-rupee-sign')}
+                ${statBox('Unpaid', p.unpaid_active ?? '—', '#dc2626', 'fa-exclamation-circle')}
+            </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="sd-card" style="margin-bottom:0;flex:1;">
+                <div class="sd-card-header"><i class="fas fa-cash-register" style="color:#10b981;"></i> Sales Summary</div>
+                <div class="sd-grid sd-grid-2">
+                    ${statBox('Bills', p.sales_bills ?? 0, '#00897B', 'fa-cash-register')}
+                    ${statBox('Collected ₹', p.sales_collected != null ? parseFloat(p.sales_collected).toFixed(0) : '0', '#16a34a', 'fa-rupee-sign')}
+                    ${statBox('Credit ₹', p.sales_credit != null ? parseFloat(p.sales_credit).toFixed(0) : '0', '#dc2626', 'fa-file-invoice')}
+                    ${statBox('Returns', p.sales_returns ?? 0, '#ef4444', 'fa-undo')}
+                </div>
+            </div>
+            <div class="sd-card" style="margin-bottom:0;background:#f8fafc;border-color:#cbd5e1;">
+                <div class="sd-card-header" style="border-bottom-color:#e2e8f0;"><i class="fas fa-calendar-day" style="color:#6366f1;"></i> Today's Performance</div>
+                <div class="sd-grid sd-grid-4">
+                    ${statBox('Jobs', u.jobs_today||0, '#1E88E5', 'fa-wrench')}
+                    ${statBox('Sales', u.sales_today||0, '#00897B', 'fa-cash-register')}
+                    ${statBox('Sales ₹', u.sales_today_amt != null ? Math.round(u.sales_today_amt) : 0, '#16a34a', 'fa-rupee-sign')}
+                    ${statBox('On Shift', u.open_shifts||0, '#7c3aed', 'fa-user-clock')}
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </details>
+    
+    <div class="sd-card">
+        <div class="sd-card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0;">
+            <span><i class="fas fa-clipboard" style="color:#64748b;"></i> Admin Notes</span>
+            <div style="display:flex;gap:8px;">
+                <button type="button" class="btn btn-outline-secondary" style="padding:4px 12px;font-size:0.75rem;border-radius:6px;border:1px solid #cbd5e1;background:#f8fafc;color:#334155;font-weight:600;" onclick="viewAdminNotesLog(${u.id})"><i class="fas fa-list-ul"></i> Note Log</button>
+                <button type="button" class="btn btn-primary" id="btnShowAddNote-${u.id}" style="padding:4px 12px;font-size:0.75rem;border-radius:6px;" onclick="document.getElementById('addNoteArea-${u.id}').style.display='block';this.style.display='none';"><i class="fas fa-plus"></i> Add Note</button>
+            </div>
+        </div>
+        <div id="addNoteArea-${u.id}" style="display:none;margin-top:12px;border-top:1px dashed #e2e8f0;padding-top:12px;">
+            <textarea id="adminNoteBox" rows="2" class="form-control" placeholder="Type a new note here to add to history (follow-up, payment, complaint)..." style="width:100%;min-height:60px;background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:12px;font-size:0.85rem;resize:vertical;"></textarea>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+                <span style="font-size:0.75rem;color:#64748b;font-weight:600;"><i class="fas fa-info-circle"></i> Only admins see this. Not shown to the shop.</span>
+                <div style="display:flex;gap:8px;">
+                    <button type="button" class="btn btn-outline-secondary" style="padding:4px 12px;font-size:0.75rem;border-radius:6px;" onclick="document.getElementById('addNoteArea-${u.id}').style.display='none';document.getElementById('btnShowAddNote-${u.id}').style.display='inline-block';">Cancel</button>
+                    <button type="button" class="btn btn-success" style="padding:4px 12px;font-size:0.75rem;border-radius:6px;" onclick="saveAdminNote(${u.id})"><i class="fas fa-save"></i> Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="sd-card" style="background:#f8fafc;">
+        <div class="sd-card-header"><i class="fas fa-bolt" style="color:#f59e0b;"></i> Quick Actions</div>
+        <div class="sd-actions-grid" data-uid="${u.id}">
+            <button type="button" class="admin-act" data-act="open-as" style="background:#0f766e;"><i class="fas fa-right-to-bracket"></i> Open shop</button>
+            ${u.phone ? `<a class="admin-act call" href="tel:${String(u.phone).replace(/[^0-9+]/g,'')}"><i class="fas fa-phone"></i> Call</a>` : ''}
+            ${u.phone ? `<a class="admin-act wa" href="https://wa.me/${waDigits(u.phone)}" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> WhatsApp</a>` : ''}
+            <button type="button" class="admin-act up" data-act="user-plus"><i class="fas fa-user-plus"></i> + User</button>
+            <button type="button" class="admin-act down" data-act="user-minus"><i class="fas fa-user-minus"></i> - User</button>
+            <button type="button" class="admin-act up" style="background:#6366f1;" data-act="device-plus"><i class="fas fa-mobile"></i> + Device</button>
+            <button type="button" class="admin-act down" style="background:#4f46e5;" data-act="device-minus"><i class="fas fa-mobile"></i> - Device</button>
+            <button type="button" class="admin-act imei" data-act="imei"><i class="fas fa-barcode"></i> IMEI Req</button>
+            <button type="button" class="admin-act hist" data-act="hist"><i class="fas fa-history"></i> History</button>
+            <button type="button" class="admin-act log" data-act="log"><i class="fas fa-list-alt"></i> Act. Log</button>
+            <a class="admin-act pages" href="/admin/page-activity?shop=${u.id}"><i class="fas fa-eye"></i> Pages</a>
+            <button type="button" class="admin-act backup" data-act="backup"><i class="fas fa-download"></i> Backup</button>
+            <button type="button" class="admin-act restore" data-act="restore"><i class="fas fa-upload"></i> Restore</button>
+            <button type="button" class="admin-act ${u.enabled ? 'off' : 'on'}" data-act="toggle"><i class="fas fa-${u.enabled ? 'ban' : 'check'}"></i> ${u.enabled ? 'Disable' : 'Enable'}</button>
+            <button type="button" class="admin-act reset" data-act="reset"><i class="fas fa-rotate-left"></i> Reset</button>
+            <button type="button" class="admin-act del" data-act="del"><i class="fas fa-trash"></i> Delete</button>
+        </div>
     </div>`;
   document.getElementById('shopDetailModal').classList.add('show');
 }
+function staffListHtml(list) {
+  const rows = list || [];
+  if (!rows.length) return '<div style="font-size:0.78rem;color:#94a3b8;margin-top:8px;">No Sales Persons Yet. Increase Seats, Then The Shop Owner Can Add Them In Team.</div>';
+  return `<div class="shop-detail-staff" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">${rows.map(s => {
+    const on = s.enabled;
+    return `<span style="background:${on?'#d1fae5':'#f1f5f9'};color:${on?'#065f46':'#64748b'};border-radius:999px;padding:3px 10px;font-size:0.75rem;font-weight:700;">${escHtml(s.name)}${on?'':' · off'}</span>`;
+  }).join('')}</div>`;
+}
+function escHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 function statBox(label, val, color, icon) {
-  return `<div style="background:white;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center;">
-    <i class="fas ${icon}" style="color:${color};font-size:1rem;margin-bottom:4px;display:block;"></i>
-    <div style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.1rem;color:#1a2332;">${val}</div>
-    <div style="font-size:0.68rem;color:#94a3b8;font-weight:600;text-transform:uppercase;">${label}</div>
+  return `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center;box-shadow:inset 0 2px 4px 0 rgba(0,0,0,0.02);">
+    <i class="fas ${icon}" style="color:${color};font-size:1.1rem;margin-bottom:6px;display:block;"></i>
+    <div style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.1rem;color:#1e293b;line-height:1.2;">${val}</div>
+    <div style="font-size:0.65rem;color:#64748b;font-weight:700;text-transform:uppercase;margin-top:2px;letter-spacing:0.3px;">${label}</div>
   </div>`;
 }
-document.getElementById('shopDetailModal').addEventListener('click', function(e) {
+function waDigits(phone) {
+  let d = String(phone||'').replace(/\D/g,'');
+  if (d.length === 10) d = '91' + d;
+  return d;
+}
+function closeShopDetail() {
+  const m = document.getElementById('shopDetailModal');
+  if (m) m.classList.remove('show');
+}
+async function openAsShop(uid, name) {
+  const password = await askAdminPassword('Open shop', 'Enter the admin password to open ' + (name || 'this shop') + ' as the owner.');
+  if (password === null) return;
+  const res = await fetch('/admin/impersonate/'+uid, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({password})
+  });
+  const d = await res.json().catch(() => ({}));
+  if (!res.ok) { showToast(d.error || 'Could not open this shop.'); return; }
+  location.href = d.redirect || '/dashboard';
+}
+function runShopAct(act, uid, btn) {
+  const u = shopRec(uid);
+  if (!u) return;
+  const name = u.shop_name || '';
+  if (act === 'open-as') { openAsShop(uid, name); return; }
+  if (act === 'plan') { closeShopDetail(); openSubModal(uid, name); }
+  else if (act === 'hist') { closeShopDetail(); openHistory(uid, name); }
+  else if (act === 'log') { closeShopDetail(); openShopLog(uid, name); }
+  else if (act === 'imei') { closeShopDetail(); openImeiSettings(uid, name, u.imei_skip||0); }
+  else if (act === 'toggle') toggleAccount(uid);
+  else if (act === 'del') { closeShopDetail(); deleteUser(uid, name); }
+  else if (act === 'reset') factoryResetShop(uid, name);
+  else if (act === 'backup') backupShop(uid, name);
+  else if (act === 'restore') restoreShop(uid, name);
+  else if (act === 'user-plus') changeStaffSeats(uid, 1);
+  else if (act === 'user-minus') changeStaffSeats(uid, -1);
+  else if (act === 'device-plus') changeDeviceSlots(uid, 1);
+  else if (act === 'device-minus') changeDeviceSlots(uid, -1);
+  else if (act === 'extend') extendShopDays(uid, parseInt(btn && btn.getAttribute('data-days') || '0', 10));
+}
+async function extendShopDays(uid, days) {
+  if (![7,15,30].includes(days)) return;
+  const u = shopRec(uid);
+  if (!confirm(`Add ${days} days of access for ${u && u.shop_name ? u.shop_name : 'this shop'}?`)) return;
+  const res = await fetch(`/admin/extend/${uid}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({days})
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) { showToast(data.error || 'Could not extend.'); return; }
+  if (u) {
+    u.subscription_end = (data.end_date || '') + 'T00:00:00';
+    u.days_left = data.days_left;
+    u.status = 'active';
+    u.enabled = 1;
+  }
+  showToast(`Access extended to ${data.end_date}`);
+  openShopDetail(uid);
+}
+async function saveAdminNote(uid) {
+  const box = document.getElementById('adminNoteBox');
+  const newNote = box ? box.value.trim() : '';
+  if (!newNote) { showToast('Please enter a note to add.'); return; }
+  
+  const u = shopRec(uid);
+  const oldNotes = u ? (u.admin_notes || '') : '';
+  
+  const now = new Date();
+  const timestamp = now.toLocaleString('en-IN', {
+    day: '2-digit', month: 'short', year: 'numeric', 
+    hour: '2-digit', minute: '2-digit', hour12: true
+  });
+  
+  const formattedNote = `[${timestamp}]\n${newNote}`;
+  const finalNotes = oldNotes ? (formattedNote + '\n\n' + oldNotes) : formattedNote;
+  
+  const res = await fetch(`/admin/notes/${uid}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({notes: finalNotes})
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) { showToast(data.error || 'Could not save note.'); return; }
+  if (u) u.admin_notes = finalNotes;
+  showToast('Note added to history.');
+  openShopDetail(uid);
+}
+function viewAdminNotesLog(uid) {
+  const u = shopRec(uid);
+  const logBody = document.getElementById('adminNotesLogBody');
+  if (logBody) {
+    if (!u || !u.admin_notes || u.admin_notes.trim() === '') {
+      logBody.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:30px 0;"><i class="fas fa-sticky-note" style="font-size:2rem;opacity:0.3;margin-bottom:10px;display:block;"></i>No notes added yet.</div>';
+    } else {
+      const notes = u.admin_notes.split('\\n\\n').filter(n => n.trim());
+      let html = '<div style="display:flex;flex-direction:column;gap:12px;">';
+      notes.forEach(n => {
+        const lines = n.split('\\n');
+        let title = 'Note';
+        let content = n;
+        if (lines[0] && lines[0].startsWith('[') && lines[0].endsWith(']')) {
+          title = lines[0].replace('[', '').replace(']', '');
+          content = lines.slice(1).join('\\n');
+        }
+        
+        const safeContent = content.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\\n/g, "<br>");
+        
+        html += `
+          <div style="background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+            <div style="font-size:0.75rem;font-weight:700;color:#64748b;margin-bottom:8px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #f1f5f9;padding-bottom:6px;">
+              <i class="fas fa-clock" style="color:#0ea5e9;"></i> ${title}
+            </div>
+            <div style="font-size:0.85rem;color:#1e293b;line-height:1.5;">
+              ${safeContent}
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      logBody.innerHTML = html;
+    }
+  }
+  document.getElementById('adminNotesLogModal').classList.add('show');
+}
+function closeAdminNotesLog() {
+  const m = document.getElementById('adminNotesLogModal');
+  if (m) m.classList.remove('show');
+}
+let adminShopFilter = 'all';
+let adminPlanFilter = 'all';
+function filterShops() {
+  const q = (document.getElementById('adminSearch').value || '').toLowerCase().trim();
+  document.querySelectorAll('#shopsTable tbody tr').forEach(row => {
+    const key = row.getAttribute('data-filter') || '';
+    const plan = row.getAttribute('data-plan') || '';
+    const quiet = row.getAttribute('data-quiet') === '1';
+    const expiring = row.getAttribute('data-expiring') === '1';
+    let ok = true;
+    if (adminShopFilter === 'quiet') ok = quiet;
+    else if (adminShopFilter === 'expiring') ok = expiring;
+    else if (adminShopFilter !== 'all') ok = key === adminShopFilter;
+    
+    if (ok && adminPlanFilter !== 'all') {
+      ok = (plan === adminPlanFilter);
+    }
+    
+    if (ok && q) ok = row.textContent.toLowerCase().includes(q);
+    row.style.display = ok ? '' : 'none';
+  });
+}
+document.getElementById('adminSearch').addEventListener('input', filterShops);
+document.getElementById('adminShopFilters').addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-filter]');
+  if (!btn) return;
+  adminShopFilter = btn.getAttribute('data-filter') || 'all';
+  this.querySelectorAll('.admin-chip').forEach(c => c.classList.toggle('on', c === btn));
+  filterShops();
+});
+document.getElementById('adminPlanFilters').addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-plan-filter]');
+  if (!btn) return;
+  adminPlanFilter = btn.getAttribute('data-plan-filter') || 'all';
+  this.querySelectorAll('.plan-filter-box').forEach(c => c.classList.toggle('on', c === btn));
+  filterShops();
+});
+async function changeStaffSeats(uid, delta) {
+  try {
+    const res = await fetch(`/admin/staff-seats/${uid}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({delta})
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      if (res.status===401){location.href='/login'; return;}
+      showToast(data.error || ('Error: '+res.status));
+      return;
+    }
+    const u = shopRec(uid);
+    if (u) {
+      u.extra_staff = data.extra_staff;
+      u.staff_cap = data.staff_cap;
+      u.staff_on = data.staff_on;
+    }
+    const cell = document.getElementById('staff-count-'+uid);
+    if (cell) cell.innerHTML = `<i class="fas fa-users"></i> ${data.staff_on||0}/${data.staff_cap||0} users`;
+    showToast(delta > 0 ? `Seats increased to ${data.staff_cap}` : `Seats reduced to ${data.staff_cap}`);
+    const modal = document.getElementById('shopDetailModal');
+    if (modal && modal.classList.contains('show')) openShopDetail(uid);
+  } catch(e) { showToast('Network error. Please try again.'); }
+}
+async function changeDeviceSlots(uid, delta) {
+try {
+const res = await fetch(`/admin/device-slots/${uid}`, {
+method:'POST', headers:{'Content-Type':'application/json'},
+body: JSON.stringify({delta})
+});
+const data = await res.json().catch(() => ({}));
+if (!res.ok) {
+if (res.status===401){location.href='/login'; return;}
+showToast(data.error || ('Error: '+res.status));
+return;
+}
+const u = shopRec(uid);
+    if (u) {
+      u.extra_devices = data.extra_devices;
+      u.device_cap = data.device_cap;
+      u.devices_on = data.devices_on;
+      // Re-render shop modal
+      const cell = document.getElementById('device-count-'+uid);
+      if (cell) cell.innerHTML = `${data.devices_on||0} / ${data.device_cap||1}`;
+    }
+    showToast(delta > 0 ? `Devices increased to ${data.device_cap}` : `Devices reduced to ${data.device_cap}`);
+    const modal = document.getElementById('shopDetailModal');
+    if (modal && modal.classList.contains('show')) openShopDetail(uid);
+  } catch(e) { showToast('Network error. Please try again.'); }
+}
+document.getElementById('shopDetailModal').addEventListener('mousedown', function(e) {
   if (e.target === this) this.classList.remove('show');
+});
+document.getElementById('adminNotesLogModal').addEventListener('mousedown', function(e) {
+  if (e.target === this) this.classList.remove('show');
+});
+document.getElementById('shopDetailModal').addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-act]');
+  if (!btn || !this.contains(btn)) return;
+  const wrap = btn.closest('[data-uid]');
+  const uid = wrap && wrap.getAttribute('data-uid');
+  if (uid) runShopAct(btn.getAttribute('data-act'), uid, btn);
 });
 </script>
 
-<!-- Shop Detail Modal -->
-<div class="modal-overlay" id="shopDetailModal">
-  <div class="modal-box" style="max-width:520px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-      <div class="modal-title" style="margin-bottom:0;"><i class="fas fa-store" style="color:#00BCD4;"></i> Shop Details</div>
-      <button onclick="document.getElementById('shopDetailModal').classList.remove('show')"
-        style="background:#f1f5f9;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;color:#64748b;font-size:1rem;display:flex;align-items:center;justify-content:center;">✕</button>
-    </div>
-    <div id="shopDetailBody"></div>
-  </div>
-</div>
+
 {% endblock %}
+

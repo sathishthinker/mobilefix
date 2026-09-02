@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Purchase Bills — {{ month }}</title>
+<style>
+  body { font-family: sans-serif; margin: 20px; font-size: 12px; color: #0f172a; }
+  h1, h2 { text-align: center; margin: 4px 0; }
+  h1 { font-size: 18px; }
+  h2 { font-size: 14px; font-weight: 700; }
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  th, td { border: 1px solid #000; padding: 6px; text-align: left; }
+  th { background-color: #f1f5f9; }
+  .right { text-align: right; }
+  .bold { font-weight: bold; }
+  .meta { text-align: center; margin: 8px 0 16px; }
+</style>
+</head>
+<body>
+  <h1>{{ user.shop_name or 'Purchase Bills' }}</h1>
+  <h2>Purchase Bills Report — {{ month }}</h2>
+  <p class="meta">
+    <strong>GSTIN:</strong> {{ user.gstin or '—' }}
+    &nbsp;|&nbsp;
+    <strong>State:</strong> {{ user.state or '—' }}
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Bill No</th>
+        <th>Vendor</th>
+        <th>GSTIN</th>
+        <th>State</th>
+        <th class="right">Taxable</th>
+        <th class="right">CGST</th>
+        <th class="right">SGST</th>
+        <th class="right">IGST</th>
+        <th class="right">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set p_taxable = namespace(val=0) %}
+      {% set p_cgst = namespace(val=0) %}
+      {% set p_sgst = namespace(val=0) %}
+      {% set p_igst = namespace(val=0) %}
+      {% set p_tot = namespace(val=0) %}
+      {% for p in purchases %}
+        {% set taxval = p.subtotal|float %}
+        {% set p_taxable.val = p_taxable.val + taxval %}
+        {% set p_cgst.val = p_cgst.val + (p.cgst|float) %}
+        {% set p_sgst.val = p_sgst.val + (p.sgst|float) %}
+        {% set p_igst.val = p_igst.val + (p.igst|float) %}
+        {% set p_tot.val = p_tot.val + (p.total|float) %}
+      <tr>
+        <td>{{ p.invoice_date }}</td>
+        <td>{{ p.bill_no }}</td>
+        <td>{{ p.vendor_name }}</td>
+        <td>{{ p.vendor_gstin or '—' }}</td>
+        <td>{{ p.vendor_state or '—' }}</td>
+        <td class="right">{{ "%.2f"|format(taxval) }}</td>
+        <td class="right">{{ "%.2f"|format(p.cgst|float) }}</td>
+        <td class="right">{{ "%.2f"|format(p.sgst|float) }}</td>
+        <td class="right">{{ "%.2f"|format(p.igst|float) }}</td>
+        <td class="right">{{ "%.2f"|format(p.total|float) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="10" style="text-align:center;">No purchase bills in this month.</td></tr>
+      {% endfor %}
+      <tr class="bold">
+        <td colspan="5" class="right">TOTAL PURCHASES</td>
+        <td class="right">{{ "%.2f"|format(p_taxable.val) }}</td>
+        <td class="right">{{ "%.2f"|format(p_cgst.val) }}</td>
+        <td class="right">{{ "%.2f"|format(p_sgst.val) }}</td>
+        <td class="right">{{ "%.2f"|format(p_igst.val) }}</td>
+        <td class="right">{{ "%.2f"|format(p_tot.val) }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <script>window.onload = function() { window.print(); };</script>
+</body>
+</html>

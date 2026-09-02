@@ -10,7 +10,13 @@
 body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size:0.92rem;line-height:1.7;}
 .wrap{max-width:860px;margin:0 auto;padding:32px 20px;}
 h1{font-family:'Exo 2',sans-serif;font-weight:900;font-size:2rem;color:#0d1b2a;margin-bottom:6px;}
-h2{font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.15rem;color:#0d1b2a;margin:28px 0 10px;padding-bottom:6px;border-bottom:2px solid #e2e8f0;}
+h2{font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.05rem;color:#0d1b2a;margin:0;padding:14px 18px;border-bottom:1px solid transparent;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;user-select:none;}
+h2::after{content:'';width:7px;height:7px;border-right:2px solid #64748b;border-bottom:2px solid #64748b;transform:rotate(45deg);flex-shrink:0;transition:transform .2s;margin-top:-3px;}
+.section.open h2{border-bottom-color:#e2e8f0;}
+.section.open h2::after{transform:rotate(225deg);margin-top:3px;}
+.section:not(.always-open):not(.open)> *:not(h2){display:none !important;}
+.section.always-open h2{cursor:default;}
+.section.always-open h2::after{display:none;}
 h3{font-family:'Exo 2',sans-serif;font-weight:700;font-size:0.97rem;color:#1a3a5c;margin:16px 0 6px;}
 p{margin-bottom:10px;color:#374151;}
 ul,ol{padding-left:20px;margin-bottom:10px;}
@@ -19,7 +25,10 @@ li{margin-bottom:5px;color:#374151;}
 .header h1{color:white;}
 .header p{color:rgba(255,255,255,0.7);margin:0;font-size:0.88rem;}
 .teal{color:#00BCD4;}
-.section{background:white;border-radius:14px;padding:22px 26px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.section{background:white;border-radius:14px;padding:0 0 0;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden;}
+.section.open,.section.always-open{padding-bottom:18px;}
+.section.open > *:not(h2),.section.always-open > *:not(h2){margin-left:18px;margin-right:18px;}
+.manual-hint{text-align:center;color:#64748b;font-size:0.8rem;margin:0 0 12px;}
 .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:0.75rem;font-weight:700;margin:2px;}
 .b-teal{background:#e0f7fa;color:#006064;}
 .b-green{background:#dcfce7;color:#065f46;}
@@ -41,7 +50,8 @@ td{padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:0.85rem;vertical-a
 .flow-arrow{color:#94a3b8;font-size:1rem;}
 .toc a{color:#00BCD4;text-decoration:none;display:block;padding:4px 0;font-size:0.88rem;}
 .toc a:hover{text-decoration:underline;}
-@media print{body{background:white;}.section{box-shadow:none;page-break-inside:avoid;}}
+@media(max-width:600px){.wrap{padding:12px 10px;}.header{padding:18px 16px;margin-bottom:16px;}h1{font-size:1.45rem;}h2{font-size:0.95rem;padding:13px 14px;}.section.open > *:not(h2),.section.always-open > *:not(h2){margin-left:14px;margin-right:14px;}}
+@media print{body{background:white;}.section{box-shadow:none;page-break-inside:avoid;padding:16px 20px !important;}.section > *{display:revert !important;margin-left:0 !important;margin-right:0 !important;}h2::after{display:none !important;}h2{cursor:default;}}
 </style>
 </head>
 <body>
@@ -52,9 +62,10 @@ td{padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:0.85rem;vertical-a
     <p>User Manual — Repair Shop Management System &nbsp;|&nbsp; Version 4</p>
   </div>
 
+  <p class="manual-hint">Tap a topic to expand. Table of Contents stays open for quick jumps.</p>
   <!-- Table of Contents -->
-  <div class="section">
-    <h2 style="margin-top:0;">📋 Table of Contents</h2>
+  <div class="section always-open">
+    <h2>Table of Contents</h2>
     <div class="toc">
       <a href="#getting-started">1. Getting Started</a>
       <a href="#dashboard">2. Dashboard</a>
@@ -75,7 +86,8 @@ td{padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:0.85rem;vertical-a
 
   <!-- 1. Getting Started -->
   <div class="section" id="getting-started">
-    <h2 style="margin-top:0;">1. Getting Started</h2>
+    <h2>1. Getting Started</h2>
+    <div class="manual-body">
     <h3>Registration</h3>
     <div class="step"><div class="step-num">1</div><div>Go to <strong>/register</strong> and fill in your shop details: mobile number, email, shop name, and address.</div></div>
     <div class="step"><div class="step-num">2</div><div>A <strong>30-day free trial</strong> starts automatically after registration.</div></div>
@@ -83,17 +95,16 @@ td{padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:0.85rem;vertical-a
 
     <h3>Login</h3>
     <p>Use your <strong>phone number</strong> or <strong>email</strong> as the identifier along with your password.</p>
-    <div class="tip">Default admin login: <strong>admin@mobilefix.com</strong> / <strong>admin123</strong></div>
 
     <h3>Subscription Plans</h3>
     <table>
-      <tr><th>Plan</th><th>Duration</th><th>Activated By</th></tr>
-      <tr><td>Free Trial</td><td>30 days</td><td>Auto on registration</td></tr>
-      <tr><td>30d</td><td>1 month</td><td>Admin</td></tr>
-      <tr><td>1y</td><td>1 year</td><td>Admin</td></tr>
-      <tr><td>2y</td><td>2 years</td><td>Admin</td></tr>
-      <tr><td>3y</td><td>3 years</td><td>Admin</td></tr>
+      <tr><th>Package</th><th>Users</th><th>Duration</th><th>Activated By</th></tr>
+      <tr><td>Free Trial</td><td>Owner only</td><td>30 days</td><td>Auto on registration</td></tr>
+      <tr><td>Diamond</td><td>Owner + 1 staff</td><td>1 / 2 / 3 years</td><td>Admin</td></tr>
+      <tr><td>Platinum</td><td>Owner + 2 staff</td><td>1 / 2 / 3 years</td><td>Admin</td></tr>
+      <tr><td>Enterprise</td><td>Owner + 3 or more staff</td><td>1 / 2 / 3 years</td><td>Admin</td></tr>
     </table>
+    </div>
   </div>
 
   <!-- 2. Dashboard -->
@@ -134,7 +145,7 @@ td{padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:0.85rem;vertical-a
       <tr><td>Aadhar Card</td><td>Optional at entry — <strong>mandatory for FRP/Flash jobs at invoice</strong></td></tr>
       <tr><td>Screen Lock Type</td><td>PIN / Pattern / Password / Fingerprint / None — select one, others hide</td></tr>
       <tr><td>Lock Value</td><td>Enter PIN/pattern/password — shown as read-only in diagnose stage</td></tr>
-      <tr><td>Received Without</td><td>Note missing accessories (charger, back cover, etc.)</td></tr>
+      <tr><td>Received</td><td>Items received with the device (None, charger, back cover, etc.)</td></tr>
       <tr><td>Notes</td><td>Any additional remarks about the device condition</td></tr>
       <tr><td>Advance Amount</td><td>Initial advance payment collected at intake</td></tr>
     </table>
@@ -230,7 +241,7 @@ td{padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:0.85rem;vertical-a
   <!-- 7. Invoices -->
   <div class="section" id="invoices">
     <h2 style="margin-top:0;">7. Invoices &amp; Payment Collection</h2>
-    <p>Go to <strong>Invoices</strong> from the sidebar to see all generated invoices.</p>
+    <p>Go to <strong>Invoices</strong> from the sidebar to see all generated invoices. Invoices are created only when a repair job is delivered — there is no separate create-invoice form.</p>
 
     <h3>Invoice Table Columns</h3>
     <table>
@@ -248,6 +259,7 @@ td{padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:0.85rem;vertical-a
     <div class="step"><div class="step-num">2</div><div>Enter the amount received — <strong>cannot exceed the balance due</strong>.</div></div>
     <div class="step"><div class="step-num">3</div><div>If paying partially, a <strong>Due Date</strong> field appears — set when the remaining balance is expected.</div></div>
     <div class="step"><div class="step-num">4</div><div>Select payment method and click <strong>Confirm Payment</strong>.</div></div>
+    <div class="step"><div class="step-num">5</div><div>WhatsApp opens automatically with a <strong>payment receipt</strong> (partial or paid in full).</div></div>
 
     <h3>Invoice Actions</h3>
     <table>
@@ -305,7 +317,7 @@ td{padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:0.85rem;vertical-a
   <!-- 10. Reports -->
   <div class="section" id="reports">
     <h2 style="margin-top:0;">10. Reports</h2>
-    <p>Go to <strong>Reports</strong> from the sidebar for business analytics:</p>
+    <p>Go to <strong>Reports</strong> from the sidebar. From date, To date, and Job status are required. Use Apply, then <strong>PDF</strong> to download the filtered report.</p>
     <table>
       <tr><th>Metric</th><th>Description</th></tr>
       <tr><td>Total Jobs</td><td>All time job count</td></tr>
@@ -329,7 +341,7 @@ td{padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:0.85rem;vertical-a
     <ul>
       <li><strong>Shop Name</strong> — appears on all invoices and job cards</li>
       <li><strong>Address</strong> — printed on invoices</li>
-      <li><strong>Change Password</strong> — minimum 6 characters</li>
+      <li><strong>Support</strong> — WhatsApp +91 86828 61656 and the user manual</li>
     </ul>
     <div class="tip">Keep your shop name and address up to date — they appear on every printed invoice.</div>
   </div>
@@ -342,6 +354,7 @@ td{padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:0.85rem;vertical-a
       <tr><td>WA: Job Card</td><td>Job ID, device, issues, expected return, Happy Code</td></tr>
       <tr><td>Notify Ready (WA)</td><td>Device is ready, balance due amount, shop contact</td></tr>
       <tr><td>Send Invoice (WA)</td><td>Invoice number, total amount, payment method</td></tr>
+      <tr><td>Payment Receipt (auto)</td><td>Opens after any partial or full payment — amount received, method, total paid, balance due</td></tr>
       <tr><td>Refund Notification</td><td>Cancellation confirmation, advance paid, refund amount &amp; method</td></tr>
       <tr><td>Customer Reminder</td><td>Device ready reminder with balance amount</td></tr>
     </table>
@@ -357,7 +370,7 @@ td{padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:0.85rem;vertical-a
     <ul>
       <li>View all registered shop owners</li>
       <li>Enable or disable any shop account</li>
-      <li>Set subscription plans (30d, 1y, 2y, 3y)</li>
+      <li>Set subscription packages (Diamond, Platinum, Enterprise) with 1, 2, or 3 year duration</li>
       <li>Delete shop accounts (removes all their data)</li>
       <li>See subscription status and days remaining for each shop</li>
     </ul>
@@ -385,5 +398,30 @@ td{padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:0.85rem;vertical-a
     MobileFix Pro v4 &nbsp;•&nbsp; User Manual &nbsp;•&nbsp; Generated automatically
   </div>
 </div>
+<script>
+(function () {
+  var sections = document.querySelectorAll('.section[id]');
+  function closeAll() {
+    sections.forEach(function (s) { s.classList.remove('open'); });
+  }
+  sections.forEach(function (sec) {
+    var h2 = sec.querySelector('h2');
+    if (!h2) return;
+    h2.addEventListener('click', function () {
+      var wasOpen = sec.classList.contains('open');
+      closeAll();
+      if (!wasOpen) sec.classList.add('open');
+    });
+  });
+  document.querySelectorAll('.toc a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      var id = a.getAttribute('href').slice(1);
+      var sec = document.getElementById(id);
+      closeAll();
+      if (sec) sec.classList.add('open');
+    });
+  });
+})();
+</script>
 </body>
 </html>

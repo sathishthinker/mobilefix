@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Document Print - MobileFix Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='smart_tools/doc_print/style.css') }}" />
+  </head>
+  <body>
+    {% include 'includes/smart_tools_header.html' %}
+    <div class="app">
+      <div class="hero no-print">
+        <a href="{{ url_for('smart_tools') }}" class="back-btn" title="Back to Smart Tools">
+          <svg width="22" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 19l-7-7 7-7"/></svg>
+        </a>
+        <div>
+          <h1>Document Print</h1>
+          <p>PAN, Voter ID, DL &amp; Aadhaar · PVC 85.5 × 54 mm on A4</p>
+        </div>
+      </div>
+
+      <main class="panel no-print">
+        <div class="type-grid" role="tablist" aria-label="Document type">
+          <button type="button" class="type-chip active" data-type="aadhaar">Aadhaar</button>
+          <button type="button" class="type-chip" data-type="pan">PAN</button>
+          <button type="button" class="type-chip" data-type="voter">Voter ID</button>
+          <button type="button" class="type-chip" data-type="dl">Driving Licence</button>
+        </div>
+        <p class="type-hint" id="typeHint">e-Aadhaar PDF (password) or photos of the PVC card.</p>
+
+        <div class="upload-grid">
+          <label class="dropzone" id="pdfDrop">
+            <input type="file" id="pdfInput" accept=".pdf,application/pdf" />
+            <span class="drop-title">PDF</span>
+            <span class="drop-hint" id="pdfHint">DigiLocker / e-document</span>
+          </label>
+          <label class="dropzone" id="frontDrop">
+            <input type="file" id="frontInput" accept="image/*" capture="environment" />
+            <span class="drop-title">Front photo</span>
+            <span class="drop-hint" id="frontHint">Camera or gallery</span>
+          </label>
+          <label class="dropzone" id="backDrop">
+            <input type="file" id="backInput" accept="image/*" capture="environment" />
+            <span class="drop-title">Back photo</span>
+            <span class="drop-hint" id="backHint">Optional</span>
+          </label>
+        </div>
+
+        <label class="field" id="passwordWrap">
+          <span>PDF password</span>
+          <input
+            type="text"
+            id="passwordInput"
+            autocomplete="off"
+            spellcheck="false"
+            maxlength="16"
+            inputmode="text"
+            placeholder="ABCD1990"
+            aria-label="PDF password"
+          />
+        </label>
+
+        <div class="options">
+          <label class="toggle"><input type="checkbox" id="cutGuides" checked /><span>Cut guides</span></label>
+          <label class="toggle"><input type="checkbox" id="solidGuides" /><span>Solid guides</span></label>
+          <label class="toggle"><input type="checkbox" id="roundedCorners" /><span>Round corners</span></label>
+          <label class="toggle"><input type="checkbox" id="showBoth" checked /><span>One page</span></label>
+          <label class="toggle"><input type="checkbox" id="sideBySide" checked /><span>Side by side</span></label>
+        </div>
+
+        <div class="bars">
+          <div class="bar">
+            <span class="bar-label">Resolution</span>
+            <div class="dpi-row" id="dpiOptions">
+              <button type="button" class="dpi-btn" data-dpi="200">200</button>
+              <button type="button" class="dpi-btn" data-dpi="300">300</button>
+              <button type="button" class="dpi-btn active" data-dpi="400">400</button>
+              <button type="button" class="dpi-btn" data-dpi="600">600</button>
+            </div>
+            <p class="size-preview" id="sizePreview"></p>
+          </div>
+          <div class="bar">
+            <span class="bar-label">Gap</span>
+            <div class="gap-row">
+              <input type="range" id="cardGapRange" min="0" max="15" step="0.5" value="4" />
+              <span class="gap-num">
+                <input type="number" id="cardGapInput" min="0" max="15" step="0.5" value="4" aria-label="Gap in mm" />
+                <span>mm</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dock">
+          <button type="button" class="btn ghost" id="clearBtn" disabled>Clear</button>
+          <button type="button" class="btn primary" id="extractBtn" disabled>Extract</button>
+          <button type="button" class="btn secondary" id="printBtn" disabled>Print</button>
+          <button type="button" class="btn secondary" id="downloadPdfBtn" disabled>PDF</button>
+          <button type="button" class="btn secondary" id="downloadFrontPngBtn" disabled>Front</button>
+          <button type="button" class="btn secondary" id="downloadBackPngBtn" disabled>Back</button>
+        </div>
+        <p class="privacy-note">Files stay in this browser. Nothing is uploaded to the server.</p>
+        <p class="status" id="status" role="status"></p>
+      </main>
+
+      <section class="preview-wrap no-print" id="previewWrap" hidden>
+        <div class="section-head">
+          <h2>Adjust</h2>
+          <p>Drag to pan · pinch or slider to zoom</p>
+        </div>
+        <div class="adjust-grid" id="adjustGrid"></div>
+        <div class="section-head">
+          <h2>Preview</h2>
+        </div>
+        <div class="preview-sheet" id="previewSheet"></div>
+      </section>
+    </div>
+
+    <div class="print-root" id="printRoot" aria-hidden="true"></div>
+    <script src="{{ url_for('static', filename='smart_tools/doc_print/app.js') }}"></script>
+  </body>
+</html>

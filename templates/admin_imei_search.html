@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% block title %}IMEI Search — Admin{% endblock %}
+{% block page_title %}IMEI Search{% endblock %}
+{% block extra_head %}
+<style>
+.imei-wrap{max-width:1180px;margin:0 auto;}
+.imei-search{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.imei-search input{flex:1;min-width:220px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
+.imei-grid{display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.2fr);gap:16px;margin-top:16px;}
+.imei-hit{width:100%;text-align:left;border:1.5px solid #e2e8f0;background:#fff;border-radius:12px;padding:12px 14px;cursor:pointer;font-family:inherit;margin-bottom:8px;}
+.imei-hit:hover,.imei-hit.on{border-color:#00BCD4;background:#ecfeff;}
+.imei-hit .shop{font-weight:800;color:#0f172a;}
+.imei-hit .meta{font-size:.78rem;color:#64748b;margin-top:4px;}
+.kv{display:grid;grid-template-columns:140px 1fr;gap:6px 12px;font-size:.88rem;}
+.kv .k{color:#64748b;font-weight:700;}
+.kv .v{font-weight:700;color:#0f172a;word-break:break-word;}
+.imei-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.wa-box{margin-top:16px;border:1.5px solid #d1fae5;background:#f0fdf4;border-radius:12px;padding:14px;}
+@media(max-width:900px){
+  .imei-grid{grid-template-columns:1fr;}
+  .kv{grid-template-columns:1fr;}
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="imei-wrap">
+  <div class="page-header">
+    <div>
+      <div class="page-title">IMEI Search</div>
+      <div class="page-subtitle">Find a service job from any shop by IMEI or serial</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <form id="imeiSearchForm" class="imei-search" action="javascript:void(0)" method="get" onsubmit="runImeiSearch(); return false;">
+        <input type="search" id="imeiQ" name="q" class="form-control" value="{{ q or '' }}" maxlength="20" placeholder="Enter IMEI / serial (min 4 digits)" autocomplete="off" inputmode="numeric">
+        <button type="button" id="imeiSearchBtn" class="btn btn-primary" onclick="runImeiSearch(); return false;"><i class="fas fa-search"></i> Search</button>
+      </form>
+      <div id="imeiStatus" style="margin-top:10px;font-size:.82rem;font-weight:700;color:#64748b;"></div>
+    </div>
+  </div>
+
+  <div class="imei-grid">
+    <div class="card">
+      <div class="card-header"><strong>Matching jobs</strong></div>
+      <div class="card-body" id="imeiHits"><div style="color:#94a3b8;font-weight:600;">No results.</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><strong>Job details</strong></div>
+      <div class="card-body" id="imeiDetail"><div style="color:#94a3b8;font-weight:600;">No results.</div></div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var JOBS = [];
+  var debounceTimer = null;
+  var API = '/admin/imei-search/api';
+
+  function esc(s){
+    return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+    });
+  }
+  function val(j, keys, fallback){
+    for (var i=0;i<keys.length;i++){
+      var k = keys[i];
+      if (j[k] != null && String(j[k]).trim() !== '') return j[k];
+    }
+    return fallback;
+  }
+  function setStatus(msg){
+    var el = document.getElementById('imeiStatus');
+    if (el) el.textContent = msg || '';
+  }
+  function emptyResults(){
+    JOBS = [];
+    setStatus('');
+    var hits = document.getElementById('imeiHits');
+    var detail = document.getElementById('imeiDetail');
+    if (hits) hits.innerHTML = '<div style="color:#94a3b8;font-weight:600;">No results.</div>';
+    if (detail) detail.innerHTML = '<div style="color:#94a3b8;font-weight:600;">No results.</div>';
+  }
+
+  window.runImeiSearch = async function runImeiSearch(){
+    var inp = document.getElementById('imeiQ');
+    var hits = document.getElementById('imeiHits');
+    var detail = document.getElementById('imeiDetail');
+    var q = ((inp && inp.value) || '').trim();
+    if (!q){
+      emptyResults();
+      return false;
+    }
+    if (detail) detail.innerHTML = '<div style="color:#94a3b8;font-weight:600;">No results.</div>';
+    if (q.length < 4){
+      emptyResults();
+      setStatus('Type at least 4 characters.');
+      return false;
+    }
+    setStatus('Searching all shops…');
+    if (hits) hits.innerHTML = '<div style="color:#94a3b8;">Searching…</div>';
+    var data = {};
+    try {
+      var res = await fetch(API + '?q=' + encodeURIComponent(q), {headers:{'X-Requested-With':'XMLHttpRequest'}});
+      var text = await res.text();
+      try {
+        data = JSON.parse(text);
+      } catch (parseErr) {
+        setStatus((res.status === 500 ? 'Search failed (500): ' : 'Search failed: ') + String(text || res.status).slice(0, 240));
+        if (hits) hits.innerHTML = '<div style="color:#94a3b8;font-weight:600;">Search failed.</div>';
+        return false;
+      }
+      if (!res.ok){
+        setStatus(data.error || ('Search failed (' + res.status + ').'));
+        if (hits) hits.innerHTML = '<div style="color:#94a3b8;font-weight:600;">Search failed.</div>';
+        return false;
+      }
+    } catch (err) {
+      setStatus('Search failed. Try again.');
+      if (hits) hits.innerHTML = '<div style="color:#94a3b8;font-weight:600;">Could not reach the server.</div>';
+      return false;
+    }
+    if (!data.ok){
+      setStatus(data.error || 'Search failed.');
+      if (hits) hits.innerHTML = '<div style="color:#94a3b8;font-weight:600;">No jobs found.</div>';
+      return false;
+    }
+    JOBS = data.jobs || data.results || [];
+    setStatus(JOBS.length ? (JOBS.length + ' job' + (JOBS.length===1?'':'s') + ' found') : 'No jobs found.');
+    if (!JOBS.length){
+      if (hits) hits.innerHTML = '<div style="color:#94a3b8;font-weight:600;">No service jobs match this IMEI.</div>';
+      return false;
+    }
+    if (hits) hits.innerHTML = JOBS.map(function(j){
+      return '<button type="button" class="imei-hit" id="hit-'+j.id+'" onclick="showImeiJob('+j.id+')">'
+        + '<div class="shop">'+esc(j.shop_name || 'Shop')+' · Job #'+j.id+'</div>'
+        + '<div class="meta">'+esc(val(j,['device_model'],'Device'))+' · '+esc(j.imei_display || j.imei_billing || j.imei || '—')+' · '+esc(j.status || '—')+'</div>'
+        + '<div class="meta">'+esc(val(j,['customer_name'],'Customer'))+'</div>'
+        + '</button>';
+    }).join('');
+    if (JOBS.length === 1) showImeiJob(JOBS[0].id);
+    return false;
+  };
+
+  window.showImeiJob = function showImeiJob(id){
+    var j = JOBS.find(function(x){ return x.id == id; });
+    if (!j) return;
+    document.querySelectorAll('.imei-hit').forEach(function(el){ el.classList.toggle('on', el.id === 'hit-'+id); });
+    var imei = j.imei_display || j.imei_billing || j.imei || '—';
+    var name = val(j, ['customer_name'], '—');
+    var phone = val(j, ['customer_phone'], '—');
+    var device = val(j, ['device_model'], '—');
+    var issue = val(j, ['issue'], '—');
+    var received = val(j, ['received_without'], '—');
+    var notes = val(j, ['notes'], '—');
+    var expected = val(j, ['expected_return'], '—');
+    var created = String(j.created_at || '').replace('T',' ').slice(0,19);
+    var delivered = val(j, ['delivery_date'], '—');
+    var happy = val(j, ['happy_code'], '—');
+    var cost = parseFloat(j.cost || 0);
+    var adv = parseFloat(j.advance_amount || 0);
+    var quote = Array.isArray(j.quote_parsed) ? j.quote_parsed : [];
+    var quoteHtml = quote.length ? quote.map(function(it){
+      var d = esc(it.desc || it.name || it.service || 'Item');
+      var p = parseFloat(it.price || it.amount || 0);
+      return '<div style="display:flex;justify-content:space-between;gap:8px;"><span>'+d+'</span><strong>₹'+p.toFixed(2)+'</strong></div>';
+    }).join('') : '<div style="color:#94a3b8;">No quote items</div>';
+    var msg = jobWaText(j);
+    document.getElementById('imeiDetail').innerHTML =
+      '<div class="kv">'
+      + '<div class="k">Shop</div><div class="v">'+esc(j.shop_name || '—')+(j.shop_city ? ' · '+esc(j.shop_city) : '')+'</div>'
+      + '<div class="k">Shop phone</div><div class="v">'+esc(j.shop_phone || '—')+'</div>'
+      + '<div class="k">Job</div><div class="v">#'+j.id+' · '+esc(j.status || '—')+'</div>'
+      + '<div class="k">Received</div><div class="v">'+esc(created || '—')+'</div>'
+      + '<div class="k">Customer</div><div class="v">'+esc(name)+'</div>'
+      + '<div class="k">Customer phone</div><div class="v">'+esc(phone)+'</div>'
+      + '<div class="k">Device</div><div class="v">'+esc(device)+'</div>'
+      + '<div class="k">IMEI / serial</div><div class="v">'+esc(imei)+'</div>'
+      + '<div class="k">Issue</div><div class="v">'+esc(issue)+'</div>'
+      + '<div class="k">Received with</div><div class="v">'+esc(received)+'</div>'
+      + '<div class="k">Expected return</div><div class="v">'+esc(expected)+'</div>'
+      + '<div class="k">Delivered</div><div class="v">'+esc(delivered)+'</div>'
+      + '<div class="k">Happy code</div><div class="v">'+esc(happy)+'</div>'
+      + '<div class="k">Estimate</div><div class="v">'+(cost ? '₹'+cost.toFixed(2) : '—')+'</div>'
+      + '<div class="k">Advance</div><div class="v">'+(adv ? '₹'+adv.toFixed(2) : '—')+'</div>'
+      + '<div class="k">Notes</div><div class="v">'+esc(notes)+'</div>'
+      + '</div>'
+      + '<div style="margin-top:14px;">'
+      + '<div style="font-size:.72rem;font-weight:800;color:#64748b;text-transform:uppercase;margin-bottom:6px;">Quote</div>'
+      + quoteHtml
+      + '</div>'
+      + '<div class="imei-actions">'
+      + '<a class="btn btn-primary" href="/admin/imei-search/'+j.id+'/print" target="_blank"><i class="fas fa-print"></i> Print job card</a>'
+      + '</div>'
+      + '<div class="wa-box">'
+      + '<div style="font-weight:800;color:#166534;margin-bottom:8px;"><i class="fab fa-whatsapp"></i> WhatsApp share</div>'
+      + '<label class="form-label">Mobile number</label>'
+      + '<input class="form-control" id="imeiWaPhone" maxlength="10" inputmode="numeric" placeholder="Enter 10-digit number" style="margin-bottom:8px;font-weight:700;">'
+      + '<label class="form-label">Message</label>'
+      + '<textarea class="form-control" id="imeiWaMsg" rows="8" style="font-size:.82rem;">'+esc(msg)+'</textarea>'
+      + '<button type="button" class="btn" onclick="sendImeiWa()" style="margin-top:10px;background:#16a34a;color:#fff;"><i class="fab fa-whatsapp"></i> Send WhatsApp</button>'
+      + '</div>';
+  };
+
+  function jobWaText(j){
+    var shop = j.shop_name || 'Shop';
+    var name = val(j, ['customer_name'], 'Customer');
+    var device = val(j, ['device_model'], 'device');
+    var imei = j.imei_display || j.imei_billing || j.imei || '';
+    var issue = val(j, ['issue'], '—');
+    var expected = val(j, ['expected_return'], '—');
+    var happy = val(j, ['happy_code'], '');
+    var m = '--- SERVICE JOB CARD ---\n*' + shop + '*\n\nDear *' + name + '*,\nYour device has been received.\n\n';
+    m += 'Job ID: #' + j.id + '\nDevice: ' + device + '\n';
+    if (imei) m += 'IMEI/SN: ' + imei + '\n';
+    m += 'Issue(s): ' + issue + '\nStatus: ' + (j.status || '—') + '\nExpected Return: ' + expected + '\n';
+    if (happy) m += '\nHappy Code: ' + happy + ' (show when collecting device)\n';
+    m += '\nThank you! - *' + shop + '*' + (j.shop_phone ? ' | ' + j.shop_phone : '');
+    return m;
+  }
+
+  window.sendImeiWa = function sendImeiWa(){
+    var phEl = document.getElementById('imeiWaPhone');
+    var msgEl = document.getElementById('imeiWaMsg');
+    var ph = ((phEl && phEl.value) || '').replace(/\D/g,'').slice(-10);
+    var msg = (msgEl && msgEl.value) || '';
+    if (ph.length !== 10){ alert('Enter a valid 10-digit mobile number.'); return; }
+    window.open('https://wa.me/91' + ph + '?text=' + encodeURIComponent(msg), '_blank');
+  };
+
+  function bindImeiSearch(){
+    if (window._imeiSearchBound) return;
+    window._imeiSearchBound = true;
+    var form = document.getElementById('imeiSearchForm');
+    var btn = document.getElementById('imeiSearchBtn');
+    var inp = document.getElementById('imeiQ');
+    if (form){
+      form.addEventListener('submit', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        runImeiSearch();
+      });
+    }
+    if (btn){
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        runImeiSearch();
+      });
+    }
+    if (inp){
+      inp.addEventListener('keydown', function(e){
+        if (e.key === 'Enter'){
+          e.preventDefault();
+          clearTimeout(debounceTimer);
+          runImeiSearch();
+        }
+      });
+      inp.addEventListener('input', function(){
+        clearTimeout(debounceTimer);
+        var q = (inp.value || '').trim();
+        if (!q){
+          emptyResults();
+          return;
+        }
+        debounceTimer = setTimeout(runImeiSearch, 250);
+      });
+    }
+    if (inp && (inp.value || '').trim()) runImeiSearch();
+    else emptyResults();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindImeiSearch);
+  else bindImeiSearch();
+})();
+</script>
+{% endblock %}

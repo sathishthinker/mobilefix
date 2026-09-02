@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Advance Receipt - Job #{{ job.id }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root{--teal:#00BCD4;--dark:#0d1b2a;}
+*{box-sizing:border-box;margin:0;padding:0;}
+@page{size:A5 landscape;margin:5mm;}
+body{font-family:'DM Sans',sans-serif;background:#f0f4f8;color:#1a2332;font-size:0.75rem;}
+.page-wrap{max-width:190mm;margin:0 auto;background:white;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.1);overflow:hidden;}
+
+/* Header */
+.inv-header{background:linear-gradient(135deg,var(--dark),#1a3a5c);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;}
+.header-left{display:flex;align-items:center;gap:12px;}
+.logo-img{width:44px;height:44px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,0.15);padding:3px;}
+.inv-logo{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.2rem;color:white;}
+.inv-logo span{color:var(--teal);}
+.inv-shop{color:rgba(255,255,255,0.6);font-size:0.7rem;margin-top:2px;}
+.inv-number{text-align:right;color:rgba(255,255,255,0.7);font-size:0.7rem;}
+.inv-number strong{display:block;font-size:1.1rem;color:white;font-family:'Exo 2',sans-serif;}
+
+/* Info row */
+.inv-info{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border-bottom:1px solid #e2e8f0;}
+.inv-info-cell{padding:8px 16px;border-right:1px solid #e2e8f0;}
+.inv-info-cell:last-child{border-right:none;}
+.info-label{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:2px;}
+.info-name{font-family:'Exo 2',sans-serif;font-weight:700;font-size:0.85rem;color:#1a2332;}
+.info-detail{font-size:0.72rem;color:#64748b;line-height:1.4;margin-top:2px;}
+
+/* Items */
+.inv-body{padding:10px 16px;}
+.items-wrap{width:100%;margin-bottom:8px;}
+.items-row{display:grid;grid-template-columns:minmax(0,1fr) 100px 100px;gap:0;align-items:center;width:100%;}
+.items-row > div{padding:6px 8px;box-sizing:border-box;min-width:0;}
+.items-head{background:#f8fafc;border-bottom:2px solid #e2e8f0;}
+.items-head > div{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;}
+.items-line{border-bottom:1px solid #f1f5f9;}
+.items-line > div{font-size:0.75rem;}
+.items-line:last-of-type{border-bottom:none;}
+.items-row .c-qty,.items-row .c-price,.items-row .c-amt{text-align:right;}
+.items-row .c-desc{text-align:left;}
+
+/* Bottom */
+.inv-bottom{display:grid;grid-template-columns:1.2fr 0.8fr;gap:16px;margin-top:6px;align-items:start;}
+.payment-box{background:#f8fafc;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
+.payment-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;}
+.pay-method{display:inline-block;background:#e0f7fa;color:#006064;padding:3px 10px;border-radius:999px;font-size:0.7rem;font-weight:700;}
+.summary-table{width:100%;border-collapse:collapse;}
+.summary-table td{padding:4px 8px;font-size:0.75rem;}
+.summary-table td:last-child{text-align:right;font-weight:600;}
+.summary-table .grand td{font-family:'Exo 2',sans-serif;font-size:0.9rem;font-weight:800;border-top:2px solid #e2e8f0;padding-top:6px;color:var(--teal);}
+.terms{font-size:0.65rem;color:#94a3b8;margin-top:8px;padding-top:6px;border-top:1px dashed #e2e8f0;line-height:1.5;}
+
+/* Footer */
+.inv-footer{background:#f8fafc;padding:8px 16px;text-align:center;color:#94a3b8;font-size:0.7rem;border-top:1px solid #e2e8f0;}
+.inv-footer strong{color:#64748b;}
+
+/* Print controls */
+.print-btn{text-align:center;margin:12px auto;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:0 8px;}
+.print-btn button{padding:8px 20px;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;font-family:inherit;color:white;transition:opacity .2s;}
+.print-btn button:hover{opacity:.9;}
+
+@media print{
+  .print-btn{display:none;}
+  body{background:white;}
+  .page-wrap{box-shadow:none;border-radius:0;max-width:100%;margin:0;}
+}
+</style>
+</head>
+<body>
+
+<div class="print-btn">
+  <button onclick="window.print()" style="background:linear-gradient(135deg,var(--teal),#0097A7);">🖨️ Print Receipt</button>
+  <button onclick="sharePDF()" style="background:#25D366;">Share PDF</button>
+  <button onclick="downloadPDF()" style="background:linear-gradient(135deg,#ef4444,#b91c1c);">📥 Download PDF</button>
+  <button onclick="window.close()" style="background:#64748b;">✕ Close</button>
+</div>
+
+<div class="page-wrap" id="invoice-content">
+  <!-- Header -->
+  <div class="inv-header">
+    <div class="header-left">
+      {% if user.logo %}
+      <img src="{{ user.logo }}" alt="Logo" class="logo-img">
+      {% endif %}
+      <div>
+        <div class="inv-logo">Mobile<span>Fix</span> Pro</div>
+        <div class="inv-shop">{{ user.shop_name or 'My Shop' }}</div>
+      </div>
+    </div>
+    <div class="inv-number">
+      <small>ADVANCE RECEIPT</small>
+      <strong>#{{ job.id }}</strong>
+    </div>
+  </div>
+
+  <!-- Info -->
+  <div class="inv-info">
+    <div class="inv-info-cell">
+      <div class="info-label">Customer</div>
+      <div class="info-name">{{ job.customer_name }}</div>
+      <div class="info-detail">{{ job.customer_phone }}</div>
+    </div>
+    <div class="inv-info-cell">
+      <div class="info-label">Device Info</div>
+      <div class="info-name">{{ job.device_model }}</div>
+      <div class="info-detail">{% if job.imei %}IMEI: {{ job.imei }}{% endif %}</div>
+    </div>
+    <div class="inv-info-cell">
+      <div class="info-label">Date</div>
+      <div class="info-name">{{ (job.created_at or '')[:10] }}</div>
+      <div class="info-detail">Status: {{ job.status }}</div>
+    </div>
+  </div>
+
+  <div class="inv-body">
+    <div class="items-wrap">
+      <div class="items-row items-head">
+        <div class="c-desc">Description</div>
+        <div class="c-price">Job Total</div>
+        <div class="c-amt">Advance Paid</div>
+      </div>
+      
+      <div class="items-row items-line">
+        <div class="c-desc" style="font-weight:600;color:#1a2332;">{{ job.issue }}</div>
+        <div class="c-price">{% if job.cost %}₹{{ '%.2f'|format(job.cost|float) }}{% else %}—{% endif %}</div>
+        <div class="c-amt" style="font-weight:700;">₹{{ '%.2f'|format((job.advance_amount or 0)|float) }}</div>
+      </div>
+    </div>
+
+    <div class="inv-bottom">
+      <div class="payment-box">
+        <div class="payment-label">Payment History</div>
+        {% if adv_history %}
+            {% for log in adv_history %}
+            <div style="font-size:0.75rem;display:flex;justify-content:space-between;align-items:center;">
+                <span>{{ log.date }}</span>
+                <span><span class="pay-method">{{ log.method }}</span> ₹{{ '%.2f'|format(log.amount) }}</span>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div style="font-size:0.75rem;color:#64748b;">No advance paid.</div>
+        {% endif %}
+        <div class="terms">This is a receipt for an advance payment made towards a repair job. It is not a final tax invoice.</div>
+      </div>
+      <div>
+        <table class="summary-table">
+          <tr><td style="color:#64748b;">Estimated Total</td><td>{% if job.cost %}₹{{ '%.2f'|format(job.cost|float) }}{% else %}—{% endif %}</td></tr>
+          <tr class="grand"><td>Total Advance</td><td>₹{{ '%.2f'|format((job.advance_amount or 0)|float) }}</td></tr>
+          <tr><td style="color:#ef4444;">Remaining Due</td><td style="color:#ef4444;">{% if job.cost %}₹{{ '%.2f'|format((job.cost|float) - (job.advance_amount|float)) }}{% else %}—{% endif %}</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="inv-footer">
+    Generated by <strong>MobileFix Pro</strong>
+  </div>
+</div>
+
+<script>
+function downloadPDF() {
+  const element = document.getElementById('invoice-content');
+  const opt = {
+    margin: 0, filename: 'AdvanceReceipt_' + '{{ job.id }}' + '.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a5', orientation: 'landscape' }
+  };
+  html2pdf().set(opt).from(element).save();
+}
+function sharePDF() {
+  const element = document.getElementById('invoice-content');
+  const opt = {
+    margin: 0, filename: 'AdvanceReceipt_' + '{{ job.id }}' + '.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a5', orientation: 'landscape' }
+  };
+  html2pdf().set(opt).from(element).outputPdf('blob').then(function(blob) {
+    if(navigator.canShare && navigator.canShare({ files: [new File([blob], 'receipt.pdf', {type: 'application/pdf'})] })) {
+      navigator.share({
+        title: 'Advance Receipt',
+        files: [new File([blob], 'AdvanceReceipt_{{ job.id }}.pdf', {type: 'application/pdf'})]
+      }).catch(err => console.error(err));
+    } else {
+      alert("Sharing PDF is not supported on this browser. Downloading instead...");
+      downloadPDF();
+    }
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+{% block title %}Attendance — MobileFix Pro{% endblock %}
+{% block page_title %}Attendance{% endblock %}
+
+{% block extra_head %}
+<style>
+.att-wrap{max-width:560px;margin:0 auto;}
+.att-card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.07);margin-bottom:16px;}
+.att-clock{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.7rem;color:#0f172a;letter-spacing:.02em;}
+.att-date{font-size:.88rem;font-weight:700;color:#64748b;margin-top:2px;}
+.att-status{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 12px;font-size:.75rem;font-weight:800;margin-top:10px;}
+.att-on{background:#d1fae5;color:#065f46;}
+.att-off{background:#fee2e2;color:#991b1b;}
+.att-lunch{background:#fef3c7;color:#92400e;}
+.att-cam{position:relative;background:#0d1b2a;border-radius:16px;overflow:hidden;width:100%;aspect-ratio:3/4;max-height:420px;}
+.att-cam video,.att-cam img{width:100%;height:100%;object-fit:cover;display:block;background:#0d1b2a;}
+.att-cam video.flip{transform:scaleX(-1);}
+.att-cam-wait{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:.82rem;font-weight:700;pointer-events:none;padding:16px;text-align:center;}
+.att-cam.ready .att-cam-wait{display:none;}
+.att-geo{font-size:.8rem;font-weight:700;color:#334155;line-height:1.45;margin:12px 0;}
+.att-geo span{color:#64748b;font-weight:600;}
+.att-row{display:flex;gap:8px;flex-wrap:wrap;}
+.att-list{display:flex;flex-direction:column;gap:10px;}
+.att-punch{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:12px;border:1px solid #eef2f7;border-radius:12px;background:#f8fafc;}
+.att-punch b{font-size:.88rem;}
+.att-punch .mini{font-size:.75rem;color:#64748b;font-weight:600;margin-top:4px;line-height:1.4;}
+.att-note{font-size:.75rem;font-weight:600;color:#94a3b8;margin-top:8px;}
+@media(max-width:768px){
+  .att-punch-box{display:flex;flex-direction:column;align-items:center;text-align:center;}
+  .att-punch-box .att-cam{width:100%;max-width:280px;max-height:none;margin:0 auto;}
+  .att-punch-box .att-geo,.att-punch-box .att-note{text-align:center;width:100%;}
+  .att-punch-box .att-row{justify-content:center;width:100%;}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="att-wrap">
+  <div class="page-header" style="margin-bottom:14px;">
+    <div>
+      <div class="page-title">Attendance</div>
+      <div class="page-subtitle">{{ staff_name or 'Sales person' }} · selfie, location, and shop time</div>
+    </div>
+    <a class="btn btn-outline" href="{{ url_for('shop_profile') }}">Profile</a>
+  </div>
+
+  <div class="att-card">
+    <div class="att-clock" id="attNow">{{ server_now[11:19] if server_now else '--:--:--' }}</div>
+    <div class="att-date" id="attDate">{{ today }}</div>
+    {% if open_lunch %}
+    <div class="att-status att-lunch">On Lunch Since {{ open_lunch.lunch_out | to_ist }}</div>
+    {% elif open_shift %}
+    <div class="att-status att-on">On Shift Since {{ open_shift.clock_in | to_ist }}</div>
+    {% else %}
+    <div class="att-status att-off">Off shift</div>
+    {% endif %}
+    <div class="att-note">Punch time is saved by the shop server (IST). Camera and GPS are required for clock in/out. Lunch uses shop time only.</div>
+  </div>
+
+  {% if pay and pay.salary_monthly %}
+  <div class="att-card">
+    <div style="font-weight:800;margin-bottom:6px;">This month salary</div>
+    <div class="att-clock" style="font-size:1.35rem;">₹{{ '%.0f'|format(pay.salary_due or 0) }}</div>
+    <div class="att-date">{{ pay.present_days or 0 }} present days · {{ '%.1f'|format(pay.hours_worked or 0) }} hrs · daily ₹{{ '%.2f'|format(pay.daily_rate or 0) }}</div>
+    <div class="att-note">Monthly ₹{{ '%.0f'|format(pay.salary_monthly or 0) }} ÷ {{ pay.salary_days or 26 }} working days. Full pay when present days reach {{ pay.salary_days or 26 }}.</div>
+  </div>
+  {% endif %}
+
+  <div class="att-card att-punch-box">
+    <div class="att-cam" id="attCamBox">
+      <video id="attVideo" autoplay playsinline muted class="flip"></video>
+      <img id="attSnap" alt="Selfie" style="display:none;">
+      <div class="att-cam-wait" id="attCamWait">Starting camera…</div>
+    </div>
+    <canvas id="attCanvas" style="display:none;"></canvas>
+    <div class="att-geo" id="attGeo"><span>Getting location…</span></div>
+    <div class="att-row">
+      <button type="button" class="btn btn-outline" id="attShotBtn" onclick="attCapture()">Take photo</button>
+      <button type="button" class="btn btn-outline" id="attRetakeBtn" onclick="attRetake()" style="display:none;">Retake</button>
+      {% if open_shift %}
+        {% if open_lunch %}
+        <button type="button" class="btn btn-primary" id="attLunchBtn" onclick="attLunch('in')">Back from lunch</button>
+        {% else %}
+        <button type="button" class="btn btn-outline" id="attLunchBtn" onclick="attLunch('out')">Start lunch</button>
+        {% endif %}
+        <button type="button" class="btn btn-primary" id="attPunchBtn" onclick="attPunch('out')">Clock out</button>
+      {% else %}
+      <button type="button" class="btn btn-primary" id="attPunchBtn" onclick="attPunch('in')">Clock in</button>
+      {% endif %}
+    </div>
+    <div class="att-note" id="attMsg"></div>
+  </div>
+
+  <div class="att-card">
+    <div style="font-weight:800;margin-bottom:10px;">Today's lunch</div>
+    <div class="att-list">
+      {% if not lunch_today %}
+      <div class="att-note">No lunch breaks recorded today.</div>
+      {% endif %}
+      {% for lb in lunch_today %}
+      <div class="att-punch">
+        <div>
+          <b>Lunch {{ lb.lunch_out | to_ist }}{% if lb.lunch_in %} → {{ lb.lunch_in | to_ist }}{% else %} · Open{% endif %}</b>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="att-card">
+    <div style="font-weight:800;margin-bottom:10px;">This month</div>
+    <div class="att-list">
+      {% if not shifts %}
+      <div class="att-note">No punches yet this month.</div>
+      {% endif %}
+      {% for sh in shifts %}
+      <div class="att-punch">
+        <div>
+          <b>{{ sh.clock_in | to_ist }}{% if sh.clock_out %} → {{ sh.clock_out | to_ist }}{% else %} · Open{% endif %}</b>
+          {% if sh.out_source == 'auto' %}<div class="mini">Auto closed at shop close</div>{% endif %}
+          <div class="mini">
+            {% if sh.in_lat is not none %}In {{ '%.5f'|format(sh.in_lat) }}, {{ '%.5f'|format(sh.in_lng) }}
+            <a href="https://maps.google.com/?q={{ sh.in_lat }},{{ sh.in_lng }}" target="_blank" rel="noopener">map</a>
+            {% endif %}
+            {% if sh.out_lat is not none %}<br>Out {{ '%.5f'|format(sh.out_lat) }}, {{ '%.5f'|format(sh.out_lng) }}
+            <a href="https://maps.google.com/?q={{ sh.out_lat }},{{ sh.out_lng }}" target="_blank" rel="noopener">map</a>
+            {% endif %}
+          </div>
+        </div>
+        <div class="att-row" style="justify-content:flex-end;">
+          {% if sh.has_in_photo %}<button type="button" class="btn btn-outline" style="padding:4px 10px;font-size:.72rem;" onclick="attViewPhoto({{ sh.id }},'in')">In photo</button>{% endif %}
+          {% if sh.has_out_photo %}<button type="button" class="btn btn-outline" style="padding:4px 10px;font-size:.72rem;" onclick="attViewPhoto({{ sh.id }},'out')">Out photo</button>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay modal-center" id="attPhotoModal" style="z-index:10050;">
+  <div class="modal-box" style="max-width:420px;padding:18px;">
+    <button type="button" class="modal-exit" onclick="document.getElementById('attPhotoModal').classList.remove('show')" title="Exit" aria-label="Exit">✕</button>
+    <div class="modal-title">Attendance photo</div>
+    <img id="attPhotoView" alt="Attendance" style="width:100%;border-radius:12px;display:block;">
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const ATT_CLOCK = {{ 'true' if open_shift else 'false' }};
+let attStream = null;
+let attPhoto = '';
+let attGeo = null;
+
+function attTick(){
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const el = document.getElementById('attNow');
+  const d = document.getElementById('attDate');
+  if(el) el.textContent = pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+  if(d) d.textContent = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
+}
+setInterval(attTick, 1000);
+attTick();
+
+function attMsg(t){ const el=document.getElementById('attMsg'); if(el) el.textContent=t||''; }
+
+async function attCam(){
+  const v = document.getElementById('attVideo');
+  const box = document.getElementById('attCamBox');
+  try{
+    attStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 960 } },
+      audio: false
+    });
+    v.srcObject = attStream;
+    await v.play();
+    const ready = () => { if(box) box.classList.add('ready'); };
+    if(v.readyState >= 2) ready();
+    else v.addEventListener('playing', ready, { once: true });
+  }catch(e){
+    if(box) box.classList.add('ready');
+    const wait = document.getElementById('attCamWait');
+    if(wait) wait.textContent = 'Camera blocked';
+    attMsg('Allow camera to mark attendance. Use HTTPS if the camera is blocked.');
+  }
+}
+function attAccLabel(m){
+  const n = Number(m);
+  if(!isFinite(n) || n <= 0) return 'Location ready';
+  if(n >= 1000) return 'Approximate location — turn on GPS for a closer punch';
+  return 'Accuracy ±'+Math.round(n)+' m';
+}
+function attLocate(){
+  const box = document.getElementById('attGeo');
+  if(!navigator.geolocation){
+    box.innerHTML = '<span>Location is not available on this device.</span>';
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(pos => {
+    attGeo = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy };
+    box.innerHTML = 'Location ready · '+attGeo.lat.toFixed(5)+', '+attGeo.lng.toFixed(5)+
+      '<br><span>'+attAccLabel(attGeo.accuracy)+'</span>';
+  }, () => {
+    attGeo = null;
+    box.innerHTML = '<span>Allow location to mark attendance.</span>';
+  }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+}
+function attCapture(){
+  const v = document.getElementById('attVideo');
+  const c = document.getElementById('attCanvas');
+  const img = document.getElementById('attSnap');
+  if(!v.videoWidth){ attMsg('Wait for the camera, then take a photo.'); return; }
+  const w = 320, h = Math.round(320 * (v.videoHeight/v.videoWidth));
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.translate(w, 0); ctx.scale(-1, 1);
+  ctx.drawImage(v, 0, 0, w, h);
+  attPhoto = c.toDataURL('image/jpeg', 0.62);
+  img.src = attPhoto;
+  img.style.display = 'block';
+  v.style.display = 'none';
+  document.getElementById('attShotBtn').style.display = 'none';
+  document.getElementById('attRetakeBtn').style.display = '';
+  attMsg('');
+}
+function attRetake(){
+  attPhoto = '';
+  document.getElementById('attSnap').style.display = 'none';
+  document.getElementById('attVideo').style.display = 'block';
+  document.getElementById('attShotBtn').style.display = '';
+  document.getElementById('attRetakeBtn').style.display = 'none';
+}
+async function attLunch(kind){
+  const btn = document.getElementById('attLunchBtn');
+  if(btn) btn.disabled = true;
+  attMsg('Saving lunch…');
+  try{
+    const res = await fetch('{{ url_for("shop_staff_lunch") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ lunch: kind })
+    });
+    const data = await res.json();
+    if(!data.ok){ attMsg(data.error || 'Could not save lunch.'); if(btn) btn.disabled = false; return; }
+    window.location.reload();
+  }catch(e){
+    attMsg('Could not save lunch.');
+    if(btn) btn.disabled = false;
+  }
+}
+async function attPunch(kind){
+  if(!attPhoto){ attMsg('Take a selfie first.'); return; }
+  if(!attGeo){ attLocate(); attMsg('Waiting for location…'); return; }
+  const btn = document.getElementById('attPunchBtn');
+  btn.disabled = true;
+  attMsg('Saving…');
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const client_time = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+' '+
+    pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+  try{
+    const res = await fetch('{{ url_for("shop_staff_clock") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        clock: kind,
+        photo: attPhoto,
+        lat: attGeo.lat,
+        lng: attGeo.lng,
+        accuracy: attGeo.accuracy,
+        client_time
+      })
+    });
+    const data = await res.json();
+    if(!data.ok){ attMsg(data.error || 'Could not save attendance.'); btn.disabled = false; return; }
+    window.location.reload();
+  }catch(e){
+    attMsg('Could not save attendance.');
+    btn.disabled = false;
+  }
+}
+async function attViewPhoto(id, which){
+  const res = await fetch('/team/shift-photo/'+id+'?which='+which);
+  const data = await res.json();
+  if(!data.ok || !data.photo){ attMsg(data.error || 'No photo'); return; }
+  document.getElementById('attPhotoView').src = data.photo;
+  document.getElementById('attPhotoModal').classList.add('show');
+}
+attCam();
+attLocate();
+</script>
+{% endblock %}

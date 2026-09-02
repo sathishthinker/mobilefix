@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}Purchases - MobileFix Pro{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Table styles for desktop */
+.purchases-table-wrap { display: block; overflow-x: auto; }
+.purchases-table { width: 100%; border-collapse: collapse; min-width: 700px; }
+.purchases-table th { padding: 14px 10px; text-align: left; white-space: nowrap; border-bottom: 2px solid #e2e8f0; color: #64748b; font-size: 0.8rem; text-transform: uppercase; }
+.purchases-table td { padding: 14px 10px; white-space: nowrap; border-bottom: 1px solid #f1f5f9; transition: background 0.2s; }
+.purchases-table tr:hover td { background: #f8fafc; }
+.btn-action-view { background: #e0f2fe; color: #0284c7; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
+.btn-action-view:hover { background: #bae6fd; color: #0369a1; }
+
+/* Mobile Card layout - Minimal View */
+.purchases-cards { display: none; }
+.p-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+.p-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.p-card-bill { font-weight: 800; color: #0f172a; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+.p-card-date { font-size: 0.75rem; color: #64748b; }
+.p-card-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+.p-card-vendor { font-weight: 600; color: #334155; font-size: 0.9rem; margin-bottom: 2px; }
+.p-card-gstin { font-size: 0.75rem; color: #94a3b8; }
+.p-card-tax { font-size: 0.75rem; color: #10b981; margin-bottom: 2px; }
+.p-card-total { font-size: 1.1rem; font-weight: 800; color: #0f172a; line-height: 1; }
+
+/* Modal specific for Purchases */
+.p-modal { position: fixed; inset: 0; background: rgba(15,23,42,0.6); z-index: 999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 16px; }
+.p-modal.show { display: flex; }
+.p-modal-content { background: #fff; width: 100%; max-width: 500px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; position: relative; }
+.p-modal-head { padding: 20px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: #fff; z-index: 10; border-radius: 20px 20px 0 0; }
+.p-modal-head h3 { margin: 0; font-size: 1.2rem; color: #0f172a; }
+.p-modal-close { background: none; border: none; font-size: 1.4rem; color: #64748b; cursor: pointer; padding: 0; line-height: 1; }
+.p-modal-body { padding: 24px; }
+.p-detail-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; }
+.p-detail-row.bold { font-weight: 700; color: #0f172a; border-top: 1px dashed #cbd5e1; padding-top: 12px; margin-top: 12px; }
+.p-detail-lbl { color: #64748b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.p-detail-val { color: #1e293b; font-weight: 600; text-align: right; }
+
+.purchases-main-box { margin: 0 16px 24px; }
+
+@media (max-width: 768px) {
+  .purchases-table-wrap { display: none; }
+  .purchases-cards { display: block; }
+  .page-header { border-radius: 0 0 16px 16px; margin-bottom: 16px; padding: 20px 16px; }
+  .purchases-main-box { padding: 12px; border-radius: 16px; margin: 0 8px 24px !important; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title"><i class="fas fa-shopping-cart" style="color:#eab308;"></i> Purchase Bills</div>
+  <div class="page-subtitle">Log and manage your inward vendor supplies for GST.</div>
+</div>
+
+<div class="box purchases-main-box">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+    <div style="position:relative; flex:1; min-width:200px;">
+      <i class="fas fa-search" style="position:absolute; left:12px; top:10px; color:#94a3b8;"></i>
+      <input type="text" id="pSearch" class="form-control" placeholder="Search vendor or bill no..." style="padding-left:36px;" oninput="filterPurchases()">
+    </div>
+    <a href="{{ url_for('purchase_new') }}" class="btn btn-primary" style="background:#eab308; border-color:#ca8a04; color:white; white-space:nowrap;"><i class="fas fa-plus"></i> New Purchase</a>
+  </div>
+  
+  <div class="purchases-table-wrap">
+    <table class="purchases-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Bill No</th>
+          <th>Vendor</th>
+          <th>GSTIN</th>
+          <th style="text-align:right;">Subtotal</th>
+          <th style="text-align:right;">Tax</th>
+          <th style="text-align:right;">Total</th>
+          <th style="text-align:center;">Action</th>
+        </tr>
+      </thead>
+      <tbody id="pbody-desktop">
+      </tbody>
+    </table>
+  </div>
+  
+  <div class="purchases-cards" id="pbody-mobile">
+  </div>
+</div>
+
+<!-- Extended View Modal -->
+<div class="p-modal" id="viewModal">
+  <div class="p-modal-content">
+    <div class="p-modal-head">
+      <h3 id="v_title">Purchase Details</h3>
+      <button class="p-modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="p-modal-body">
+      <div class="p-detail-row"><span class="p-detail-lbl">Bill No</span><span class="p-detail-val" id="v_bill"></span></div>
+      <div class="p-detail-row"><span class="p-detail-lbl">Date</span><span class="p-detail-val" id="v_date"></span></div>
+      <div class="p-detail-row"><span class="p-detail-lbl">Vendor Name</span><span class="p-detail-val" id="v_vendor"></span></div>
+      <div class="p-detail-row"><span class="p-detail-lbl">GSTIN</span><span class="p-detail-val" id="v_gstin"></span></div>
+      <div class="p-detail-row"><span class="p-detail-lbl">State</span><span class="p-detail-val" id="v_state"></span></div>
+      
+      <div class="p-detail-row bold" style="margin-top:20px;"><span class="p-detail-lbl">Subtotal</span><span class="p-detail-val" id="v_sub"></span></div>
+      <div class="p-detail-row"><span class="p-detail-lbl">CGST</span><span class="p-detail-val" id="v_cgst"></span></div>
+      <div class="p-detail-row"><span class="p-detail-lbl">SGST</span><span class="p-detail-val" id="v_sgst"></span></div>
+      <div class="p-detail-row"><span class="p-detail-lbl">IGST</span><span class="p-detail-val" id="v_igst"></span></div>
+      <div class="p-detail-row bold" style="font-size:1.2rem;"><span class="p-detail-lbl">Total</span><span class="p-detail-val" id="v_tot" style="color:#0f172a;"></span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let allPurchases = [];
+async function loadPurchases() {
+  const res = await fetch('/api/purchases/list');
+  allPurchases = await res.json();
+  renderPurchases(allPurchases);
+}
+function filterPurchases() {
+  const q = document.getElementById('pSearch').value.toLowerCase();
+  const filtered = allPurchases.filter(p => 
+    (p.vendor_name||'').toLowerCase().includes(q) || 
+    (p.bill_no||'').toLowerCase().includes(q) ||
+    (p.vendor_gstin||'').toLowerCase().includes(q)
+  );
+  renderPurchases(filtered);
+}
+function viewPurchase(id) {
+  const p = allPurchases.find(x => x.id === id);
+  if(!p) return;
+  document.getElementById('v_title').textContent = 'Bill #' + p.bill_no;
+  document.getElementById('v_bill').textContent = p.bill_no;
+  document.getElementById('v_date').textContent = p.invoice_date;
+  document.getElementById('v_vendor').textContent = p.vendor_name;
+  document.getElementById('v_gstin').textContent = p.vendor_gstin || 'N/A';
+  document.getElementById('v_state').textContent = p.vendor_state || 'N/A';
+  
+  document.getElementById('v_sub').textContent = '₹' + parseFloat(p.subtotal||0).toFixed(2);
+  document.getElementById('v_cgst').textContent = '₹' + parseFloat(p.cgst||0).toFixed(2);
+  document.getElementById('v_sgst').textContent = '₹' + parseFloat(p.sgst||0).toFixed(2);
+  document.getElementById('v_igst').textContent = '₹' + parseFloat(p.igst||0).toFixed(2);
+  document.getElementById('v_tot').textContent = '₹' + parseFloat(p.total||0).toFixed(2);
+  
+  document.getElementById('viewModal').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('viewModal').classList.remove('show');
+}
+
+function renderPurchases(data) {
+  const tD = document.getElementById('pbody-desktop');
+  const tM = document.getElementById('pbody-mobile');
+  tD.innerHTML = '';
+  tM.innerHTML = '';
+  
+  if(!data.length) {
+    tD.innerHTML = '<tr><td colspan="8" style="padding:24px; text-align:center; color:#94a3b8;"><i class="fas fa-folder-open" style="font-size:2.5rem; margin-bottom:12px; display:block; color:#cbd5e1;"></i>No purchases found.</td></tr>';
+    tM.innerHTML = '<div style="padding:24px; text-align:center; color:#94a3b8;"><i class="fas fa-folder-open" style="font-size:2.5rem; margin-bottom:12px; display:block; color:#cbd5e1;"></i>No purchases found.</div>';
+    return;
+  }
+  
+  data.forEach(p => {
+    const tax = (parseFloat(p.cgst||0) + parseFloat(p.sgst||0) + parseFloat(p.igst||0)).toFixed(2);
+    const sub = parseFloat(p.subtotal||0).toFixed(2);
+    const tot = parseFloat(p.total||0).toFixed(2);
+    
+    // Desktop row
+    tD.innerHTML += `
+      <tr>
+        <td style="color:#475569; font-size:0.9rem;">${p.invoice_date}</td>
+        <td style="font-weight:700; color:#0f172a;">${p.bill_no}</td>
+        <td style="color:#334155;">${p.vendor_name}</td>
+        <td style="color:#64748b; font-size:0.85rem;">${p.vendor_gstin||'<span style="opacity:0.5">-</span>'}</td>
+        <td style="text-align:right; color:#475569;">₹${sub}</td>
+        <td style="text-align:right; color:#10b981;">₹${tax}</td>
+        <td style="text-align:right; font-weight:800; color:#0f172a; font-size:1.05rem;">₹${tot}</td>
+        <td style="text-align:center;"><button class="btn-action-view" onclick="viewPurchase(${p.id})" title="View Details"><i class="fas fa-eye"></i></button></td>
+      </tr>
+    `;
+    
+    // Mobile card (Ultra-compact view)
+    tM.innerHTML += `
+      <div class="p-card">
+        <div class="p-card-top">
+          <div class="p-card-bill">#${p.bill_no} <span class="p-card-date" style="font-weight:normal;">${p.invoice_date}</span></div>
+          <button class="btn-action-view" onclick="viewPurchase(${p.id})" title="View Details"><i class="fas fa-eye"></i></button>
+        </div>
+        <div class="p-card-bottom">
+          <div>
+            <div class="p-card-vendor">${p.vendor_name}</div>
+            <div class="p-card-gstin">${p.vendor_gstin ? 'GSTIN: '+p.vendor_gstin : 'No GSTIN'}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="p-card-tax">TAX: ₹${tax}</div>
+            <div class="p-card-total">₹${tot}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+}
+loadPurchases();
+</script>
+{% endblock %}

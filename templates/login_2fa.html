@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% include '_csrf.html' %}
 <title>MobileFix Pro — Verification</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -130,6 +131,16 @@ document.getElementById('tfaForm').addEventListener('submit', function(e) {
 })();
 
 boxes[0].focus();
+(function(){
+  var k='mfp_device', t=null;
+  try{ t=localStorage.getItem(k); }catch(e){}
+  if(!t){
+    t=(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return (c==='x'?r:(r&0x3|0x8)).toString(16);}));
+    try{ localStorage.setItem(k,t); }catch(e){}
+  }
+  var f=document.getElementById('tfaForm');
+  if(f){ var i=document.createElement('input'); i.type='hidden'; i.name='device_token'; i.value=t; f.appendChild(i); }
+})();
 </script>
 </body>
 </html>

@@ -6,7 +6,7 @@
 <style>
 .sp{display:inline-block;padding:4px 12px;border-radius:999px;font-size:0.74rem;font-weight:700;color:white;}
 .sp-Received{background:#00BCD4;} .sp-Diagnosing{background:#FFC107;color:#333;} .sp-Repairing{background:#FF9800;}
-.sp-Ready{background:#9C27B0;} .sp-Delivered{background:#4CAF50;} .sp-Cancelled{background:#795548;} .sp-Rework{background:#03A9F4;}
+.sp-Ready{background:#9C27B0;} .sp-NotReady{background:#E53935;} .sp-Delivered{background:#4CAF50;} .sp-Cancelled{background:#795548;} .sp-Rework{background:#03A9F4;}
 .sp-CreditDelivery{background:#2196F3;}
 .ontime{background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;}
 .overdue{background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;}
@@ -24,7 +24,23 @@
 .mb.wide{max-width:760px;}
 @keyframes su{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
 .mt{font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.1rem;color:#1a2332;margin-bottom:14px;display:flex;align-items:center;gap:9px;}
-.alert-bar{background:#fff3cd;border:1.5px solid #ffc107;border-radius:12px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background 0.15s;}
+.alert-bar{background:#fff3cd;border:1.5px solid #ffc107;border-radius:12px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;transition:background 0.15s;}
+.alert-bar-main{display:flex;align-items:center;gap:10px;min-width:0;flex:1;}
+.alert-bar-ico{flex-shrink:0;}
+.alert-bar-text{min-width:0;}
+.alert-bar-sub{color:#6b7280;font-size:0.84rem;margin-left:8px;}
+.alert-bar-sub::before{content:'— ';}
+.alert-bar-chevron{flex-shrink:0;transition:transform 0.2s;}
+.partial-pay-link{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid #fed7aa;text-decoration:none;color:inherit;transition:background .15s;}
+.partial-pay-link:last-child{border-bottom:none;}
+.partial-pay-link:hover,.partial-pay-link:active{background:#ffedd5;}
+.partial-pay-collect{display:inline-flex;align-items:center;gap:6px;font-size:0.82rem;font-weight:700;color:#c2410c;flex-shrink:0;}
+.partial-pay-collect i{color:#4CAF50;}
+.partial-pay-phone{color:#6b7280;font-size:0.82rem;}
+.overdue-job-link{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid #fee2e2;text-decoration:none;color:inherit;transition:background .15s;cursor:pointer;}
+.overdue-job-link:last-child{border-bottom:none;}
+.overdue-job-link:hover,.overdue-job-link:active{background:#fee2e2;}
+.overdue-job-go{display:inline-flex;align-items:center;gap:6px;font-size:0.82rem;font-weight:700;color:#ef4444;flex-shrink:0;}
 .alert-bar:hover{background:#ffeaa0;}
 .alert-bar-red{background:#fff5f5;border-color:#ef4444;}
 .alert-bar-red:hover{background:#fee2e2;}
@@ -35,6 +51,32 @@
 .action-dropdown button:hover{background:#f1f5f9;}
 .action-dropdown .sep{height:1px;background:#f1f5f9;margin:2px 0;}
 .happy-badge{background:linear-gradient(135deg,#9C27B0,#673AB7);color:white;padding:3px 10px;border-radius:999px;font-size:0.7rem;font-weight:700;letter-spacing:1px;}
+.jd-top{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:center;margin-bottom:16px;}
+.jd-who,.jd-dev{background:#f8fafc;border-radius:10px;padding:14px;min-width:0;}
+.jd-who strong,.jd-dev strong{display:block;font-size:1rem;}
+.jd-who span,.jd-dev span{display:block;color:#64748b;margin-top:4px;font-size:0.85rem;}
+.jd-log-wrap{display:flex;align-items:center;justify-content:center;align-self:stretch;}
+.jd-log-btn{width:40px;height:40px;border:none;border-radius:11px;background:#e0f7fa;color:#00838f;cursor:pointer;font-size:1rem;flex:none;}
+.jd-done-acts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.jd-done-acts button{flex:1;min-width:140px;padding:10px 14px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-weight:700;font-size:0.82rem;color:white;display:inline-flex;align-items:center;justify-content:center;gap:8px;}
+.jd-issue{background:#f8fafc;border-radius:10px;padding:14px;margin-bottom:12px;}
+.jd-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;}
+.jd-stat{background:#f8fafc;border-radius:10px;padding:12px;text-align:center;}
+.jd-stat .jd-k{display:block;font-size:0.72rem;font-weight:700;color:#334155;text-transform:uppercase;margin-bottom:6px;}
+.jd-stat.jd-status{background:#e0f7fa;}
+.jd-stat.jd-status .jd-k{color:#006064;}
+.jd-footer{margin-top:18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.sv-staff{margin-left:auto;text-align:right;min-width:110px;}
+.sv-k{font-size:.68rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;}
+.jd-log-list{display:flex;flex-direction:column;gap:8px;}
+.jd-log-row{display:flex;justify-content:space-between;gap:12px;background:#f1f5f9;border-radius:10px;padding:10px 12px;font-size:0.85rem;}
+.jd-log-row span:first-child{font-weight:800;color:#0f172a;}
+.jd-log-row span:last-child{color:#0f172a;font-weight:700;text-align:right;}
+.ghost-act{color:#0f172a!important;font-weight:700!important;border:1.5px solid #94a3b8!important;background:#f1f5f9!important;cursor:pointer;font-family:inherit;}
+.job-cust { text-align: left; }
+.job-cust-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-start; }
+.job-device { text-align: left; }
+.job-device-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
 html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
 .main { min-width: 0; }
 .content { min-width: 0; overflow-x: hidden; }
@@ -52,7 +94,7 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
   .form-control, input, select, textarea { font-size: 16px !important; min-width: 0; }
 
   .main { margin-left: 0; width: 100vw; max-width: 100vw; overflow-x: hidden; }
-  .content { padding: 16px 12px 80px; width: 100%; box-sizing: border-box; overflow-x: hidden; }
+  .content { padding: 16px 12px 64px; width: 100%; box-sizing: border-box; overflow-x: hidden; }
   .topbar { padding: 0 16px; height: 60px; max-width: 100vw; box-sizing: border-box; }
   .topbar-title { font-size: 1.1rem; }
 
@@ -76,11 +118,29 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
     animation: slideUpMob 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     box-sizing: border-box;
   }
-  .mb div[style*="grid-template-columns"],
-  #viewContent div[style*="grid-template-columns"] {
+  .mb div[style*="grid-template-columns"]:not(.jd-top):not(.jd-stats),
+  #viewContent > div[style*="grid-template-columns"] {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
+  .jd-top{
+    display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;
+    gap:10px;align-items:center;margin-bottom:12px;
+  }
+  .jd-who,.jd-dev{background:#f8fafc;border-radius:10px;padding:10px 12px;min-width:0;}
+  .jd-who strong,.jd-dev strong{display:block;font-size:0.92rem;line-height:1.25;}
+  .jd-who span,.jd-dev span{display:block;font-size:0.78rem;color:#64748b;margin-top:3px;}
+  .jd-log-btn{width:40px;height:40px;border:none;border-radius:11px;background:#e0f7fa;color:#00838f;cursor:pointer;font-size:0.95rem;}
+  .jd-issue{background:#f8fafc;border-radius:10px;padding:10px 12px;margin-bottom:10px;}
+  .jd-stats{display:grid!important;grid-template-columns:1fr 1fr 1fr!important;gap:8px!important;margin-bottom:10px;}
+  .jd-stat{background:#f8fafc;border-radius:10px;padding:8px 6px;text-align:center;min-width:0;}
+  .jd-stat .jd-k{display:block;font-size:0.62rem;font-weight:700;color:#334155;text-transform:uppercase;margin-bottom:4px;}
+  .jd-stat .sp{font-size:0.68rem;padding:3px 7px;}
+  .jd-stat strong{font-size:0.82rem;}
+  .jd-footer{justify-content:center;}
+  .jd-act{width:44px;height:44px;padding:0!important;display:inline-flex;align-items:center;justify-content:center;}
+  .jd-act-label{display:none;}
+  #viewModal .mb.wide{max-width:100vw!important;}
 
   /* Diagnose / invoice item rows */
   #diagnoseItems > div, #invItemsContainer > div {
@@ -100,10 +160,10 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
   }
 
   /* Page header */
-  .page-header { flex-direction: column; align-items: flex-start !important; gap: 12px; margin-bottom: 16px; }
+  .page-header { flex-direction: column; align-items: center !important; gap: 12px; margin-bottom: 16px; text-align: center; }
   .page-header .btn { width: 100%; justify-content: center; padding: 12px; font-size: 1rem; }
 
-  .hamburger { display: flex !important; margin-right: 8px; }
+  .hamburger { display: none !important; }
   .sub-badge { display: none; }
   .bottom-nav { display: flex !important; }
   .card-body { padding: 14px; }
@@ -123,7 +183,27 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
   .filter-scroll::-webkit-scrollbar { display: none; }
   .filter-btn { flex-shrink: 0; white-space: nowrap; padding: 8px 16px; font-size: 0.85rem; }
 
-  .alert-bar, #overdueList > div { flex-wrap: wrap !important; gap: 8px; }
+  .alert-bar{
+    align-items:flex-start;
+    padding:12px 14px;
+    gap:8px;
+  }
+  .alert-bar-main{align-items:flex-start;gap:10px;}
+  .alert-bar-ico{margin-top:3px;}
+  .alert-bar-text{display:flex;flex-direction:column;gap:3px;}
+  .alert-bar-text strong{display:block;font-size:0.92rem;line-height:1.3;}
+  .alert-bar-sub{margin-left:0;font-size:0.75rem;line-height:1.35;}
+  .alert-bar-sub::before{content:none;}
+  .alert-bar-chevron{margin-top:4px;}
+  .partial-pay-link,.overdue-row,.overdue-job-link{
+    flex-wrap:wrap;
+    align-items:flex-start;
+    padding:12px 14px;
+    gap:6px 10px;
+  }
+  .partial-pay-link > div,.overdue-row > div:first-child,.overdue-job-link > div:first-child{min-width:0;flex:1 1 auto;}
+  .partial-pay-collect{margin-left:auto;}
+  .partial-pay-phone{display:block;margin-top:2px;}
   .mob-hide { display: none !important; }
 
   /* Mobile card tables — expandable rows */
@@ -132,9 +212,9 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
   .mob-cards th, .mob-cards td, .mob-cards tr { display: block; width: 100%; box-sizing: border-box; }
   .mob-cards thead tr { display: none; }
   .mob-cards tbody tr {
-    background: white; border-radius: 14px; margin-bottom: 14px;
-    padding: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-    border: 1px solid #e2e8f0; overflow: hidden; transition: all 0.2s ease-in-out;
+    background: linear-gradient(180deg,#fff,#f5f3ff); border-radius: 14px; margin-bottom: 14px;
+    padding: 14px; box-shadow: 0 6px 16px rgba(124,58,237,0.08);
+    border: 1.5px solid #ddd6fe; overflow: hidden; transition: all 0.2s ease-in-out;
   }
   .mob-cards tbody td {
     display: flex; justify-content: space-between; align-items: flex-start;
@@ -182,6 +262,10 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
   }
   .mob-cards tbody td[data-label="Actions"] .action-menu,
   .mob-cards tbody td[data-label="Actions"] .act { width: 100%; justify-content: center; padding: 12px; font-size: 0.95rem; border-radius: 10px; }
+  .job-cust { text-align: right; }
+  .job-cust-row { justify-content: flex-end; }
+  .job-device { text-align: right; }
+  .job-device-line { max-width: none; text-align: right; }
 
   /* Action dropdown as bottom sheet on mobile */
   .action-dropdown {
@@ -214,24 +298,34 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
 
 {% block content %}
 <div class="page-header">
-  <div><div class="page-title">Repair Jobs</div><div class="page-subtitle">Manage customer device repairs</div></div>
+  <div><div class="page-title">Repair Jobs</div><div class="page-subtitle">Manage Customer Device Repairs</div></div>
+  {% if is_owner or can_jobs %}
   <a href="{{ url_for('add_job') }}" class="btn btn-primary"><i class="fas fa-plus"></i> New Job</a>
+  {% endif %}
 </div>
 
 <!-- Overdue Alert Bar -->
 {% if overdue_jobs %}
 <div class="alert-bar alert-bar-red" onclick="toggleOverdueList()">
-  <span><i class="fas fa-exclamation-triangle" style="color:#ef4444;margin-right:8px;"></i>
-  <strong style="color:#991b1b;">{{ overdue_jobs|length }} Overdue Job{{ 's' if overdue_jobs|length > 1 }}</strong>
-  <span style="color:#6b7280;font-size:0.84rem;margin-left:8px;">— past expected return date</span></span>
-  <i class="fas fa-chevron-down" id="overdueChevron" style="color:#ef4444;transition:transform 0.2s;"></i>
+  <div class="alert-bar-main">
+    <i class="fas fa-exclamation-triangle alert-bar-ico" style="color:#ef4444;"></i>
+    <div class="alert-bar-text">
+      <strong style="color:#991b1b;">{{ overdue_jobs|length }} Overdue Job{{ 's' if overdue_jobs|length > 1 }}</strong>
+      <span class="alert-bar-sub">Past expected return date</span>
+    </div>
+  </div>
+  <i class="fas fa-chevron-down alert-bar-chevron" id="overdueChevron" style="color:#ef4444;"></i>
 </div>
 <div id="overdueList" style="display:none;background:#fff5f5;border:1.5px solid #ef4444;border-radius:12px;margin-bottom:16px;overflow:hidden;">
   {% for j in overdue_jobs %}
-  <div style="padding:10px 18px;border-bottom:1px solid #fee2e2;display:flex;justify-content:space-between;align-items:center;{% if loop.last %}border-bottom:none;{% endif %}">
+  <a class="overdue-row overdue-job-link" href="{{ url_for('jobs') }}?open={{ j.id }}" onclick="event.preventDefault();viewJob({{ j.id }});">
     <div><strong>#{{ j.id }} — {{ j.customer_name }}</strong> <span style="color:#6b7280;font-size:0.82rem;">{{ j.device_model }}</span></div>
-    <div style="font-size:0.8rem;"><span class="sp sp-{{ j.status }}">{{ j.status }}</span> <span style="color:#ef4444;font-weight:700;margin-left:8px;">Due: {{ j.expected_return }}</span></div>
-  </div>
+    <div style="font-size:0.8rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+      <span class="sp sp-{{ j.status }}">{{ j.status }}</span>
+      <span style="color:#ef4444;font-weight:700;">Due: {{ j.expected_return }}</span>
+      <span class="overdue-job-go"><i class="fas fa-arrow-right"></i></span>
+    </div>
+  </a>
   {% endfor %}
 </div>
 {% endif %}
@@ -239,17 +333,22 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
 <!-- Partial Payment Reminder Bar -->
 {% if partial_jobs %}
 <div class="alert-bar" onclick="togglePartialList()">
-  <span><i class="fas fa-clock" style="color:#FF9800;margin-right:8px;"></i>
-  <strong style="color:#c2410c;">{{ partial_jobs|length }} Partial Payment{{ 's' if partial_jobs|length > 1 }} Pending</strong>
-  <span style="color:#6b7280;font-size:0.84rem;margin-left:8px;">— balance due from customers</span></span>
-  <i class="fas fa-chevron-down" id="partialChevron" style="color:#FF9800;transition:transform 0.2s;"></i>
+  <div class="alert-bar-main">
+    <i class="fas fa-clock alert-bar-ico" style="color:#FF9800;"></i>
+    <div class="alert-bar-text">
+      <strong style="color:#c2410c;">{{ partial_jobs|length }} Partial Payment{{ 's' if partial_jobs|length > 1 }} Pending</strong>
+      <span class="alert-bar-sub">Balance due from customers</span>
+    </div>
+  </div>
+  <i class="fas fa-chevron-down alert-bar-chevron" id="partialChevron" style="color:#FF9800;"></i>
 </div>
 <div id="partialList" style="display:none;background:#fff7ed;border:1.5px solid #FF9800;border-radius:12px;margin-bottom:16px;overflow:hidden;">
   {% for j in partial_jobs %}
-  <div style="padding:10px 18px;border-bottom:1px solid #fed7aa;display:flex;justify-content:space-between;align-items:center;{% if loop.last %}border-bottom:none;{% endif %}">
-    <div><strong>#{{ j.id }} — {{ j.customer_name }}</strong> <span style="color:#6b7280;font-size:0.82rem;">{{ j.customer_phone }}</span></div>
-    <div style="font-size:0.82rem;font-weight:700;color:#c2410c;">Balance: ₹{{ '%.2f'|format((j.cost or 0) - (j.advance_amount or 0)) }}</div>
-  </div>
+  {% set pbal = j.inv_balance if (j.inv_balance or 0) > 0.01 else [0.0, (j.cost or 0) - (j.advance_amount or 0)]|max %}
+  <a class="partial-pay-link" href="{% if j.inv_id %}{{ url_for('invoices') }}?collect={{ j.inv_id }}{% else %}{{ url_for('invoices') }}{% endif %}">
+    <div><strong>#{{ j.id }} — {{ j.customer_name }}</strong> <span class="partial-pay-phone">{{ j.customer_phone }}</span></div>
+    <span class="partial-pay-collect">Collect ₹{{ '%.2f'|format(pbal) }} <i class="fas fa-arrow-right"></i></span>
+  </a>
   {% endfor %}
 </div>
 {% endif %}
@@ -257,8 +356,15 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
 <!-- Search + Filters -->
 <div class="card" style="margin-bottom:20px;"><div class="card-body" style="padding:16px 20px;">
   <div class="search-bar-wrap" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
-    <input type="text" id="searchInput" placeholder="Search name, phone, device, IMEI..." class="form-control" style="max-width:340px;flex:1;" oninput="applyFilters()">
-    <button class="btn" style="border:1.5px solid #e2e8f0;background:white;color:#6b7c93;padding:8px 16px;border-radius:9px;cursor:pointer;" onclick="resetFilters()">Reset</button>
+    <input type="search" id="searchInput" name="job_list_search" placeholder="Search Name, Phone, Device, IMEI..." class="form-control"
+           style="max-width:340px;flex:1;" oninput="applyFilters()"
+           autocomplete="off" autocorrect="off" spellcheck="false"
+           data-lpignore="true" data-1p-ignore="true"
+           readonly onfocus="this.removeAttribute('readonly');this.setAttribute('autocomplete','off-'+Date.now())">
+    <button type="button" class="btn btn-outline" style="border:1.5px solid #00BCD4;color:#00838f;" onclick="triggerJobScanner()">
+      <i class="fas fa-barcode"></i> Scan
+    </button>
+    <button class="btn ghost-act" style="padding:8px 16px;border-radius:9px;" onclick="resetFilters()">Reset</button>
   </div>
   <div class="filter-scroll" style="display:flex;gap:8px;flex-wrap:wrap;">
     <button class="filter-btn active" style="background:#64748b;" onclick="setFilter(this,'')">All</button>
@@ -266,6 +372,7 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
     <button class="filter-btn" style="background:#FFC107;color:#333;" onclick="setFilter(this,'Diagnosing')">Diagnosing</button>
     <button class="filter-btn" style="background:#FF9800;" onclick="setFilter(this,'Repairing')">Repairing</button>
     <button class="filter-btn" style="background:#9C27B0;" onclick="setFilter(this,'Ready')">Ready</button>
+    <button class="filter-btn" style="background:#E53935;" onclick="setFilter(this,'Not Ready')">Return Mobiles</button>
     <button class="filter-btn" style="background:#03A9F4;" onclick="setFilter(this,'Rework')">Rework</button>
     <button class="filter-btn" style="background:#4CAF50;" onclick="setFilter(this,'Delivered')">Delivered</button>
     <button class="filter-btn" style="background:#795548;" onclick="setFilter(this,'Cancelled')">Cancelled</button>
@@ -279,7 +386,7 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
 <table id="jobsTable">
 <thead><tr>
   <th>ID</th><th>Customer</th><th>Device / IMEI</th><th>Issues</th>
-  <th>Status</th><th>Cost</th><th class="mob-hide">Expected Return</th><th class="mob-hide">Received</th><th>Actions</th>
+  <th>Status</th><th>Estimated Cost</th><th class="mob-hide">Expected Return</th><th class="mob-hide">Received</th><th>Actions</th>
 </tr></thead>
 <tbody>
 {% for job in jobs %}
@@ -287,11 +394,11 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
 {% set is_overdue = job.expected_return and job.expected_return < job.created_at[:10] %}
 <tr data-status="{{ job.status }}" id="row-{{ job.id }}">
   <td data-label="ID" style="color:#94a3b8;font-size:0.8rem;font-weight:700;">#{{ job.id }}</td>
-  <td data-label="Customer" onclick="this.closest('tr').classList.toggle('expanded')">
-    <div style="text-align:right;">
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;justify-content:flex-end;">
+  <td data-label="Customer" onclick="toggleJobCard(this)">
+    <div class="job-cust">
+      <div class="job-cust-row">
         <strong style="white-space:nowrap;">{{ job.customer_name }}</strong>
-        {% set due = (job.cost or 0) - (job.advance_amount or 0) %}
+        {% set due = ((job.cost or 0)|float) - ((job.advance_amount or 0)|float) %}
         {% if job.status not in ('Delivered', 'Cancelled') and job.cost and due > 0 %}
           <span style="background:#fee2e2;color:#b91c1c;border-radius:999px;padding:1px 8px;font-size:0.68rem;font-weight:700;white-space:nowrap;flex-shrink:0;">Due ₹{{ '%.2f'|format(due) }}</span>
         {% endif %}
@@ -300,13 +407,15 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
     </div>
   </td>
   <td data-label="Device/IMEI">
-    <div style="text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">{{ job.device_model }}</div>
-    {% if job.imei_billing or job.imei %}
-    <div style="color:#94a3b8;font-size:0.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;"><i class="fas fa-barcode"></i> {{ job.imei_billing or job.imei }}</div>
-    {% endif %}
-    {% if job.happy_code %}
-    <div><span class="happy-badge" title="Happy Code" style="white-space:nowrap;">🔑 {{ job.happy_code }}</span></div>
-    {% endif %}
+    <div class="job-device">
+      <div class="job-device-line">{{ job.device_model }}</div>
+      {% if job.imei_billing or job.imei %}
+      <div class="job-device-line" style="color:#94a3b8;font-size:0.72rem;"><i class="fas fa-barcode"></i> {{ job.imei_billing or job.imei }}</div>
+      {% endif %}
+      {% if job.happy_code %}
+      <div><span class="happy-badge" title="Happy Code" style="white-space:nowrap;">🔑 {{ job.happy_code }}</span></div>
+      {% endif %}
+    </div>
   </td>
   <td data-label="Issues" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.82rem;" title="{{ job.issue }}">{{ job.issue }}</td>
   <td data-label="Status">
@@ -320,10 +429,14 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
       <br><span style="background:#ef4444;color:white;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;">UNPAID</span>
     {% endif %}
   </td>
-  <td data-label="Cost" style="font-weight:700;">
-    {% if job.cost %}₹{{ '%.2f'|format(job.cost) }}{% else %}—{% endif %}
-    {% if job.advance_amount and job.advance_amount > 0 %}
-      <br><small style="color:#64748b;font-weight:500;">Adv: ₹{{ '%.2f'|format(job.advance_amount) }}</small>
+  <td data-label="Estimated Cost" style="font-weight:700;">
+    {% if job.cost %}₹{{ '%.2f'|format(job.cost|float) }}{% else %}—{% endif %}
+    {% if job.advance_amount and (job.advance_amount|float) > 0 %}
+      <br><small style="color:#64748b;font-weight:500;">Adv: ₹{{ '%.2f'|format(job.advance_amount|float) }}</small>
+    {% endif %}
+    {% if job.status == 'Delivered' and (job.inv_balance or 0)|float > 0.01 %}
+      <br><small style="color:#ef4444;font-weight:700;">Credit ₹{{ '%.2f'|format(job.inv_balance|float) }}</small>
+      {% if job.inv_due_date %}<br><small style="color:#d97706;font-weight:600;"><i class="fas fa-calendar"></i> Due {{ job.inv_due_date }}</small>{% endif %}
     {% endif %}
   </td>
   <td data-label="Expected Return" class="mob-hide" style="font-size:0.8rem;">
@@ -341,6 +454,9 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
   </td>
   <td data-label="Received" class="mob-hide" style="font-size:0.78rem;color:#64748b;">
     {{ job.created_at | to_ist }}
+    {% if job.received_without %}
+    <div style="margin-top:4px;color:#c2410c;font-weight:600;">{{ job.received_without }}</div>
+    {% endif %}
   </td>
   <td data-label="Actions">
     <!-- Actions dropdown menu -->
@@ -350,24 +466,35 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
       </button>
       <div class="action-dropdown" id="dropdown-{{ job.id }}">
         <button onclick="closeMenu({{ job.id }});viewJob({{ job.id }})"><i class="fas fa-eye" style="color:#00BCD4;"></i> View Details</button>
-        <button onclick="closeMenu({{ job.id }});printJobCard({{ job.id }})"><i class="fas fa-print" style="color:#64748b;"></i> Print Job Card</button>
-        <div class="sep"></div>
-        <button onclick="closeMenu({{ job.id }});sendJobCard({{ job.id }})"><i class="fab fa-whatsapp" style="color:#25D366;"></i> WA: Job Card</button>
         {% if job.status not in ['Delivered','Cancelled'] %}
+          <button onclick="closeMenu({{ job.id }});window.open('{{ url_for('print_barcode', job_id=job.id) }}', '_blank')"><i class="fas fa-barcode" style="color:#000;"></i> Print Barcode</button>
+          <button onclick="closeMenu({{ job.id }});printJobCard({{ job.id }})"><i class="fas fa-print" style="color:#64748b;"></i> Print Job Card</button>
+          <div class="sep"></div>
+          <button onclick="closeMenu({{ job.id }});shareJobCardPdfBtn({{ job.id }})"><i class="fas fa-file-pdf" style="color:#ef4444;"></i> Share Job Card PDF</button>
+          <button onclick="closeMenu({{ job.id }});sendJobCardText({{ job.id }})"><i class="fab fa-whatsapp" style="color:#25D366;"></i> Send Job Card Message</button>
+          <button onclick="closeMenu({{ job.id }});openAdvance({{ job.id }})"><i class="fas fa-money-bill-wave" style="color:#4CAF50;"></i> Advance Payment</button>
           {% if job.status == 'Received' %}
             <button onclick="closeMenu({{ job.id }});openDiagnose({{ job.id }})"><i class="fas fa-wrench" style="color:#FF9800;"></i> Diagnose & Quote</button>
           {% elif job.status in ['Diagnosing','Repairing','Rework'] %}
             <button onclick="closeMenu({{ job.id }});openDiagnose({{ job.id }})"><i class="fas fa-edit" style="color:#FF9800;"></i> Update Diagnosis</button>
-            <button onclick="closeMenu({{ job.id }});markReady({{ job.id }})"><i class="fas fa-check-circle" style="color:#9C27B0;"></i> Mark Ready</button>
+            <button onclick="closeMenu({{ job.id }});markReady({{ job.id }})"><i class="fas fa-check-circle" style="color:#9C27B0;"></i> Mark as Ready</button>
+            <button onclick="closeMenu({{ job.id }});markNotReady({{ job.id }},'{{ job.customer_name|replace("'","\\'")|upper }}')"><i class="fas fa-ban" style="color:#c2410c;"></i> Mark as Not Ready</button>
+          {% elif job.status == 'Not Ready' %}
+            <button onclick="closeMenu({{ job.id }});openDiagnose({{ job.id }})"><i class="fas fa-edit" style="color:#FF9800;"></i> Resume Repair</button>
           {% elif job.status == 'Ready' %}
             <button onclick="closeMenu({{ job.id }});notifyWA({{ job.id }})"><i class="fab fa-whatsapp" style="color:#25D366;"></i> Notify Ready (WA)</button>
             <button onclick="closeMenu({{ job.id }});openDeliver({{ job.id }})"><i class="fas fa-truck" style="color:#FF5722;"></i> Deliver & Invoice</button>
+            <button onclick="closeMenu({{ job.id }});markNotReady({{ job.id }},'{{ job.customer_name|replace("'","\\'")|upper }}')"><i class="fas fa-ban" style="color:#c2410c;"></i> Mark as Not Ready</button>
           {% endif %}
-          <button onclick="closeMenu({{ job.id }});window.open('/jobs/{{ job.id }}/set_reminder','_blank')"><i class="fas fa-bell" style="color:#FF6B35;"></i> Set Reminder</button>
+          {% if is_owner and job.status == 'Not Ready' %}
           <div class="sep"></div>
           <button onclick="closeMenu({{ job.id }});cancelJob({{ job.id }},'{{ job.customer_name|replace("'","\\'")|upper }}')" style="color:#E53935;"><i class="fas fa-times-circle" style="color:#E53935;"></i> Cancel Job</button>
+          {% else %}
+          <button onclick="closeMenu({{ job.id }});window.open('/jobs/{{ job.id }}/set_reminder','_blank')"><i class="fas fa-bell" style="color:#FF6B35;"></i> Set Reminder</button>
+          {% endif %}
         {% else %}
-          <button onclick="closeMenu({{ job.id }});sendInvoice({{ job.id }})"><i class="fab fa-whatsapp" style="color:#25D366;"></i> Send Invoice (WA)</button>
+          <button onclick="closeMenu({{ job.id }});shareInvoicePdfBtn({{ job.id }})"><i class="fas fa-file-pdf" style="color:#ef4444;"></i> Share Invoice PDF</button>
+          <button onclick="closeMenu({{ job.id }});sendInvoice({{ job.id }})"><i class="fab fa-whatsapp" style="color:#25D366;"></i> Send Invoice Message</button>
           <button onclick="closeMenu({{ job.id }});markRework({{ job.id }})"><i class="fas fa-redo" style="color:#9C27B0;"></i> Rework</button>
         {% endif %}
       </div>
@@ -380,7 +507,9 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
 <div style="text-align:center;padding:60px 20px;color:#94a3b8;">
   <i class="fas fa-tools" style="font-size:3rem;margin-bottom:16px;display:block;opacity:0.2;"></i>
   <div style="font-weight:700;font-size:1rem;margin-bottom:8px;color:#cbd5e1;">No repair jobs yet</div>
+  {% if is_owner or can_jobs %}
   <a href="{{ url_for('add_job') }}" class="btn btn-primary" style="margin-top:10px;text-decoration:none;"><i class="fas fa-plus"></i> Add First Job</a>
+  {% endif %}
 </div>
 {% endif %}
 </div></div>
@@ -390,11 +519,19 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
 <div class="mo" id="viewModal"><div class="mb wide">
   <div class="mt"><i class="fas fa-clipboard-list" style="color:#00BCD4;"></i> Job Details</div>
   <div id="viewContent"></div>
-  <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;">
-    <button onclick="printFromDetails()" class="act act-grey" style="padding:9px 18px;font-size:0.875rem;"><i class="fas fa-print"></i> Print Card</button>
-    <button onclick="const j=JOBS.find(x=>x.id==curId);if(j)sendJobCard(curId)" class="act act-wa" style="padding:9px 18px;font-size:0.875rem;"><i class="fab fa-whatsapp"></i> Send WA</button>
-    <button onclick="closeM('viewModal')" style="padding:9px 18px;border-radius:9px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Close</button>
+  <div class="jd-footer">
+    <button id="jdPrintBtn" onclick="printFromDetails()" class="act act-blue jd-act" style="padding:9px 18px;font-size:0.875rem;background:#00BCD4;" title="Print Card"><i class="fas fa-print"></i><span class="jd-act-label"> Print</span></button>
+    <button id="jdPdfBtn" onclick="shareJobCardPdfBtn(curId)" class="act jd-act" style="padding:9px 18px;font-size:0.875rem;background:#ef4444;color:#fff;" title="Download or share job card PDF"><i class="fas fa-file-pdf"></i><span class="jd-act-label"> PDF</span></button>
+    <button id="jdWaBtn" onclick="sendJobCardText(curId)" class="act act-wa jd-act" style="padding:9px 18px;font-size:0.875rem;" title="Send job card text on WhatsApp"><i class="fab fa-whatsapp"></i><span class="jd-act-label"> Message</span></button>
+    <button onclick="closeM('viewModal')" class="jd-act ghost-act" style="padding:9px 18px;border-radius:9px;" title="Close"><i class="fas fa-times"></i><span class="jd-act-label"> Close</span></button>
+    <div id="jdStaff" class="sv-staff" style="display:none;"></div>
   </div>
+</div></div>
+
+<div class="mo" id="jobLogModal" style="z-index:1100;"><div class="mb" style="max-width:400px;">
+  <div class="mt"><i class="fas fa-history" style="color:#00BCD4;"></i> Job Log</div>
+  <div id="jobLogContent"></div>
+  <button type="button" onclick="closeM('jobLogModal')" class="ghost-act" style="margin-top:14px;width:100%;padding:12px;border-radius:10px;font-size:0.95rem;">Close</button>
 </div></div>
 
 <!-- Diagnose -->
@@ -408,26 +545,39 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
       <span>Total Quote:</span><span id="diagTotal" style="color:#00BCD4;font-size:1.05rem;">₹0.00</span>
     </div>
     <label class="form-label" style="font-size:0.82rem;">Update Status</label>
-    <select id="diagStatus" class="form-control" style="margin-bottom:10px;">
-      <option value="Diagnosing">Diagnosing</option><option value="Repairing">Repairing</option><option value="Ready">Ready</option>
-    </select>
-    <div style="background:#e0f7fa;border-radius:10px;padding:12px;margin-bottom:10px;border:1.5px solid #b2ebf2;">
-      <label class="form-label" style="font-size:0.82rem;color:#006064;"><i class="fas fa-money-bill-wave" style="color:#4CAF50;"></i> Advance Payments</label>
-      <div id="advHistoryList" style="margin-bottom:8px;"></div>
-      <div style="font-size:0.78rem;font-weight:600;color:#006064;margin-bottom:6px;">+ Add New Advance (₹)</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <input type="number" id="diagAdvance" class="form-control" value="" min="0" step="0.01" placeholder="0.00">
-        <select id="diagAdvMethod" class="form-control">
-          <option>Cash</option><option>UPI</option><option>Card</option><option>Bank Transfer</option>
-        </select>
-      </div>
+    <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;" id="diagStatusBoxes">
+      <button type="button" class="btn btn-outline diag-status-btn" style="flex:1;" data-val="Diagnosing" onclick="setDiagStatus(this)">Diagnosing</button>
+      <button type="button" class="btn btn-outline diag-status-btn" style="flex:1;" data-val="Repairing" onclick="setDiagStatus(this)">Repairing</button>
+      <button type="button" class="btn btn-outline diag-status-btn" style="flex:1;" data-val="Ready" onclick="setDiagStatus(this)">Ready</button>
     </div>
+    <input type="hidden" id="diagStatus" value="Diagnosing">
     <label class="form-label" style="font-size:0.82rem;">Notes <span style="font-size:0.72rem;color:#94a3b8;font-weight:400;">(from job entry — read only)</span></label>
     <textarea id="diagNotes" class="form-control" style="min-height:70px;background:#f1f5f9;color:#64748b;cursor:not-allowed;" readonly></textarea>
   </div>
   <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
     <button onclick="saveDiagnose()" class="btn btn-primary" style="flex:1;padding:11px;"><i class="fas fa-save"></i> Save</button>
-    <button onclick="closeM('diagnoseModal')" style="padding:11px 20px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Cancel</button>
+    <button onclick="closeM('diagnoseModal')" class="ghost-act" style="padding:11px 20px;border-radius:10px;">Cancel</button>
+  </div>
+</div></div>
+
+<!-- Advance Payment Modal -->
+<div class="mo" id="advanceModal"><div class="mb wide" style="max-width:400px;">
+  <div class="mt"><i class="fas fa-money-bill-wave" style="color:#4CAF50;"></i> Advance Payment</div>
+  <div id="advanceInfo" style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:14px;font-size:0.875rem;"></div>
+  <div style="background:#e0f7fa;border-radius:10px;padding:12px;margin-bottom:10px;border:1.5px solid #b2ebf2;">
+    <label class="form-label" style="font-size:0.82rem;color:#006064;"><i class="fas fa-history" style="color:#00695c;"></i> Advance History</label>
+    <div id="advHistoryList" style="margin-bottom:8px;"></div>
+    <div style="font-size:0.78rem;font-weight:600;color:#006064;margin-bottom:6px;">+ Add New Advance (₹)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <input type="number" id="advanceAmtInput" class="form-control" value="" min="0" step="0.01" placeholder="0.00">
+      <select id="advanceMethod" class="form-control">
+        <option>Cash</option><option>UPI</option><option>Card</option><option>Bank Transfer</option>
+      </select>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+    <button onclick="saveAdvance()" class="btn btn-primary" style="flex:1;padding:11px;"><i class="fas fa-save"></i> Save Payment</button>
+    <button onclick="closeM('advanceModal')" class="ghost-act" style="padding:11px 20px;border-radius:10px;">Cancel</button>
   </div>
 </div></div>
 
@@ -448,7 +598,7 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
   <div style="display:flex;gap:10px;margin-top:14px;">
     <button onclick="verifyHappy()" class="btn btn-primary" style="flex:1;padding:11px;"><i class="fas fa-check-circle"></i> Verify Code</button>
     <button onclick="proceedDeliver()" id="proceedDeliverBtn" class="act act-orange" style="display:none;flex:1;padding:11px;font-size:0.9rem;"><i class="fas fa-truck"></i> Proceed to Deliver</button>
-    <button onclick="closeM('happyModal')" style="padding:11px 20px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Cancel</button>
+    <button onclick="closeM('happyModal')" class="ghost-act" style="padding:11px 20px;border-radius:10px;">Cancel</button>
   </div>
 </div></div>
 
@@ -462,7 +612,7 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
   </div>
   <div style="display:flex;gap:10px;margin-top:14px;">
     <button onclick="saveReminder()" class="btn btn-primary" style="flex:1;padding:11px;"><i class="fas fa-bell"></i> Set Reminder</button>
-    <button onclick="closeM('reminderModal')" style="padding:11px 18px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Cancel</button>
+    <button onclick="closeM('reminderModal')" class="ghost-act" style="padding:11px 18px;border-radius:10px;">Cancel</button>
   </div>
 </div></div>
 
@@ -499,7 +649,11 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
   <div id="imeiDeliverBox" style="background:#fff3cd;border:1.5px solid #ffc107;border-radius:10px;padding:12px;margin-bottom:14px;display:none;">
     <label class="form-label" style="color:#92400e;font-size:0.82rem;"><i class="fas fa-barcode"></i> IMEI / Serial Number <span style="color:#ef4444;">*</span></label>
     <div style="display:flex;gap:8px;align-items:stretch;">
-      <input type="text" id="deliverImei" class="form-control" placeholder="ENTER IMEI" maxlength="20" oninput="this.value=this.value.toUpperCase()" style="flex:1;">
+      <input type="text" id="deliverImei" class="form-control" placeholder="ENTER IMEI" maxlength="20"
+        autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
+        data-lpignore="true" data-1p-ignore="true" inputmode="text" pattern="[A-Za-z0-9]*"
+        readonly onfocus="this.removeAttribute('readonly')"
+        oninput="this.value=sanitizeImeiSerial(this.value)" style="flex:1;">
       <button type="button" onclick="startImeiScan('deliverImei')"
         style="background:linear-gradient(135deg,#00BCD4,#0097A7);color:white;border:none;border-radius:10px;padding:0 14px;cursor:pointer;font-size:0.82rem;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0;">
         <i class="fas fa-barcode"></i> Scan
@@ -513,7 +667,7 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
     </div>
   </div>
   <div id="aadharDeliverBox" style="background:#fef3c7;border:1.5px solid #f59e0b;border-radius:10px;padding:12px;margin-bottom:14px;display:none;">
-    <label class="form-label" style="color:#92400e;font-size:0.82rem;"><i class="fas fa-id-card"></i> Aadhar Card Number <span style="color:#ef4444;">*</span> <span style="font-weight:400;font-size:0.78rem;">— required for FRP/Flash invoice</span></label>
+    <label class="form-label" style="color:#92400e;font-size:0.82rem;"><i class="fas fa-id-card"></i> Aadhar Card Number <span style="color:#ef4444;">*</span> <span style="font-weight:400;font-size:0.78rem;">— required before delivery and invoice</span></label>
     <input type="text" id="deliverAadhar" class="form-control" placeholder="XXXX XXXX XXXX" maxlength="14" inputmode="numeric" style="letter-spacing:2px;font-weight:600;" oninput="formatDeliverAadhar(this)">
   </div>
   <label class="form-label">Invoice Items</label>
@@ -522,6 +676,20 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;">
     <div><label class="form-label">Discount (₹)</label><input type="number" id="deliverDiscount" class="form-control" value="0" min="0" oninput="updInvTotal()"></div>
     <div><label class="form-label">Advance Paid (₹)</label><input type="number" id="deliverAdvance" class="form-control" value="0" readonly style="background:#f1f5f9;cursor:not-allowed;color:#64748b;"></div>
+  </div>
+  <div id="loyBox" style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;padding:12px;margin-top:12px;">
+    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:0.82rem;font-weight:700;color:#92400e;">
+      <span><i class="fas fa-star"></i> Loyalty: <span id="loyBal">0</span> Pts (₹<span id="loyVal">0.00</span>)</span>
+      <span style="font-weight:600;color:#b45309;">₹100 = 10 Pts · 4 Pts = ₹1 · Min 250</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:8px;align-items:end;">
+      <div>
+        <label class="form-label">Redeem points</label>
+        <input type="number" id="deliverLoyPts" class="form-control" value="0" min="0" step="1" oninput="updInvTotal()">
+      </div>
+      <button type="button" class="btn btn-outline" style="height:42px;" onclick="useMinServicePts()">Use 250</button>
+    </div>
+    <div id="loyHint" style="font-size:0.75rem;font-weight:700;color:#b45309;margin-top:6px;"></div>
   </div>
   <div id="balanceBox" style="display:flex;justify-content:space-between;padding:14px;background:#e0f7fa;border-radius:10px;margin-top:12px;margin-bottom:14px;">
     <span style="font-weight:700;color:#006064;">Balance Due:</span>
@@ -549,7 +717,8 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
   </div>
   <div id="creditSection" style="display:none;background:#fff3cd;border-radius:10px;padding:12px;border:1.5px solid #ffc107;margin-bottom:12px;">
     <label class="form-label" style="color:#92400e;">Credit Due Date *</label>
-    <input type="date" id="creditDueDate" class="form-control">
+    <input type="date" id="creditDueDate" class="form-control" min="{{ due_min }}" max="{{ due_max }}">
+    <small style="color:#92400e;font-size:.75rem;">Due date can be today through {{ due_max }}.</small>
   </div>
   <div id="happyCodeDeliverBox" style="display:none;background:linear-gradient(135deg,#f3e5f5,#ede9fe);border:1.5px solid #BA68C8;border-radius:12px;padding:14px;margin-bottom:14px;">
     <div style="font-size:0.85rem;font-weight:700;color:#6b21a8;margin-bottom:8px;"><i class="fas fa-key"></i> Verify Happy Code <span style="color:#ef4444;">*</span></div>
@@ -562,18 +731,19 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
   <div style="display:flex;gap:10px;flex-wrap:wrap;">
     <button onclick="confirmDeliver(false)" class="btn btn-primary" style="flex:1;padding:11px;"><i class="fas fa-check"></i> Confirm Delivery</button>
     <button onclick="confirmDeliver(true)" class="act act-grey" style="padding:11px 16px;font-size:0.875rem;"><i class="fas fa-print"></i> Deliver & Print</button>
-    <button onclick="closeM('deliverModal')" style="padding:11px 18px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Cancel</button>
+    <button onclick="closeM('deliverModal')" class="ghost-act" style="padding:11px 18px;border-radius:10px;">Cancel</button>
   </div>
 </div></div>
 
-<!-- Cancel -->
+<!-- Cancel / Not Ready -->
 <div class="mo" id="cancelModal"><div class="mb" style="max-width:440px;">
   <div style="text-align:center;margin-bottom:16px;">
-    <div style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.15rem;color:#1a2332;">Return &amp; Refund</div>
+    <div id="cancelModalTitle" style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.15rem;color:#1a2332;">Cancel Job</div>
+    <div id="cancelModalHint" style="font-size:0.8rem;color:#64748b;margin-top:4px;"></div>
   </div>
   <div id="cancelInfo" style="margin-bottom:14px;font-size:0.875rem;background:#f8fafc;border-radius:9px;padding:12px;"></div>
   <div id="cancelRefundBox" style="display:none;">
-    <p style="color:#E53935;font-size:0.82rem;font-weight:600;margin-bottom:14px;text-align:center;">*This action will cancel the job and register a refund/return entry.*</p>
+    <p style="color:#E53935;font-size:0.82rem;font-weight:600;margin-bottom:14px;text-align:center;">Customer has paid an advance. Record the refund to cancel this job.</p>
     <div style="margin-bottom:12px;">
       <div style="font-size:0.75rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Advance Paid:</div>
       <div id="cancelRefundAmt" style="font-size:1.05rem;font-weight:800;color:#1a2332;"></div>
@@ -583,23 +753,29 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
       <input type="number" id="cancelRefundAmtInput" class="form-control" min="0" step="0.01" style="font-size:1rem;font-weight:700;background:#f8fafc;color:#64748b;" readonly>
     </div>
     <div class="form-group">
-      <label class="form-label">Refund Method</label>
+      <label class="form-label">Refund Method <span style="color:#ef4444;">*</span></label>
       <select id="cancelRefundMethod" class="form-control">
         <option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Card</option>
       </select>
     </div>
   </div>
-  <div class="form-group"><label class="form-label">Reason for Return/Refund</label>
+  <div class="form-group"><label class="form-label">Reason <span style="color:#ef4444;">*</span></label>
     <select id="cancelReason" class="form-control" onchange="document.getElementById('cancelOtherBox').style.display=this.value=='Other'?'block':'none'">
-      <option>Customer Request</option><option>Repair Not Possible</option><option>Spare Not Available</option><option>Mobile Already Dead</option><option>Other</option>
+      <option value="">Select reason</option>
+      <option>Repair Not Possible</option>
+      <option>Spare Not Available</option>
+      <option>Mobile Already Dead</option>
+      <option>Customer Request</option>
+      <option>Customer Declined Quote</option>
+      <option>Other</option>
     </select>
   </div>
   <div id="cancelOtherBox" style="display:none;" class="form-group"><label class="form-label">Specify</label>
     <textarea id="cancelOtherText" class="form-control" oninput="this.value=this.value.toUpperCase()"></textarea>
   </div>
   <div style="display:flex;gap:10px;margin-top:14px;">
-    <button onclick="confirmCancel()" style="flex:1;padding:12px;background:#E53935;color:white;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:0.92rem;font-weight:700;"><i class="fas fa-undo"></i> Confirm Refund/Return</button>
-    <button onclick="closeM('cancelModal')" style="padding:12px 18px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">✕</button>
+    <button id="cancelConfirmBtn" onclick="confirmReturnOrCancel()" style="flex:1;padding:12px;background:#E53935;color:white;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:0.92rem;font-weight:700;"><i class="fas fa-times-circle"></i> Confirm Cancel</button>
+    <button onclick="closeM('cancelModal')" class="ghost-act" style="padding:12px 18px;border-radius:10px;">✕</button>
   </div>
 </div></div>
 
@@ -617,13 +793,10 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
       <option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Card</option>
     </select>
   </div>
-  <div class="form-group">
-    <label class="form-label">Refund Date</label>
-    <input type="date" id="refundDate" class="form-control">
-  </div>
+  <p style="font-size:0.78rem;font-weight:600;color:#334155;margin:0 0 8px;"><i class="fas fa-clock" style="color:#00BCD4;"></i> Date and time will be recorded when you save.</p>
   <div style="display:flex;gap:10px;margin-top:6px;">
     <button onclick="confirmRefund()" class="btn btn-primary" style="flex:1;background:#4CAF50;border-color:#4CAF50;padding:11px;font-size:0.9rem;"><i class="fas fa-check"></i> Record Refund</button>
-    <button onclick="closeM('refundModal')" style="padding:11px 20px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Cancel</button>
+    <button onclick="closeM('refundModal')" class="ghost-act" style="padding:11px 20px;border-radius:10px;">Cancel</button>
   </div>
 </div></div>
 
@@ -636,37 +809,57 @@ html, body { max-width: 100vw; overflow-x: hidden; width: 100%; }
   </div>
   <div style="display:flex;gap:10px;margin-top:14px;">
     <button onclick="confirmRework()" class="act act-purple" style="flex:1;padding:11px;font-size:0.9rem;"><i class="fas fa-redo"></i> Create Rework Job</button>
-    <button onclick="closeM('reworkModal')" style="padding:11px 20px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Cancel</button>
+    <button onclick="closeM('reworkModal')" class="ghost-act" style="padding:11px 20px;border-radius:10px;">Cancel</button>
   </div>
 </div></div>
 
-<!-- WA Number Modal -->
-<div class="mo" id="waModal"><div class="mb">
-  <div class="mt"><i class="fab fa-whatsapp" style="color:#25D366;"></i> Send via WhatsApp</div>
-  <div class="form-group">
-    <label class="form-label">Customer Phone Number</label>
-    <div style="display:flex;gap:8px;">
-      <span style="padding:10px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px;font-weight:700;color:#64748b;">+91</span>
-      <input type="tel" id="waPhone" class="form-control" maxlength="10" placeholder="10-digit number" oninput="this.value=this.value.replace(/\D/g,'').substring(0,10)">
-    </div>
-  </div>
-  <div style="display:flex;gap:10px;margin-top:14px;">
-    <button onclick="confirmWA()" class="act act-wa" style="flex:1;padding:11px;font-size:0.9rem;"><i class="fab fa-whatsapp"></i> Open WhatsApp</button>
-    <button onclick="closeM('waModal')" style="padding:11px 18px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">Cancel</button>
-  </div>
-</div></div>
+<!-- WA uses global modal from includes/wa_helpers.html -->
 
-<div id="toast" style="position:fixed;bottom:22px;right:22px;background:#1a2332;color:white;padding:12px 20px;border-radius:12px;font-size:0.875rem;font-weight:500;z-index:9999;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.2);">
+<div id="toast" style="position:fixed;bottom:22px;right:22px;background:#1a2332;color:white;padding:12px 20px;border-radius:12px;font-size:0.875rem;font-weight:500;z-index:11000;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.2);">
   <i class="fas fa-check-circle" style="color:#00BCD4;margin-right:8px;"></i><span id="toastMsg"></span>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-const JOBS = {{ jobs_json|safe }};
+function btnLoad(btn, text) {
+    if(!btn) return;
+    btn.dataset.old = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + text;
+    btn.disabled = true;
+}
+function btnReset(btn) {
+    if(!btn || !btn.dataset.old) return;
+    btn.innerHTML = btn.dataset.old;
+    btn.disabled = false;
+}
+function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+const JOBS = JSON.parse({{ jobs_json|tojson }});
+const IS_OWNER = {{ 'true' if is_owner else 'false' }};
 const SHOP = { name:{{ user.shop_name|default('My Shop')|tojson }}, phone:{{ (user.phone or '')|tojson }}, address:{{ user.address|default('')|tojson }}, review:{{ (user.google_review_link or '')|tojson }} };
 const USER_IMEI_SKIP = {{ imei_skip }};
 let curId = null, waPendingMsg = '', waPendingPhone = '';
+
+function shopWaVars() {
+  return { shop: SHOP.name, address: SHOP.address || '', phone: SHOP.phone || '', review: SHOP.review || '' };
+}
+function jobWaVars(j) {
+  return Object.assign(shopWaVars(), {
+    name: j.customer_name,
+    id: j.id,
+    device: j.device_model,
+    imei: j.imei_billing || j.imei || '',
+    issue: j.issue,
+    received: (j.received_without || '').trim() || '—',
+    expected: j.expected_return || (getWaLang() === 'ta' ? 'தெரிவிப்போம்' : (getWaLang() === 'hi' ? 'बताएंगे' : 'Will inform')),
+    status: j.status,
+    happy_code: j.happy_code || ''
+  });
+}
+function waDateStr() {
+  const now = new Date();
+  return now.getDate() + '/' + (now.getMonth() + 1) + '/' + now.getFullYear();
+}
 
 // ── Overdue & Partial toggle ──
 function toggleOverdueList() {
@@ -748,6 +941,12 @@ window.addEventListener('scroll', () => {
 
 // ── Filters ──
 let activeStatus = '';
+function toggleJobCard(td) {
+  const tr = td.closest('tr');
+  const wasOpen = tr.classList.contains('expanded');
+  document.querySelectorAll('#jobsTable tbody tr.expanded').forEach(r => r.classList.remove('expanded'));
+  if (!wasOpen) tr.classList.add('expanded');
+}
 function setFilter(btn, s) {
   activeStatus = s;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -755,8 +954,10 @@ function setFilter(btn, s) {
   applyFilters();
 }
 function applyFilters() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  document.querySelectorAll('#jobsTable tbody tr').forEach(row => {
+  let q = document.getElementById('searchInput').value.toLowerCase().trim();
+  if (/^job-?\d+$/i.test(q)) q = q.replace(/^job-?/i, '');
+  if (/^inv-?\d+$/i.test(q)) q = q.replace(/^inv-?/i, '');
+  document.querySelectorAll('.mob-cards tbody tr, #jobsTable tbody tr').forEach(row => {
     const mQ = !q || row.textContent.toLowerCase().includes(q);
     const mS = !activeStatus || row.dataset.status === activeStatus;
     row.style.display = (mQ && mS) ? '' : 'none';
@@ -768,6 +969,20 @@ function resetFilters() {
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.filter-btn')[0].classList.add('active');
   applyFilters();
+}
+function triggerJobScanner() {
+  if (typeof startBarcodeScan === 'function') {
+    startBarcodeScan({
+      inputId: 'searchInput',
+      imei: false,
+      continuous: false,
+      title: 'Scan Job Barcode',
+      hint: 'Align the <strong>Job Barcode</strong> within the frame',
+      status: 'Align barcode in the frame...'
+    });
+    // Add event listener to auto filter after scan
+    document.getElementById('searchInput').addEventListener('input', applyFilters, { once: true });
+  } else { toast('Scanner not initialized.'); }
 }
 
 // ── Modal helpers ──
@@ -783,75 +998,105 @@ function toast(msg, color='') {
 
 // ── View Details ──
 function viewJob(id) {
-  curId=id; const j=JOBS.find(x=>x.id==id); if(!j) return;
+  curId=id; const j=JOBS.find(x=>x.id==id);
+  if(!j){ toast('Job #'+id+' not found','#E53935'); return; }
   const today=new Date().toISOString().split('T')[0];
   const overdueHtml=j.expected_return&&j.expected_return<today&&!['Delivered','Cancelled'].includes(j.status)
-    ?`<span class="overdue" style="margin-left:8px;">⚠ Overdue</span>`:'';
-  let html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-    <div style="background:#f8fafc;border-radius:10px;padding:14px;">
-      <div style="font-size:0.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:8px;">Customer</div>
-      <div style="font-weight:700;font-size:1rem;">${j.customer_name}</div>
-      <div style="color:#64748b;">📞 ${j.customer_phone}</div>
-      ${j.aadhar_number?`<div style="color:#f59e0b;font-size:0.82rem;margin-top:4px;"><i class="fas fa-id-card"></i> Aadhar: ${j.aadhar_number}</div>`:''}
+    ?`<span class="overdue" style="margin-left:4px;">⚠</span>`:'';
+  const logParts=[];
+  if(j.created_at) logParts.push(['Received', toIST(j.created_at)]);
+  if(j.diagnosed_at) logParts.push(['Diagnosed', toIST(j.diagnosed_at)]);
+  if(j.status==='Not Ready') logParts.push(['Not Ready', toIST(j.updated_at)]);
+  else if(j.status==='Cancelled') logParts.push(['Cancelled', toIST(j.updated_at)]);
+  else if(j.delivery_date) logParts.push(['Delivered', j.delivery_date]);
+  if(parseFloat(j.refund_amount||0)>0 && j.refund_date) logParts.push(['Advance Refunded', j.refund_date.length>10?toIST(j.refund_date):j.refund_date]);
+  if(j.diagnosis_history) {
+    try {
+      const dh = JSON.parse(j.diagnosis_history);
+      dh.forEach(h => logParts.push([`Status: ${h.status}`, h.time]));
+    } catch(e){}
+  }
+  if(j.updated_at) logParts.push(['Updated', toIST(j.updated_at)]);
+  window._jobLogHtml=`<div class="jd-log-list">${logParts.map(([k,v])=>`<div class="jd-log-row"><span>${k}</span><span>${v}</span></div>`).join('')}</div>`;
+  let html = `<div class="jd-top">
+    <div class="jd-who">
+      <strong>${esc(j.customer_name)}</strong>
+      <span><i class="fas fa-phone" style="color:#00BCD4;font-size:0.72rem;"></i> ${esc(j.customer_phone)}</span>
+      ${j.aadhar_number?`<span style="color:#f59e0b;"><i class="fas fa-id-card"></i> ${esc(j.aadhar_number)}</span>`:''}
     </div>
-    <div style="background:#f8fafc;border-radius:10px;padding:14px;">
-      <div style="font-size:0.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:8px;">Device</div>
-      <div style="font-weight:700;">${j.device_model}</div>
-      ${j.imei_billing||j.imei?`<div style="font-size:0.8rem;color:#64748b;"><i class="fas fa-barcode"></i> ${j.imei_billing||j.imei}</div>`:''}
+    <div class="jd-dev">
+      <strong>${esc(j.device_model)}</strong>
+      ${j.imei_billing||j.imei?`<span><i class="fas fa-barcode"></i> ${esc(j.imei_billing||j.imei)}</span>`:''}
+    </div>
+    <div class="jd-log-wrap"><button type="button" class="jd-log-btn" onclick="openJobLog()" title="Job log" aria-label="Job log"><i class="fas fa-history"></i></button></div>
+  </div>
+  <div class="jd-issue">
+    <div style="font-size:0.9rem;font-weight:700;">${esc(j.issue||'—')}</div>
+    <div style="margin-top:8px;padding-top:8px;border-top:1px dashed #e2e8f0;">
+      <div style="font-size:0.68rem;font-weight:700;color:#334155;text-transform:uppercase;margin-bottom:4px;"><i class="fas fa-box-open" style="color:#FF9800;"></i> Received</div>
+      <div style="font-size:0.82rem;font-weight:600;color:#c2410c;">${esc((j.received_without||'').trim()||'—')}</div>
     </div>
   </div>
-  <div style="background:#f8fafc;border-radius:10px;padding:14px;margin-bottom:12px;">
-    <div style="font-size:0.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:8px;">Issues Reported</div>
-    <div style="font-size:0.9rem;">${j.issue}</div>
-    ${j.received_without?`<div style="margin-top:8px;font-size:0.8rem;color:#FF9800;"><i class="fas fa-box-open"></i> Received Without: ${j.received_without}</div>`:''}
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
-    <div style="background:#e0f7fa;border-radius:10px;padding:12px;text-align:center;">
-      <div style="font-size:0.72rem;color:#006064;font-weight:700;">STATUS</div>
-      <div class="sp sp-${j.status.replace(/ /g,'').replace('/','')}" style="margin-top:6px;">${j.status}</div>
+  <div class="jd-stats">
+    <div class="jd-stat jd-status">
+      <span class="jd-k">Status</span>
+      <span class="sp sp-${j.status.replace(/ /g,'').replace('/','')}">${j.status}</span>
     </div>
-    <div style="background:#f8fafc;border-radius:10px;padding:12px;text-align:center;">
-      <div style="font-size:0.72rem;color:#94a3b8;font-weight:700;">COST</div>
-      <div style="font-size:1rem;font-weight:800;color:#1a2332;margin-top:4px;">${j.cost?'₹'+parseFloat(j.cost).toFixed(2):'—'}</div>
+    <div class="jd-stat">
+      <span class="jd-k">Estimated Cost</span>
+      <strong>${j.cost?'₹'+parseFloat(j.cost).toFixed(2):'—'}</strong>
+      ${j.status==='Delivered'&&parseFloat(j.inv_balance||0)>0.01?`<div style="font-size:0.7rem;color:#ef4444;font-weight:700;margin-top:2px;">Credit ₹${parseFloat(j.inv_balance).toFixed(2)}${j.inv_due_date?' · Due '+j.inv_due_date:''}</div>`:''}
     </div>
-    <div style="background:#f8fafc;border-radius:10px;padding:12px;text-align:center;">
-      <div style="font-size:0.72rem;color:#94a3b8;font-weight:700;">EXPECTED</div>
-      <div style="font-size:0.85rem;font-weight:700;margin-top:4px;">${j.expected_return||'—'}${overdueHtml}</div>
+    <div class="jd-stat">
+      <span class="jd-k">Expected</span>
+      <strong>${j.expected_return||'—'}${overdueHtml}</strong>
     </div>
   </div>
-  ${j.happy_code?`<div style="background:linear-gradient(135deg,#f3e5f5,#e8d5f5);border-radius:10px;padding:14px;margin-bottom:12px;text-align:center;">
-    <div style="font-size:0.72rem;font-weight:700;color:#7b1fa2;text-transform:uppercase;margin-bottom:6px;">🔑 Happy Code (share with customer)</div>
-    <div style="font-family:'Exo 2',sans-serif;font-size:2rem;font-weight:900;color:#9C27B0;letter-spacing:10px;">${j.happy_code}</div>
+  ${j.happy_code?`<div style="background:linear-gradient(135deg,#f3e5f5,#e8d5f5);border-radius:10px;padding:12px;margin-bottom:12px;text-align:center;">
+    <div style="font-size:0.68rem;font-weight:700;color:#7b1fa2;text-transform:uppercase;margin-bottom:4px;">🔑 Happy Code</div>
+    <div style="font-family:'Exo 2',sans-serif;font-size:1.6rem;font-weight:900;color:#9C27B0;letter-spacing:8px;">${j.happy_code}</div>
+  </div>`:''}
+  ${j.status==='Delivered'?`<div class="jd-done-acts">
+    <button type="button" onclick="printInvoiceFromDetails()" style="background:#00BCD4;"><i class="fas fa-print"></i> Print Invoice</button>
+    <button type="button" onclick="shareInvoicePdfFromDetails()" style="background:#ef4444;color:#fff;"><i class="fas fa-file-pdf"></i> Share Invoice PDF</button>
+    <button type="button" onclick="sendInvoiceTextFromDetails()" style="background:#25D366;"><i class="fab fa-whatsapp"></i> Send Invoice Message</button>
   </div>`:''}
   ${(()=>{
     const adv=parseFloat(j.advance_amount||0);
+    const invBal=parseFloat(j.inv_balance||0);
+    const creditDue=j.status==='Delivered' && invBal>0.01;
+    if(adv<=0 && j.status!=='Cancelled' && !creditDue) return '';
     let advHtml='';
     if(adv>0){
       const hist=j.advance_history?JSON.parse(j.advance_history):[];
       const rows=hist.length>0
-        ?hist.map(e=>`<div style="display:flex;justify-content:space-between;background:#b2dfdb;border-radius:7px;padding:5px 10px;margin-bottom:4px;font-size:0.82rem;">
+        ?hist.map(e=>`<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;background:#b2dfdb;border-radius:7px;padding:5px 10px;margin-bottom:4px;font-size:0.82rem;">
             <span style="font-weight:700;color:#004d40;">₹${parseFloat(e.amount).toFixed(2)}</span>
-            <span style="color:#00695c;">${e.method}</span>
-            <span style="color:#546e7a;font-size:0.72rem;">${e.date}</span>
+            <span style="color:#00695c;">${e.method||'Cash'}</span>
+            <span style="color:#0f766e;font-weight:700;">${e.note||'Payment'}</span>
+            <span style="color:#546e7a;font-size:0.72rem;">${e.date||''}</span>
           </div>`).join('')
         :`<div style="font-size:0.82rem;color:#00838f;">₹${adv.toFixed(2)} — ${j.advance_method||'Cash'}</div>`;
-      advHtml+=`<div style="background:#e0f7fa;border:1.5px solid #b2ebf2;border-radius:10px;padding:14px;margin-bottom:12px;">
-        <div style="font-size:0.72rem;font-weight:700;color:#006064;text-transform:uppercase;margin-bottom:8px;">💰 Advance Payments <span style="font-size:0.8rem;font-weight:800;color:#00838f;">Total: ₹${adv.toFixed(2)}</span></div>
-        ${rows}
+      advHtml+=`<div style="background:#e0f7fa;border:1.5px solid #b2ebf2;border-radius:10px;padding:14px;margin-bottom:12px;"><div style="font-size:0.72rem;font-weight:700;color:#006064;text-transform:uppercase;margin-bottom:8px;">Payment Details <span style="font-size:0.8rem;font-weight:800;color:#00838f;">Total: ₹${adv.toFixed(2)}</span></div>${rows}</div>`;
+    }
+    if(creditDue){
+      advHtml+=`<div style="background:#fff7ed;border:1.5px solid #fbbf24;border-radius:10px;padding:12px 14px;margin-bottom:12px;">
+        <div style="font-size:0.72rem;font-weight:800;color:#92400e;text-transform:uppercase;margin-bottom:4px;">Credit Due</div>
+        <div style="font-weight:800;color:#c2410c;">₹${invBal.toFixed(2)}${j.inv_due_date?` · Due ${j.inv_due_date}`:''}</div>
       </div>`;
     }
     if(j.status==='Cancelled'){
       const reason = j.cancel_reason ? j.cancel_reason.split('|')[0].trim() : 'Cancelled';
       const refundRecorded = parseFloat(j.refund_amount||0) > 0;
       const refundDisplay = refundRecorded
-        ? `₹${parseFloat(j.refund_amount).toFixed(2)} via ${j.refund_method||'Cash'} on ${j.refund_date||'—'}`
+        ? `₹${parseFloat(j.refund_amount).toFixed(2)} via ${j.refund_method||'Cash'} on ${j.refund_date&&j.refund_date.length>10?toIST(j.refund_date):(j.refund_date||'—')}`
         : (() => { const p=j.cancel_reason?j.cancel_reason.split('|').find(p=>p.includes('Advance Refunded')):''; return p?p.replace('Advance Refunded:','').trim():''; })();
       advHtml+=`<div style="background:#fff7ed;border:1.5px solid #fbbf24;border-radius:10px;padding:14px;margin-bottom:12px;">
         <div style="font-size:0.72rem;font-weight:700;color:#92400e;text-transform:uppercase;margin-bottom:8px;">🚫 Cancellation Details</div>
-        <div style="margin-bottom:8px;"><span style="font-size:0.75rem;color:#64748b;">Reason: </span><span style="font-weight:600;color:#1a2332;">${reason}</span></div>
+        <div style="margin-bottom:8px;"><span style="font-size:0.75rem;color:#64748b;">Reason: </span><span style="font-weight:600;color:#1a2332;">${esc(reason)}</span></div>
         ${adv>0?(refundDisplay?`<div style="background:#d1fae5;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;">
           <span style="color:#065f46;font-size:1.1rem;">✓</span>
-          <div><div style="font-size:0.75rem;color:#065f46;font-weight:700;">ADVANCE REFUNDED</div><div style="font-weight:800;color:#065f46;font-size:1rem;">${refundDisplay}</div></div>
+          <div><div style="font-size:0.75rem;color:#065f46;font-weight:700;">ADVANCE REFUNDED</div><div style="font-weight:800;color:#065f46;font-size:1rem;">${esc(refundDisplay)}</div></div>
         </div>`
         :`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
           <span style="color:#92400e;font-size:0.85rem;">⚠ Advance of ₹${adv.toFixed(2)} not yet refunded.</span>
@@ -863,92 +1108,220 @@ function viewJob(id) {
   })()}
   ${(()=>{
     const rawNotes=j.notes||'';
+    const origId=parseInt(j.original_job_id,10)||(()=>{const m=rawNotes.match(/Original Job:\s*#(\d+)/i);return m?parseInt(m[1],10):null;})();
     const lockMatch=rawNotes.match(/SCREEN LOCK:\s*([^|]+)/i);
     const lockVal=lockMatch?lockMatch[1].trim():'';
-    const cleanNotes=rawNotes.replace(/\|?\s*SCREEN LOCK:[^|]*/i,'').replace(/^\s*\|\s*/,'').trim();
+    const cleanNotes=rawNotes.replace(/\|?\s*SCREEN LOCK:[^|]*/i,'').replace(/Original Job:\s*#\d+\s*\|?\s*/i,'').replace(/^\s*\|\s*/,'').trim();
     let extra='';
+    if(origId){
+      extra+=`<button type="button" onclick="viewJob(${origId})" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#e0f7fa;border:1.5px solid #b2ebf2;border-radius:10px;padding:12px 14px;margin-bottom:12px;cursor:pointer;font-family:inherit;text-align:left;">
+        <span><span style="font-size:0.68rem;font-weight:700;color:#006064;text-transform:uppercase;display:block;margin-bottom:2px;">Original Job</span><strong style="color:#1a2332;">#${origId}</strong></span>
+        <span style="color:#00BCD4;font-weight:700;font-size:0.82rem;">View <i class="fas fa-arrow-right"></i></span>
+      </button>`;
+    }
     if(lockVal){
       const lockIcon=lockVal.startsWith('NONE')?'fa-unlock':lockVal.startsWith('PATTERN')?'fa-th':lockVal.startsWith('PIN')?'fa-keyboard':'fa-font';
       extra+=`<div style="background:linear-gradient(135deg,#ede9fe,#f3e5f5);border:1.5px solid #c4b5fd;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;">
         <i class="fas ${lockIcon}" style="color:#7c3aed;font-size:1.1rem;"></i>
         <div>
           <div style="font-size:0.72rem;font-weight:700;color:#6d28d9;text-transform:uppercase;">Screen Lock</div>
-          <div style="font-weight:800;font-size:0.95rem;color:#4c1d95;letter-spacing:1px;">${lockVal}</div>
+          <div style="font-weight:800;font-size:0.95rem;color:#4c1d95;letter-spacing:1px;">${esc(lockVal)}</div>
         </div>
       </div>`;
     }
     if(cleanNotes){
       extra+=`<div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 14px;margin-bottom:12px;">
-        <div style="font-size:0.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;"><i class="fas fa-sticky-note" style="color:#fbbf24;"></i> Notes</div>
-        <div style="font-size:0.88rem;color:#334155;line-height:1.5;">${cleanNotes}</div>
+        <div style="font-size:0.72rem;font-weight:700;color:#334155;text-transform:uppercase;margin-bottom:6px;"><i class="fas fa-sticky-note" style="color:#fbbf24;"></i> Notes</div>
+        <div style="font-size:0.88rem;color:#334155;line-height:1.5;">${esc(cleanNotes)}</div>
       </div>`;
     }
     return extra;
-  })()}
-  <div style="font-size:0.78rem;color:#94a3b8;text-align:right;">Received: ${toIST(j.created_at)}${j.diagnosed_at?' | Diagnosed: '+toIST(j.diagnosed_at):''} | Updated: ${toIST(j.updated_at)}</div>`;
+  })()}`;
   document.getElementById('viewContent').innerHTML = html;
+  const staffEl = document.getElementById('jdStaff');
+  if(staffEl){
+    if(IS_OWNER){
+      const name = String(j.staff_name||'OWNER').trim() || 'OWNER';
+      const label = (j.staff_id && name.toUpperCase()!=='OWNER') ? 'Sales person' : 'Handled by';
+      staffEl.innerHTML = `<div class="sv-k" style="margin-bottom:2px;">${label}</div><div style="font-weight:800;color:#0f172a;">${name.replace(/</g,'')}</div>`;
+      staffEl.style.display = '';
+    } else {
+      staffEl.style.display = 'none';
+      staffEl.innerHTML = '';
+    }
+  }
+  const closed = ['Delivered','Cancelled'].includes(j.status);
+  ['jdPrintBtn','jdPdfBtn','jdWaBtn'].forEach(function(id){
+    const el = document.getElementById(id);
+    if (el) el.style.display = closed ? 'none' : '';
+  });
   openM('viewModal');
 }
-function printFromDetails() { const j=JOBS.find(x=>x.id==curId); if(j) printJobCard(curId); closeM('viewModal'); }
+function openJobLog() {
+  const box=document.getElementById('jobLogContent');
+  if(box) box.innerHTML=window._jobLogHtml||'<div style="color:#334155;font-weight:600;">No log yet.</div>';
+  openM('jobLogModal');
+}
+function jobCardAllowed(j) {
+  return j && !['Delivered','Cancelled'].includes(j.status);
+}
+function printFromDetails() {
+  const j=JOBS.find(x=>x.id==curId);
+  if (!jobCardAllowed(j)) { toast('Job card print is not available after delivery or cancel.','#E53935'); return; }
+  printJobCard(curId);
+  closeM('viewModal');
+}
+function printInvoiceFromDetails() {
+  const j=JOBS.find(x=>x.id==curId); if(!j) return;
+  if(j.inv_id){ window.open('/invoices/'+j.inv_id+'/print','_blank'); return; }
+  toast('No invoice found for this job.','#E53935');
+}
+async function shareInvoicePdfFromDetails() {
+  const j=JOBS.find(x=>x.id==curId); if(!j||!j.inv_id){ toast('No invoice found for this job.','#E53935'); return; }
+  toast('Preparing invoice PDF…');
+  try {
+    const r = await window.sharePrintPagePdf('/invoices/'+j.inv_id+'/print', { wait: 1200 });
+    toast(r === 'downloaded' ? 'Invoice PDF downloaded ✓' : 'Invoice PDF shared ✓');
+  } catch(e) { toast('Could not share invoice PDF.','#E53935'); }
+}
+function sendInvoiceTextFromDetails() {
+  sendInvoice(curId);
+}
+async function shareInvoicePdfBtn(id) {
+  const j=JOBS.find(x=>x.id==id); if(!j||!j.inv_id){ toast('No invoice found for this job.','#E53935'); return; }
+  toast('Preparing invoice PDF…');
+  try {
+    const r = await window.sharePrintPagePdf('/invoices/'+j.inv_id+'/print', { wait: 1200 });
+    toast(r === 'downloaded' ? 'Invoice PDF downloaded ✓' : 'Invoice PDF shared ✓');
+  } catch(e) { toast('Could not share invoice PDF.','#E53935'); }
+}
 
-// ── WhatsApp helpers ──
-function directWA(phone, msg) {
-  const ph = phone.replace(/\D/g,'').slice(-10);
-  if(ph.length === 10) window.open(`https://wa.me/91${ph}?text=${encodeURIComponent(msg)}`,'_blank');
+// ── WhatsApp helpers (English / Tamil / Hindi via wa_helpers.html) ──
+function jobCardWaMsg(j) {
+  return WaMsg.build('job_card', jobWaVars(j), getWaLang());
 }
-function openWA(phone, msg) {
-  waPendingMsg = msg; waPendingPhone = phone;
-  document.getElementById('waPhone').value = phone.replace(/\D/g,'').substring(phone.length-10);
-  openM('waModal');
-}
-async function confirmWA() {
-  const ph = document.getElementById('waPhone').value.trim();
-  if(ph.length !== 10){ await showAlert('Please enter a valid 10-digit number.'); return; }
-  window.open(`https://wa.me/91${ph}?text=${encodeURIComponent(waPendingMsg)}`,'_blank');
-  closeM('waModal');
+function jobCardBodyHtml(j) {
+  let hist=[]; try{ hist=j.advance_history?JSON.parse(j.advance_history):[]; }catch(e){ hist=[]; }
+  const invBal=parseFloat(j.inv_balance||0);
+  const dueLine=(j.status==='Delivered'&&invBal>0.01)
+    ?`<p style="font-size:8pt;margin-top:6px;font-weight:700;color:#c2410c;">Credit due ₹${invBal.toFixed(2)}${j.inv_due_date?' · Due '+j.inv_due_date:''}</p>`:'';
+  const cellStyle='padding:3px 7px;border:1px solid #ccc;font-size:9pt;';
+  let payBlock='';
+  if(!hist.length && parseFloat(j.advance_amount||0)>0) payBlock=`<p style="font-size:8.5pt;margin-top:6px;"><strong>Payment:</strong> ₹${parseFloat(j.advance_amount).toFixed(2)} — ${j.advance_method||'Cash'}</p>${dueLine}`;
+  else if(!hist.length) payBlock=dueLine;
+  else payBlock=`<h4 style="margin:8px 0 4px;font-size:9pt;text-decoration:underline;">Payment Details</h4>
+    <table style="width:100%;border-collapse:collapse;font-size:8.5pt;"><tr>
+      <td style="${cellStyle}"><strong>Amount</strong></td><td style="${cellStyle}"><strong>Method</strong></td><td style="${cellStyle}"><strong>Type</strong></td><td style="${cellStyle}"><strong>Date / Time</strong></td></tr>
+    ${hist.map(e=>`<tr><td style="${cellStyle}">₹${parseFloat(e.amount||0).toFixed(2)}</td><td style="${cellStyle}">${e.method||'Cash'}</td><td style="${cellStyle}">${e.note||'Payment'}</td><td style="${cellStyle}">${e.date||'—'}</td></tr>`).join('')}
+    </table>${dueLine}`;
+  let watermark = '';
+  if (j.status === 'Delivered') {
+    watermark = '<div style="position:absolute;top:40%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:6rem;color:rgba(16,185,129,0.15);font-weight:900;text-transform:uppercase;z-index:-1;pointer-events:none;white-space:nowrap;letter-spacing:8px;">COMPLETED</div>';
+  } else if (j.status === 'Cancelled') {
+    watermark = '<div style="position:absolute;top:40%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:6rem;color:rgba(239,68,68,0.15);font-weight:900;text-transform:uppercase;z-index:-1;pointer-events:none;white-space:nowrap;letter-spacing:8px;">CANCELLED</div>';
+  }
+  return `<div style="position:relative;z-index:1;">
+    ${watermark}
+    <div style="text-align:center;border-bottom:2px solid black;padding-bottom:6px;margin-bottom:8px;">
+    <h3 style="margin:0;font-size:12pt;">${SHOP.name}</h3>
+    <p style="margin:2px 0;font-size:8.5pt;">${SHOP.address} | ${SHOP.phone}</p>
+  </div>
+  <h4 style="text-align:center;text-decoration:underline;margin:4px 0 6px;font-size:10pt;">SERVICE JOB CARD</h4>
+  <table style="width:100%;border-collapse:collapse;">
+    <tr><td style="${cellStyle}"><strong>Job ID</strong></td><td style="${cellStyle}">#${j.id}</td><td style="${cellStyle}"><strong>Date</strong></td><td style="${cellStyle}">${toIST(j.created_at)}</td></tr>
+    <tr><td style="${cellStyle}"><strong>Customer</strong></td><td style="${cellStyle}">${esc(j.customer_name)}</td><td style="${cellStyle}"><strong>Phone</strong></td><td style="${cellStyle}">${esc(j.customer_phone)}</td></tr>
+    <tr><td style="${cellStyle}"><strong>Device</strong></td><td style="${cellStyle}">${esc(j.device_model)}</td><td style="${cellStyle}"><strong>IMEI</strong></td><td style="${cellStyle}">${esc(j.imei_billing||j.imei||'—')}</td></tr>
+    <tr><td style="${cellStyle}"><strong>Issue</strong></td><td colspan="3" style="${cellStyle}">${esc(j.issue)}</td></tr>
+    <tr><td style="${cellStyle}"><strong>Received</strong></td><td colspan="3" style="${cellStyle}">${esc((j.received_without||'').trim()||'—')}</td></tr>
+    <tr><td style="${cellStyle}"><strong>Expected Return</strong></td><td style="${cellStyle}">${j.expected_return||'—'}</td><td style="${cellStyle}"><strong>Paid Total</strong></td><td style="${cellStyle}">${j.advance_amount>0?'₹'+parseFloat(j.advance_amount).toFixed(2):'—'}</td></tr>
+  </table>
+  ${payBlock}
+  ${j.happy_code?`<div style="break-inside:avoid;page-break-inside:avoid;margin-top:8px;border:1.5px solid #000;text-align:center;padding:8px 10px;"><div style="font-size:7.5pt;font-weight:800;text-transform:uppercase;letter-spacing:1px;">Happy Code</div><div style="font-size:16pt;font-weight:800;letter-spacing:4px;margin-top:2px;">${j.happy_code}</div><div style="font-size:8pt;margin-top:2px;">Show this code when collecting the device</div></div>`:''}
+  <div style="break-inside:avoid;page-break-inside:avoid;margin-top:14px;display:flex;justify-content:space-between;font-size:8.5pt;border-top:1px solid black;padding-top:6px;">
+    <span>Customer Signature: _________________</span><span>Tech Signature: _________________</span></div>
+  <div style="margin-top:10px;text-align:right;font-size:8pt;font-weight:800;letter-spacing:0.6px;color:#94a3b8;">MobileFix Pro</div></div>`;
 }
 
-function sendJobCard(id) {
+async function shareJobCardPdf(j) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;left:0;top:100vh;width:720px;background:#fff;padding:20px;font-family:Arial,sans-serif;font-size:10pt;color:#111;z-index:0;pointer-events:none;';
+  wrap.innerHTML = jobCardBodyHtml(j);
+  document.body.appendChild(wrap);
+  try {
+    // Use A4 portrait — job card is 720px wide with 4-column table, A5 clips the right column
+    return await window.shareHtmlAsPdf(wrap, 'JobCard_'+j.id+'.pdf', 'Job Card #'+j.id, 'Job card from '+(SHOP.name||''), {
+      margin: 0.4,
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0 },
+      jsPDF: { unit: 'in', format: 'a5', orientation: 'landscape' }
+    });
+  } catch (e) {
+    return 'error';
+  } finally {
+    wrap.remove();
+  }
+}
+async function shareJobCardPdfBtn(id) {
   const j=JOBS.find(x=>x.id==id); if(!j) return;
-  let m=`*--- SERVICE JOB CARD ---*\n*${SHOP.name}*\n${SHOP.address}\n\nDear *${j.customer_name}*,\nYour device has been received.\n\n`;
-  m+=`*Job ID:* #${j.id}\n*Device:* ${j.device_model}\n`;
-  if(j.imei_billing||j.imei) m+=`*IMEI/SN:* ${j.imei_billing||j.imei}\n`;
-  m+=`*Issue(s):* ${j.issue}\n`;
-  m+=`*Expected Return:* ${j.expected_return||'Will inform'}\n*Status:* ${j.status}\n`;
-  if(j.happy_code) m+=`\n🔑 *Happy Code:* ${j.happy_code} _(show this when collecting device)_\n`;
-  m+=`\nThank you! — *${SHOP.name}* | ${SHOP.phone}`;
-  openWA(j.customer_phone, m);
+  if (!jobCardAllowed(j)) { toast('Job card is not available after delivery or cancel.','#E53935'); return; }
+  toast('Preparing job card PDF…');
+  const result = await shareJobCardPdf(j);
+  if (result === 'downloaded') toast('Job card PDF downloaded ✓');
+  else if (result === 'shared') toast('Job card PDF shared ✓');
+  else if (result === 'error') toast('Could not create job card PDF.','#E53935');
+}
+function sendJobCardText(id) {
+  const j=JOBS.find(x=>x.id==id); if(!j) return;
+  if (!jobCardAllowed(j)) { toast('Job card is not available after delivery or cancel.','#E53935'); return; }
+  openWA(j.customer_phone, { kind: 'job_card', vars: jobWaVars(j) });
 }
 function notifyWA(id) {
   const j=JOBS.find(x=>x.id==id); if(!j) return;
-  let m=`Dear *${j.customer_name}*,\n\nYour *${j.device_model}* (Job #${j.id}) is *READY FOR PICKUP* 🎉\n\n`;
-  if(j.happy_code) m+=`🔑 *Happy Code:* ${j.happy_code}\nPlease show this code when collecting your device.\n\n`;
-  m+=`*${SHOP.name}* | ${SHOP.phone}`;
-  openWA(j.customer_phone, m);
+  openWA(j.customer_phone, { kind: 'ready_pickup', vars: jobWaVars(j) });
+}
+function buildPaymentReceiptMsg(j, amountNow, method, totalPaid, grandTotal, balance, dueDate) {
+  const sv = shopWaVars();
+  const lang = getWaLang();
+  return WaMsg.build('payment_receipt', {
+    shop: sv.shop, address: sv.address, phone: sv.phone,
+    name: j.customer_name,
+    ref_label: lang === 'ta' ? 'வேலை எண்' : (lang === 'hi' ? 'जॉब ID' : 'Job ID'),
+    ref_value: '#' + j.id,
+    extra_label: lang === 'ta' ? 'சாதனம்' : (lang === 'hi' ? 'डिवाइस' : 'Device'),
+    extra: j.device_model,
+    date: waDateStr(), amount: amountNow, method: method,
+    bill_total: grandTotal, total_paid: totalPaid, balance: balance, due_date: dueDate || ''
+  }, lang);
 }
 function buildInvoiceWAMsg(j, items, sub, disc, adv, amtPaid, total, credit) {
-  const now=new Date();
-  const dateStr=`${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
-  let m=`*--- INVOICE ---*\n*${SHOP.name}*\n${SHOP.address}\nPhone: ${SHOP.phone}\n\n`;
-  m+=`Dear *${j.customer_name}*,\nHere is the invoice for your *${j.device_model}*.\n\n`;
-  m+=`*Job ID:* #${j.id}\n*Date:* ${dateStr}\n\n`;
-  if(items&&items.length){
-    m+=`*Services/Parts:*\n`;
-    items.forEach(i=>{ m+=`- ${i.qty} x ${i.desc} @ ₹${parseFloat(i.price).toFixed(2)} = ₹${(i.qty*i.price).toFixed(2)}\n`; });
-    m+=`\n-----------------------------------\n`;
-    m+=`*Subtotal:* ₹${sub.toFixed(2)}\n`;
-    if(disc>0) m+=`*Discount:* -₹${disc.toFixed(2)}\n`;
-    m+=`*Grand Total:* ₹${total.toFixed(2)}\n`;
-    m+=`-----------------------------------\n\n`;
+  const lang = getWaLang();
+  let items_lines = '';
+  if (items && items.length) {
+    items_lines = WaMsg.itemsBlock(items.map(i => ({ desc: i.desc, qty: i.qty || 1, price: i.price })), lang);
+    items_lines += '*Subtotal:* Rs ' + sub.toFixed(2) + '\n';
+    if (disc > 0) items_lines += '*Discount:* -Rs ' + disc.toFixed(2) + '\n';
+    items_lines += '*Grand Total:* Rs ' + total.toFixed(2) + '\n-----------------------------------\n\n';
   }
-  const totalPaid=adv+amtPaid;
-  m+=`*Total Paid:* ₹${totalPaid.toFixed(2)}\n`;
-  if(adv>0) m+=`  (Advance: ₹${adv.toFixed(2)} + Now: ₹${amtPaid.toFixed(2)})\n`;
-  const statusTxt=credit>0.01?`PARTIAL — Balance Due: ₹${credit.toFixed(2)}`:'COMPLETED';
-  m+=`*Payment Status:* ${statusTxt}\n\n`;
-  m+=`Thank you for your business!\n`;
-  if(SHOP.review) m+=`\nWe value your feedback! Please take a moment to leave us a review:\n${SHOP.review}`;
-  return m;
+  const sv = shopWaVars();
+  return WaMsg.build('service_invoice', {
+    shop: sv.shop, address: sv.address, phone: sv.phone, review: sv.review,
+    name: j.customer_name, device: j.device_model, id: j.id,
+    date: waDateStr(), items_lines: items_lines,
+    amt_paid: amtPaid, total_paid: adv + amtPaid, credit: credit
+  }, lang);
+}
+function serviceInvoiceWaSpec(j, items, sub, disc, adv, amtPaid, total, credit) {
+  const lang = getWaLang();
+  let items_lines = WaMsg.itemsBlock((items || []).map(i => ({ desc: i.desc, qty: i.qty || 1, price: i.price })), lang);
+  if (items && items.length) {
+    items_lines += '*Subtotal:* Rs ' + sub.toFixed(2) + '\n';
+    if (disc > 0) items_lines += '*Discount:* -Rs ' + disc.toFixed(2) + '\n';
+    items_lines += '*Grand Total:* Rs ' + total.toFixed(2) + '\n-----------------------------------\n\n';
+  }
+  return { kind: 'service_invoice', vars: {
+    shop: SHOP.name, address: SHOP.address, phone: SHOP.phone, review: SHOP.review,
+    name: j.customer_name, device: j.device_model, id: j.id, date: waDateStr(),
+    items_lines: items_lines, amt_paid: amtPaid, total_paid: adv + amtPaid, credit: credit
+  }};
 }
 function sendInvoice(id) {
   const j=JOBS.find(x=>x.id==id); if(!j) return;
@@ -958,8 +1331,7 @@ function sendInvoice(id) {
   const items=j.quote_items?JSON.parse(j.quote_items):[{desc:'Repair Service',qty:1,price:cost}];
   const sub=items.reduce((s,i)=>s+(i.qty||1)*i.price,0);
   const credit=0;
-  const m=buildInvoiceWAMsg(j,items,sub,0,adv,amtPaid,cost,credit);
-  openWA(j.customer_phone, m);
+  openWA(j.customer_phone, serviceInvoiceWaSpec(j, items, sub, 0, adv, amtPaid, cost, credit));
 }
 
 // ── Happy Code ──
@@ -992,7 +1364,7 @@ function proceedDeliver() { closeM('happyModal'); openDeliver(curId); }
 // ── Reminder ──
 function openReminder(id) {
   curId=id; const j=JOBS.find(x=>x.id==id); if(!j) return;
-  document.getElementById('reminderInfo').innerHTML=`<strong>#${j.id}</strong> — ${j.customer_name} | <span style="color:#FF6B35;">${j.paid_status||'Unpaid'}</span>`;
+  document.getElementById('reminderInfo').innerHTML=`<strong>#${j.id}</strong> — ${esc(j.customer_name)} | <span style="color:#FF6B35;">${esc(j.paid_status||'Unpaid')}</span>`;
   const today=new Date(); today.setDate(today.getDate()+3);
   document.getElementById('reminderDate').value=today.toISOString().split('T')[0];
   openM('reminderModal');
@@ -1005,55 +1377,98 @@ async function saveReminder() {
 }
 
 // ── Diagnose ──
+function setDiagStatus(btn) {
+  if (btn.disabled) return;
+  const boxes = document.getElementById('diagStatusBoxes');
+  let found = false;
+  [...boxes.querySelectorAll('button')].forEach(b => {
+    b.classList.remove('btn-primary');
+    b.classList.add('btn-outline');
+    if (b === btn) {
+      b.classList.remove('btn-outline');
+      b.classList.add('btn-primary');
+      found = true;
+    } else if (!found) {
+      b.disabled = true;
+      b.style.opacity = '0.5';
+    }
+  });
+  document.getElementById('diagStatus').value = btn.dataset.val;
+}
+
 function openDiagnose(id) {
   curId=id; const j=JOBS.find(x=>x.id==id); if(!j) return;
   const lockMatch=j.notes&&j.notes.match(/SCREEN LOCK:\s*([^|]+)/i);
   const lockInfo=lockMatch?lockMatch[1].trim():'';
-  const lockBadge=lockInfo?`<div style="margin-top:6px;background:#e9d5ff;border-radius:7px;padding:5px 10px;font-size:0.78rem;color:#6b21a8;display:inline-block;"><i class="fas fa-lock" style="font-size:0.72rem;"></i> Lock: <span style="color:#7e22ce;font-weight:700;">${lockInfo}</span> <span style="color:#94a3b8;font-style:italic;font-size:0.72rem;">(read-only)</span></div>`:'';
-  document.getElementById('diagnoseInfo').innerHTML=`<strong>#${j.id}</strong> — ${j.customer_name} | ${j.device_model}<br><small style="color:#94a3b8;">Issues: ${j.issue}</small>${lockBadge}`;
+  const lockBadge=lockInfo?`<div style="margin-top:6px;background:#e9d5ff;border-radius:7px;padding:5px 10px;font-size:0.78rem;color:#6b21a8;display:inline-block;"><i class="fas fa-lock" style="font-size:0.72rem;"></i> Lock: <span style="color:#7e22ce;font-weight:700;">${esc(lockInfo)}</span> <span style="color:#94a3b8;font-style:italic;font-size:0.72rem;">(read-only)</span></div>`:'';
+  document.getElementById('diagnoseInfo').innerHTML=`<strong>#${j.id}</strong> — ${esc(j.customer_name)} | ${esc(j.device_model)}<br><small style="color:#94a3b8;">Issues: ${esc(j.issue)}</small>${lockBadge}`;
   document.getElementById('diagnoseItems').innerHTML='';
   document.getElementById('diagNotes').value=j.notes||'';
   const ds=document.getElementById('diagStatus');
-  ds.value=['Diagnosing','Repairing','Rework'].includes(j.status)?j.status:'Diagnosing';
-  // Advance history — show existing entries as read-only
-  const history=j.advance_history?JSON.parse(j.advance_history):[];
-  const histDiv=document.getElementById('advHistoryList');
-  histDiv.innerHTML='';
-  const alreadyPaid=parseFloat(j.advance_amount||0);
-  const quoteCost=parseFloat(j.cost||0);
-  if(history.length>0){
-    history.forEach((e,i)=>{
-      const row=document.createElement('div');
-      row.style.cssText='display:flex;justify-content:space-between;align-items:center;background:#b2dfdb;border-radius:7px;padding:6px 10px;margin-bottom:5px;font-size:0.82rem;opacity:0.85;';
-      row.innerHTML=`<span style="font-weight:700;color:#004d40;">₹${parseFloat(e.amount).toFixed(2)}</span><span style="color:#00695c;">${e.method}</span><span style="color:#546e7a;font-size:0.72rem;">${e.date}</span><span style="background:#cfd8dc;border-radius:4px;padding:1px 7px;font-size:0.7rem;color:#455a64;">paid</span>`;
-      histDiv.appendChild(row);
-    });
-    const totalRow=document.createElement('div');
-    totalRow.style.cssText='display:flex;justify-content:space-between;align-items:center;background:#e0f2f1;border-radius:7px;padding:5px 10px;margin-bottom:5px;font-size:0.8rem;border-top:1.5px dashed #80cbc4;';
-    totalRow.innerHTML=`<span style="font-weight:700;color:#004d40;">Total Paid</span><span style="font-weight:800;color:#00695c;">₹${alreadyPaid.toFixed(2)}</span>`;
-    histDiv.appendChild(totalRow);
-  } else {
-    histDiv.innerHTML='<div style="font-size:0.75rem;color:#94a3b8;margin-bottom:4px;">No advance collected yet.</div>';
+  const boxes=document.getElementById('diagStatusBoxes');
+  const isRework=j.status==='Rework'||j.original_job_id||/Original Job:\s*#\d+/i.test(j.notes||'');
+  let rwBtn=boxes.querySelector('button[data-rework]');
+  if(isRework){
+    if(!rwBtn){
+      rwBtn=document.createElement('button');
+      rwBtn.type='button'; rwBtn.className='btn btn-outline diag-status-btn';
+      rwBtn.style.flex='1'; rwBtn.dataset.val='Rework'; rwBtn.dataset.rework='1';
+      rwBtn.textContent='Rework'; rwBtn.onclick=function(){ setDiagStatus(this); };
+      boxes.insertBefore(rwBtn, boxes.firstChild);
+    }
+  } else if(rwBtn) { rwBtn.remove(); }
+  
+  const allowed=[...boxes.querySelectorAll('button')].map(b=>b.dataset.val);
+  const currentStatus = allowed.includes(j.status)?j.status:(isRework?'Rework':'Diagnosing');
+  ds.value = currentStatus;
+  
+  let foundCurrent = false;
+  let histMap = {};
+  if (j.diagnosis_history) {
+    try {
+      const dh = JSON.parse(j.diagnosis_history);
+      dh.forEach(h => { histMap[h.status] = h.time; });
+    } catch (e) {}
   }
-  // Show max collectible hint
-  if(quoteCost>0){
-    const remaining=Math.max(0,quoteCost-alreadyPaid);
-    const hint=document.createElement('div');
-    hint.id='advRemainingHint';
-    hint.style.cssText=`font-size:0.75rem;margin-bottom:6px;font-weight:600;color:${remaining>0?'#00695c':'#ef4444'};`;
-    hint.textContent=remaining>0?`Max you can collect: ₹${remaining.toFixed(2)}`:'Fully paid — no more advance can be added.';
-    histDiv.after(hint);
+  if (j.created_at) {
+    // Treat creation time as Diagnosing time if not present
+    if (!histMap['Diagnosing']) {
+      const d = new Date(j.created_at);
+      // toIST function might be available, otherwise fallback
+      histMap['Diagnosing'] = typeof toIST === 'function' ? toIST(j.created_at) : j.created_at; 
+    }
   }
-  // Always clear input for new entry
-  document.getElementById('diagAdvance').value='';
-  document.getElementById('diagAdvMethod').value='Cash';
-  const savedItems=j.quote_items?JSON.parse(j.quote_items):[];
+
+  [...boxes.querySelectorAll('button')].forEach(b => {
+    b.classList.remove('btn-primary');
+    b.classList.add('btn-outline');
+    b.disabled = false;
+    b.style.opacity = '1';
+    
+    // Reset text content to original value
+    b.innerHTML = b.dataset.val;
+    if (histMap[b.dataset.val]) {
+      b.innerHTML += `<div style="font-size:0.65rem;font-weight:400;margin-top:2px;opacity:0.85;">${histMap[b.dataset.val]}</div>`;
+    }
+
+    if (b.dataset.val === currentStatus) {
+      b.classList.remove('btn-outline');
+      b.classList.add('btn-primary');
+      foundCurrent = true;
+    } else if (!foundCurrent) {
+      b.disabled = true;
+      b.style.opacity = '0.5';
+    }
+  });
+  let savedItems=[];
+  try{ savedItems=j.quote_items?JSON.parse(j.quote_items):[]; }catch(e){ savedItems=[]; }
   if(savedItems.length>0){
     savedItems.forEach(item=>addDiagnoseRow(item.desc,item.price));
   } else {
     const issues=j.issue.split(',').map(x=>x.trim()).filter(Boolean);
-    issues.forEach(iss=>addDiagnoseRow(iss,0));
-    if(!issues.length) addDiagnoseRow('',0);
+    const estCost = parseFloat(j.cost || 0);
+    issues.forEach((iss, idx)=>addDiagnoseRow(iss, idx === 0 ? estCost : 0));
+    if(!issues.length) addDiagnoseRow('Estimated Cost', estCost);
   }
   updDiagTotal(); openM('diagnoseModal');
 }
@@ -1093,39 +1508,218 @@ async function saveDiagnose() {
     document.querySelector('.diag-price')&&document.querySelector('.diag-price').focus();
     return;
   }
-  const advVal=document.getElementById('diagAdvance').value;
-  const advMethod=document.getElementById('diagAdvMethod').value;
-  const newAdv=parseFloat(advVal||0);
-  // Sum all previously paid advances
-  const j=JOBS.find(x=>x.id==curId);
-  const alreadyPaid=j&&j.advance_amount?parseFloat(j.advance_amount):0;
-  if(advVal!==''&&newAdv>0){
-    if(newAdv<0){
-      await showAlert('Advance amount cannot be negative.');
-      document.getElementById('diagAdvance').style.borderColor='#ef4444';
-      document.getElementById('diagAdvance').focus();
-      return;
-    }
-    if(alreadyPaid+newAdv>total){
-      const remaining=Math.max(0,total-alreadyPaid);
-      await showAlert(`Cannot add ₹${newAdv.toFixed(2)} advance.\nAlready paid: ₹${alreadyPaid.toFixed(2)}\nQuote total: ₹${total.toFixed(2)}\nMax you can add: ₹${remaining.toFixed(2)}`);
-      document.getElementById('diagAdvance').style.borderColor='#ef4444';
-      document.getElementById('diagAdvance').focus();
-      return;
-    }
+  try{
+    const btn = document.querySelector('#diagnoseModal .btn-primary');
+    btnLoad(btn, 'Saving...');
+    const r=await fetch(`/jobs/${curId}/update`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({
+        status:document.getElementById('diagStatus').value,
+        cost:total,
+        notes:document.getElementById('diagNotes').value,
+        quote_items:JSON.stringify(items)
+      })});
+    const j=await r.json();
+    if(j.ok){ window.location.reload(); }else{ btnReset(btn); await showAlert(j.error||'Failed to save diagnosis.'); }
+  }catch(e){ btnReset(document.querySelector('#diagnoseModal .btn-primary')); await showAlert('Error saving diagnosis.'); }
+}
+
+// ── Advance Logic ──
+function openAdvance(id) {
+  curId=id; const j=JOBS.find(x=>x.id==id); if(!j) return;
+  document.getElementById('advanceInfo').innerHTML=`<strong>#${j.id}</strong> — ${esc(j.customer_name)} | ${esc(j.device_model)}<br><small style="color:#94a3b8;">Quote: ₹${parseFloat(j.cost||0).toFixed(2)}</small>`;
+
+  const histDiv=document.getElementById('advHistoryList');
+  histDiv.innerHTML='';
+  document.getElementById('advRemainingHint')?.remove();
+  let history=[];
+  try{ history=j.advance_history?JSON.parse(j.advance_history):[]; }catch(e){ history=[]; }
+  const alreadyPaid=parseFloat(j.advance_amount||0);
+  const quoteCost=parseFloat(j.cost||0);
+
+  if(history.length>0){
+    history.forEach((e,i)=>{
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;justify-content:space-between;align-items:center;background:#b2dfdb;border-radius:7px;padding:6px 10px;margin-bottom:5px;font-size:0.82rem;opacity:0.85;';
+      row.innerHTML=`<span style="font-weight:700;color:#004d40;">₹${parseFloat(e.amount).toFixed(2)}</span><span style="color:#00695c;">${e.method}</span><span style="color:#546e7a;font-size:0.72rem;">${e.date}</span><span style="background:#cfd8dc;border-radius:4px;padding:1px 7px;font-size:0.7rem;color:#455a64;">paid</span>`;
+      histDiv.appendChild(row);
+    });
+    const totalRow=document.createElement('div');
+    totalRow.style.cssText='display:flex;justify-content:space-between;align-items:center;background:#e0f2f1;border-radius:7px;padding:5px 10px;margin-bottom:5px;font-size:0.8rem;border-top:1.5px dashed #80cbc4;';
+    totalRow.innerHTML=`<span style="font-weight:700;color:#004d40;">Total Paid</span><span style="font-weight:800;color:#00695c;">₹${alreadyPaid.toFixed(2)}</span>`;
+    histDiv.appendChild(totalRow);
+  } else {
+    histDiv.innerHTML='<div style="font-size:0.75rem;color:#94a3b8;margin-bottom:4px;">No advance collected yet.</div>';
   }
-  document.getElementById('diagAdvance').style.borderColor='';
-  const params={status:document.getElementById('diagStatus').value,cost:total,notes:document.getElementById('diagNotes').value,quote_items:JSON.stringify(items)};
-  if(advVal!=='') { params.advance_amount=advVal; params.advance_method=advMethod; }
-  const r=await fetch(`/jobs/${curId}/update`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
-    body:new URLSearchParams(params)});
-  if(r.ok){ closeM('diagnoseModal'); toast('Quote saved! ✓'); setTimeout(()=>location.reload(),1200); }
+
+  if(quoteCost>0){
+    const remaining=Math.max(0,quoteCost-alreadyPaid);
+    const hint=document.createElement('div');
+    hint.id='advRemainingHint';
+    hint.style.cssText=`font-size:0.75rem;margin-bottom:6px;font-weight:600;color:${remaining>0?'#00695c':'#ef4444'};`;
+    hint.textContent=remaining>0?`Max you can collect: ₹${remaining.toFixed(2)}`:'Fully paid — no more advance can be added.';
+    histDiv.after(hint);
+  }
+  document.getElementById('advanceAmtInput').value='';
+  document.getElementById('advanceMethod').value='Cash';
+  openM('advanceModal');
+}
+
+async function saveAdvance() {
+  const j=JOBS.find(x=>x.id==curId);
+  const advVal=document.getElementById('advanceAmtInput').value;
+  const advMethod=document.getElementById('advanceMethod').value;
+  const newAdv=parseFloat(advVal||0);
+  const alreadyPaid=parseFloat(j.advance_amount||0);
+  const quoteCost=parseFloat(j.cost||0);
+
+  if(newAdv<=0){
+    await showAlert('Please enter a valid advance amount.');
+    return;
+  }
+  if(quoteCost>0 && alreadyPaid+newAdv>quoteCost){
+    const remaining=Math.max(0,quoteCost-alreadyPaid);
+    await showAlert(`Cannot add ₹${newAdv.toFixed(2)} advance.\nAlready paid: ₹${alreadyPaid.toFixed(2)}\nQuote total: ₹${quoteCost.toFixed(2)}\nMax you can add: ₹${remaining.toFixed(2)}`);
+    return;
+  }
+
+  try{
+    const btn = document.querySelector('#advanceModal .btn-primary');
+    btnLoad(btn, 'Saving...');
+    const r=await fetch(`/jobs/${curId}/advance`,{
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({ advance_amount:newAdv, advance_method:advMethod })
+    });
+    const resp=await r.json();
+    if(resp.ok){
+      toast('Payment saved.');
+      closeM('advanceModal');
+      window.waReloadOnClose = true;
+      openWA(j.customer_phone, {
+        kind: 'advance_receipt',
+        vars: {
+          shop: window.SHOP ? window.SHOP.name : 'MobileFix Pro',
+          address: window.SHOP ? window.SHOP.address : '',
+          phone: window.SHOP ? window.SHOP.phone : '',
+          name: j.customer_name,
+          id: j.id,
+          device: j.device_model,
+          amount: newAdv,
+          method: advMethod,
+          cost: quoteCost
+        },
+        pdfUrl: '/jobs/' + curId + '/advance/print'
+      });
+    }else{
+      await showAlert(resp.error||'Failed to save advance.');
+    }
+  }catch(e){ await showAlert('Error saving advance.'); }
 }
 
 async function markReady(id) {
-  if(!await showConfirm('Mark as Ready for Pickup?','✅')) return;
+  if(!await showConfirm('Mark as Ready for Pickup?','Ready')) return;
   const r=await fetch(`/jobs/${id}/update`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({status:'Ready'})});
-  if(r.ok){ toast('Marked as Ready ✓'); setTimeout(()=>location.reload(),1200); }
+  if(r.ok){ toast('Marked as Ready'); setTimeout(()=>location.reload(),1200); }
+}
+
+function markNotReady(id, name) {
+  openCancelModal(id, name, true);
+}
+
+let cancelMode = 'cancel';
+function cancelJob(id,name) {
+  openCancelModal(id, name, false);
+}
+function openCancelModal(id, name, fromNotReady) {
+  curId=id;
+  cancelMode = fromNotReady ? 'notReady' : 'cancel';
+  const j=JOBS.find(x=>x.id==id);
+  document.getElementById('cancelModalTitle').textContent = fromNotReady ? 'Mark as Not Ready' : 'Cancel Job';
+  document.getElementById('cancelModalHint').textContent = fromNotReady
+    ? 'Job stays open and moves to Return Mobiles. Cancel is available only from that list.'
+    : 'This will cancel the job.';
+  document.getElementById('cancelInfo').innerHTML=
+    `<div><span style="font-size:0.72rem;color:#94a3b8;font-weight:700;text-transform:uppercase;">Job ID:</span> <strong>#${id}</strong></div>
+     <div style="margin-top:4px;"><span style="font-size:0.72rem;color:#94a3b8;font-weight:700;text-transform:uppercase;">Customer:</span> <strong>${esc(name)}</strong></div>`;
+  const saved = (j && j.cancel_reason) ? j.cancel_reason.split('|')[0].trim() : '';
+  const reasonEl = document.getElementById('cancelReason');
+  const known = [...reasonEl.options].map(o => o.value);
+  reasonEl.value = known.includes(saved) ? saved : '';
+  document.getElementById('cancelOtherText').value = saved.startsWith('Other:') ? saved.replace(/^Other:\s*/,'') : '';
+  document.getElementById('cancelOtherBox').style.display = reasonEl.value==='Other' ? 'block' : 'none';
+  const adv = j ? parseFloat(j.advance_amount||0) : 0;
+  const refundBox = document.getElementById('cancelRefundBox');
+  const confirmBtn = document.getElementById('cancelConfirmBtn');
+  if (fromNotReady) {
+    refundBox.style.display = 'none';
+    confirmBtn.innerHTML = '<i class="fas fa-undo"></i> Move to Return Mobiles';
+    confirmBtn.style.background = '#c2410c';
+  } else if (adv > 0) {
+    refundBox.style.display = 'block';
+    document.getElementById('cancelRefundAmt').innerHTML = `₹${adv.toFixed(2)}`;
+    document.getElementById('cancelRefundAmtInput').value = adv.toFixed(2);
+    document.getElementById('cancelRefundMethod').value = 'Cash';
+    confirmBtn.innerHTML = '<i class="fas fa-undo"></i> Refund &amp; Cancel';
+    confirmBtn.style.background = '#E53935';
+  } else {
+    refundBox.style.display = 'none';
+    confirmBtn.innerHTML = '<i class="fas fa-times-circle"></i> Confirm Cancel';
+    confirmBtn.style.background = '#E53935';
+  }
+  openM('cancelModal');
+}
+async function readCancelReason() {
+  let reason=document.getElementById('cancelReason').value;
+  if(!reason){ await showAlert('Please select a reason.'); return null; }
+  if(reason==='Other'){ const t=document.getElementById('cancelOtherText').value.trim(); if(!t){ await showAlert('Please specify the reason.'); return null; } reason='Other: '+t; }
+  return reason;
+}
+async function confirmReturnOrCancel() {
+  if (cancelMode === 'notReady') return confirmNotReady();
+  return confirmCancel();
+}
+async function confirmNotReady() {
+  const reason = await readCancelReason();
+  if (!reason) return;
+  const r=await fetch(`/jobs/${curId}/update`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:new URLSearchParams({status:'Not Ready', cancel_reason: reason})});
+  if(!r.ok){ toast('Error updating job. Try again.'); return; }
+  closeM('cancelModal');
+  toast('Moved to Return Mobiles');
+  setTimeout(()=>location.reload(), 1200);
+}
+async function confirmCancel() {
+  const j=JOBS.find(x=>x.id==curId);
+  if (!j || j.status !== 'Not Ready') {
+    await showAlert('Cancel is only allowed from Return Mobiles.');
+    return;
+  }
+  const reason = await readCancelReason();
+  if (!reason) return;
+  const adv = j ? parseFloat(j.advance_amount||0) : 0;
+  const doRefund = adv > 0;
+  const refundAmt = doRefund ? parseFloat(document.getElementById('cancelRefundAmtInput').value||0) : 0;
+  const refundMethod = doRefund ? document.getElementById('cancelRefundMethod').value : '';
+  if (doRefund && refundAmt <= 0) { await showAlert('Refund amount is required because the customer has paid.'); return; }
+
+  let waWin = null;
+  if (doRefund && j && j.customer_phone) {
+    const upiNote = ['UPI','Bank Transfer'].includes(refundMethod);
+    waWin = window.openWaUrl(j.customer_phone, WaMsg.build('cancel_job', {
+      shop: SHOP.name, name: j.customer_name, device: j.device_model, id: j.id,
+      adv: adv, refund: refundAmt, method: refundMethod, upi_note: upiNote
+    }, getWaLang())) ? {} : null;
+  }
+
+  const r=await fetch(`/jobs/${curId}/cancel`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({reason})});
+  if(!r.ok){ if(waWin) waWin.close(); toast('Cancel is only allowed from Return Mobiles.'); return; }
+  if (doRefund && refundAmt > 0) {
+    await fetch(`/jobs/${curId}/record_refund`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({amount:refundAmt, method:refundMethod})});
+  }
+  closeM('cancelModal');
+  toast(doRefund ? `Job cancelled. Refund of ₹${refundAmt.toFixed(2)} recorded.` : 'Job cancelled.');
+  setTimeout(()=>location.reload(), 1200);
 }
 
 // ── Deliver ──
@@ -1139,15 +1733,14 @@ async function openDeliver(id) {
     return;
   }
   const bookingAdv=parseFloat(j.advance_amount||0);
-  document.getElementById('deliverInfo').innerHTML=`<strong>#${j.id}</strong> — ${j.customer_name} | ${j.device_model}`+(bookingAdv>0?` <span style="margin-left:10px;background:#e0f7fa;color:#006064;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">Advance: ₹${bookingAdv.toFixed(2)}</span>`:'');
+  document.getElementById('deliverInfo').innerHTML=`<strong>#${j.id}</strong> — ${esc(j.customer_name)} | ${esc(j.device_model)}`+(bookingAdv>0?` <span style="margin-left:10px;background:#e0f7fa;color:#006064;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:700;">Advance: ₹${bookingAdv.toFixed(2)}</span>`:'');
   document.getElementById('invItemsContainer').innerHTML='';
   document.getElementById('deliverDiscount').value='0';
+  document.getElementById('deliverLoyPts').value='0';
   document.getElementById('deliverAdvance').value=bookingAdv.toFixed(2);
-  const _today=new Date();
-  const _max=new Date(_today); _max.setDate(_max.getDate()+15);
-  const _fmt=d=>d.toISOString().split('T')[0];
+  loadDeliverLoyalty(j.customer_phone);
   const _cdEl=document.getElementById('creditDueDate');
-  _cdEl.min=_fmt(_today); _cdEl.max=_fmt(_max); _cdEl.value=_fmt(_today);
+  _cdEl.min={{ due_min|tojson }}; _cdEl.max={{ due_max|tojson }}; _cdEl.value={{ due_min|tojson }};
   document.getElementById('creditSection').style.display='none';
   document.getElementById('deliverCreditBadge').style.display='none';
   document.getElementById('deliverFullBadge').style.display='none';
@@ -1173,14 +1766,25 @@ async function openDeliver(id) {
   happyBox.style.display=j.happy_code?'block':'none';
   const hasImei=j.imei_billing||j.imei;
   document.getElementById('imeiDeliverBox').style.display=hasImei?'none':'block';
-  document.getElementById('deliverImei').value=hasImei?(j.imei_billing||j.imei):'';
+  document.getElementById('deliverImei').value=hasImei?sanitizeImeiSerial(j.imei_billing||j.imei||''):'';
   // Show skip button only when admin has made IMEI optional for this shop
   document.getElementById('imeiSkipBtnWrap').style.display=(!hasImei&&USER_IMEI_SKIP)?'block':'none';
-  const isFRP=j.issue&&j.issue.toLowerCase().includes('frp');
+  const storedAadhar=(j.aadhar_number||'').replace(/\s/g,'');
   const aadharBox=document.getElementById('aadharDeliverBox');
-  document.getElementById('deliverAadhar').value='';
-  aadharBox.style.display=(isFRP&&!j.aadhar_number)?'block':'none';
+  const deliverAadhar=document.getElementById('deliverAadhar');
+  const needAadhar=isFrpFlashJob(j)&&!/^\d{12}$/.test(storedAadhar);
+  deliverAadhar.value=needAadhar?formatAadharDigits(storedAadhar):'';
+  aadharBox.style.display=needAadhar?'block':'none';
   updInvTotal(); openM('deliverModal');
+}
+function isFrpFlashJob(j){
+  const extra=j.quote_items||'';
+  const blob=((j.issue||'')+' '+extra).toLowerCase();
+  return blob.includes('frp')||blob.includes('flash');
+}
+function formatAadharDigits(d){
+  d=(d||'').replace(/\D/g,'').slice(0,12);
+  return [d.slice(0,4),d.slice(4,8),d.slice(8,12)].filter(Boolean).join(' ');
 }
 function skipDeliverImei() {
   // Show PIN prompt before allowing skip
@@ -1243,18 +1847,45 @@ function addInvoiceRow(desc='',price=0) {
     <button onclick="this.parentElement.remove();updInvTotal()" style="background:#E53935;color:white;border:none;border-radius:8px;width:32px;height:38px;cursor:pointer;margin-bottom:0;">✕</button>`;
   c.appendChild(d);
 }
+let deliverLoyAvail=0;
+async function loadDeliverLoyalty(phone){
+  deliverLoyAvail=0;
+  try{
+    const res=await fetch('/api/loyalty?phone='+encodeURIComponent(String(phone||'').replace(/\D/g,'').slice(-10)));
+    const d=await res.json();
+    deliverLoyAvail=parseInt(d.points||0,10);
+  }catch(e){ deliverLoyAvail=0; }
+  document.getElementById('loyBal').textContent=deliverLoyAvail;
+  document.getElementById('loyVal').textContent=(deliverLoyAvail/4).toFixed(2);
+  updInvTotal();
+}
+function deliverLoyRupees(){
+  let pts=parseInt(document.getElementById('deliverLoyPts').value||0,10);
+  const hint=document.getElementById('loyHint');
+  if(pts<0) pts=0;
+  if(pts>deliverLoyAvail){ pts=deliverLoyAvail; document.getElementById('deliverLoyPts').value=pts; }
+  if(pts>0 && pts<250){ hint.textContent='Minimum 250 points to redeem in service.'; return 0; }
+  hint.textContent=pts>=250?('Redeem '+pts+' pts = ₹'+(pts/4).toFixed(2)):'';
+  return pts>=250 ? pts/4 : 0;
+}
+function useMinServicePts(){
+  const n=Math.max(250, Math.min(deliverLoyAvail, Math.floor(deliverLoyAvail/4)*4));
+  document.getElementById('deliverLoyPts').value = deliverLoyAvail>=250 ? Math.min(deliverLoyAvail, n) : 0;
+  updInvTotal();
+}
 function updInvTotal() {
   const rows=document.querySelectorAll('#invItemsContainer > div');
   let sub=0;
   rows.forEach(r=>{sub+=parseFloat(r.querySelector('.inv-price').value||0)*parseFloat(r.querySelector('.inv-qty').value||1);});
   const discEl=document.getElementById('deliverDiscount');
   let disc=parseFloat(discEl.value||0);
+  const loy=deliverLoyRupees();
   const adv=parseFloat(document.getElementById('deliverAdvance').value||0);
-  const maxDisc=Math.max(0,sub-adv);
+  const maxDisc=Math.max(0,sub-adv-loy);
   if(disc>maxDisc){ disc=maxDisc; discEl.value=maxDisc.toFixed(2); discEl.style.borderColor='#ef4444'; }
   else { discEl.style.borderColor=''; }
   discEl.max=maxDisc.toFixed(2);
-  const bal=Math.max(0,sub-disc-adv);
+  const bal=Math.max(0,sub-disc-loy-adv);
   const box=document.getElementById('balanceBox');
   document.getElementById('invBal').textContent='₹'+bal.toFixed(2);
   box.style.background=bal<0.01?'#d1fae5':'#e0f7fa';
@@ -1270,8 +1901,9 @@ function updDeliverCredit() {
   let sub=0;
   rows.forEach(r=>{sub+=parseFloat(r.querySelector('.inv-price').value||0)*parseFloat(r.querySelector('.inv-qty').value||1);});
   const disc=parseFloat(document.getElementById('deliverDiscount').value||0);
+  const loy=deliverLoyRupees();
   const adv=parseFloat(document.getElementById('deliverAdvance').value||0);
-  const bal=Math.max(0,sub-disc-adv);
+  const bal=Math.max(0,sub-disc-loy-adv);
   const amtEl=document.getElementById('deliverAmtPaid');
   let amt=parseFloat(amtEl.value||0);
   if(amt>bal+0.005){amtEl.value=bal.toFixed(2);amt=bal;}
@@ -1286,8 +1918,9 @@ function onPayMethodChange(val) {
   let sub=0;
   rows.forEach(r=>{sub+=parseFloat(r.querySelector('.inv-price').value||0)*parseFloat(r.querySelector('.inv-qty').value||1);});
   const disc=parseFloat(document.getElementById('deliverDiscount').value||0);
+  const loy=deliverLoyRupees();
   const adv=parseFloat(document.getElementById('deliverAdvance').value||0);
-  const bal=Math.max(0,sub-disc-adv);
+  const bal=Math.max(0,sub-disc-loy-adv);
   const amtEl=document.getElementById('deliverAmtPaid');
   if(val==='Credit'){amtEl.value='0.00';}else{amtEl.value=bal.toFixed(2);}
   updDeliverCredit();
@@ -1330,61 +1963,104 @@ async function confirmDeliver(doPrint) {
   }
   const aadharBox=document.getElementById('aadharDeliverBox');
   const aadharInput=document.getElementById('deliverAadhar');
-  if(aadharBox.style.display!=='none'){
-    const aadharVal=aadharInput.value.replace(/\s/g,'');
-    if(!/^\d{12}$/.test(aadharVal)){
-      aadharInput.style.borderColor='#ef4444'; aadharInput.focus();
-      await showAlert('Aadhar Card Number (12 digits) is mandatory for FRP Lock / Flash invoice.'); return;
-    }
-    aadharInput.style.borderColor='';
+  const storedAadhar=(j&&j.aadhar_number||'').replace(/\s/g,'');
+  const enteredAadhar=(aadharInput.value||'').replace(/\s/g,'');
+  const aadharVal=enteredAadhar||storedAadhar;
+  if(isFrpFlashJob(j)&&!/^\d{12}$/.test(aadharVal)){
+    aadharBox.style.display='block';
+    aadharInput.style.borderColor='#ef4444'; aadharInput.focus();
+    await showAlert('Aadhaar Card Number (12 digits) is mandatory before delivery and invoicing for FRP / Flash jobs.'); return;
   }
+  aadharInput.style.borderColor='';
   const items=[...document.querySelectorAll('#invItemsContainer > div')].map(r=>({desc:r.querySelector('.inv-desc').value,qty:parseFloat(r.querySelector('.inv-qty').value||1),price:parseFloat(r.querySelector('.inv-price').value||0)}));
   const sub=items.reduce((s,i)=>s+i.qty*i.price,0);
   const disc=parseFloat(document.getElementById('deliverDiscount').value||0);
+  const redeemPts=parseInt(document.getElementById('deliverLoyPts').value||0,10);
+  const loy=deliverLoyRupees();
   const adv=parseFloat(document.getElementById('deliverAdvance').value||0);
   const payMethod=document.querySelector('input[name="payMethod"]:checked')?.value||'Cash';
   const creditDueDate=document.getElementById('creditDueDate').value;
-  const total=Math.max(0,sub-disc);
+  const total=Math.max(0,sub-disc-loy);
   const amountPaidNow=parseFloat(document.getElementById('deliverAmtPaid').value||0);
   const credit=Math.max(0,total-adv-amountPaidNow);
   if(credit>0.01&&!creditDueDate){ await showAlert('Please set a due date for the remaining credit balance.'); return; }
+  const cdEl=document.getElementById('creditDueDate');
+  if(credit>0.01&&(creditDueDate<cdEl.min||creditDueDate>cdEl.max)){ await showAlert('Due date must be within 15 days from today.'); return; }
   const resp=await fetch(`/jobs/${curId}/deliver`,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({items,discount:disc,advance:adv,amountPaidNow,total,payMethod,creditDueDate,status:'Delivered',imei:imeiInput.value.trim()})});
+    body:JSON.stringify({items,discount:disc,redeem_points:loy>=0.01?redeemPts:0,advance:adv,amountPaidNow,total:Math.max(0,sub-disc),payMethod,creditDueDate,status:'Delivered',imei:sanitizeImeiSerial(imeiInput.value),aadhar_number:aadharVal})});
   if(resp.ok){
     const d=await resp.json();
-    closeM('deliverModal'); toast('Delivered! Invoice saved ✓');
+    closeM('deliverModal');
+    toast(amountPaidNow>0?'Delivered! Preparing payment receipt PDF…':'Delivered! Invoice saved ✓');
     if(doPrint&&d.inv_id) setTimeout(()=>window.open(`/invoices/${d.inv_id}/print`,'_blank'),400);
-    // Auto-send WhatsApp invoice
-    const waMsg=buildInvoiceWAMsg(j,items,sub,disc,adv,amountPaidNow,total,credit);
-    setTimeout(()=>directWA(j.customer_phone, waMsg),600);
-    setTimeout(()=>location.reload(),1400);
-  } else toast('Error saving delivery.','#E53935');
+    if(amountPaidNow>0){
+      const now=new Date();
+      const result = await window.sharePaymentReceiptPdf({
+        customer: j.customer_name,
+        refLabel: 'Job ID',
+        refValue: '#'+j.id,
+        extraLabel: 'Device',
+        extra: j.device_model,
+        date: now.getDate()+'/'+(now.getMonth()+1)+'/'+now.getFullYear(),
+        amount: amountPaidNow,
+        method: payMethod,
+        billTotal: total,
+        totalPaid: adv+amountPaidNow,
+        balance: credit,
+        dueDate: creditDueDate,
+        filename: 'Receipt_Job_'+j.id+'.pdf',
+        text: 'Payment receipt from '+(SHOP.name||'')
+      });
+      toast(result === 'downloaded' ? 'Receipt PDF downloaded ✓' : 'Receipt PDF shared ✓');
+      setTimeout(()=>location.reload(),400);
+    } else {
+      toast('Delivered! Invoice saved ✓');
+      setTimeout(()=>location.reload(),800);
+    }
+  } else {
+    const err=await resp.json().catch(()=>({}));
+    toast(err.error || 'Error saving delivery.','#E53935');
+  }
 }
 
 // ── Print Job Card ──
 function printJobCard(id) {
   const j=JOBS.find(x=>x.id==id); if(!j) return;
-  const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><title>Job Card #${j.id}</title>
+  if (!jobCardAllowed(j)) { toast('Job card print is not available after delivery or cancel.','#E53935'); return; }
+  const w=window.open('/jobs/'+id+'/print-card','_blank');
+  if (w) return;
+  const w2=window.open('','_blank');
+  w2.document.write(`<!DOCTYPE html><html><head><title>${(SHOP.name||'Job Card').replace(/</g,'')}</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script>
   <style>body{font-family:Arial,sans-serif;font-size:10pt;margin:20px;}
-  .hdr{text-align:center;border-bottom:2px solid black;padding-bottom:8px;margin-bottom:12px;}
   table{width:100%;border-collapse:collapse;} td{padding:5px 8px;border:1px solid #ccc;font-size:9pt;}
-  .happy{font-size:1.4rem;font-weight:900;letter-spacing:8px;color:#9C27B0;text-align:center;padding:10px;border:2px dashed #9C27B0;border-radius:8px;margin-top:10px;}
-  @media print{button{display:none!important}}</style></head><body>
-  <div class="hdr"><h3 style="margin:0;">${SHOP.name}</h3><p style="margin:2px;font-size:9pt;">${SHOP.address} | ${SHOP.phone}</p></div>
-  <h4 style="text-align:center;text-decoration:underline;margin:8px 0;">SERVICE JOB CARD</h4>
-  <table><tr><td><strong>Job ID</strong></td><td>#${j.id}</td><td><strong>Date</strong></td><td>${toIST(j.created_at)}</td></tr>
-  <tr><td><strong>Customer</strong></td><td>${j.customer_name}</td><td><strong>Phone</strong></td><td>${j.customer_phone}</td></tr>
-  <tr><td><strong>Device</strong></td><td>${j.device_model}</td><td><strong>IMEI</strong></td><td>${j.imei_billing||j.imei||'—'}</td></tr>
-  <tr><td><strong>Issue</strong></td><td colspan="3">${j.issue}</td></tr>
-  ${j.received_without?`<tr><td><strong>Received Without</strong></td><td colspan="3">${j.received_without}</td></tr>`:''}
-  <tr><td><strong>Expected Return</strong></td><td>${j.expected_return||'—'}</td><td><strong>Advance</strong></td><td>${j.advance_amount>0?'₹'+parseFloat(j.advance_amount).toFixed(2):'—'}</td></tr>
-  </table>
-  ${j.happy_code?`<div class="happy">🔑 Happy Code: ${j.happy_code}</div><p style="font-size:8pt;text-align:center;color:#666;">Show this code when collecting your device</p>`:''}
-  <div style="margin-top:30px;display:flex;justify-content:space-between;font-size:9pt;border-top:1px solid black;padding-top:8px;">
-    <span>Customer Signature: _________________</span><span>Tech Signature: _________________</span></div>
-  <button onclick="window.print()" style="margin-top:12px;padding:8px 20px;background:#00BCD4;color:white;border:none;border-radius:6px;cursor:pointer;">🖨 Print</button>
-  </body></html>`); w.document.close();
+  @media print{.no-print{display:none!important}}</style></head><body>
+  <div id="jobcard">${jobCardBodyHtml(j)}</div>
+  <div class="no-print" style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+    <button onclick="window.print()" style="padding:8px 20px;background:#00BCD4;color:white;border:none;border-radius:6px;cursor:pointer;">Print</button>
+    <button onclick="shareJobPdf()" style="padding:8px 20px;background:#25D366;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:700;">Share PDF</button>
+    <button onclick="window.close()" style="padding:8px 20px;background:#475569;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:700;">Exit</button>
+  </div>
+  <script>
+  async function shareJobPdf(){
+    const el=document.getElementById('jobcard');
+    const blob=await html2pdf().set({margin:0.35,filename:'JobCard_${j.id}.pdf',image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},jsPDF:{unit:'in',format:'a5',orientation:'landscape'}}).from(el).outputPdf('blob');
+    const mobile=/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/i.test(navigator.userAgent));
+    if(!mobile){
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='JobCard_${j.id}.pdf'; a.click();
+      return;
+    }
+    const file=new File([blob],'JobCard_${j.id}.pdf',{type:'application/pdf'});
+    try{
+      if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],title:'Job Card #${j.id}'});
+        return;
+      }
+    }catch(e){ if(e&&e.name==='AbortError') return; }
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='JobCard_${j.id}.pdf'; a.click();
+  }
+  <\/script>
+  </body></html>`); w2.document.close();
 }
 
 // ── Refund Modal ──
@@ -1395,18 +2071,16 @@ function openRefundModal(id, advAmt) {
     `Job <strong>#${id}</strong> — Advance Paid: <strong style="color:#d97706;">₹${parseFloat(advAmt).toFixed(2)}</strong>`;
   document.getElementById('refundAmount').value = parseFloat(advAmt).toFixed(2);
   document.getElementById('refundMethod').value = 'Cash';
-  document.getElementById('refundDate').value = new Date().toISOString().split('T')[0];
   openM('refundModal');
 }
 async function confirmRefund() {
   const amt = parseFloat(document.getElementById('refundAmount').value || 0);
   if (amt <= 0) { await showAlert('Please enter refund amount.'); return; }
   const method = document.getElementById('refundMethod').value;
-  const date = document.getElementById('refundDate').value;
   const r = await fetch(`/jobs/${refundJobId}/record_refund`, {
     method: 'POST',
     headers: {'Content-Type':'application/x-www-form-urlencoded'},
-    body: new URLSearchParams({amount: amt, method, date})
+    body: new URLSearchParams({amount: amt, method, date: ''})
   });
   if (r.ok) {
     closeM('refundModal');
@@ -1417,61 +2091,10 @@ async function confirmRefund() {
   }
 }
 
-// ── Cancel ──
-function cancelJob(id,name) {
-  curId=id;
-  const j=JOBS.find(x=>x.id==id);
-  document.getElementById('cancelInfo').innerHTML=
-    `<div><span style="font-size:0.72rem;color:#94a3b8;font-weight:700;text-transform:uppercase;">Job ID:</span> <strong>#${id}</strong></div>
-     <div style="margin-top:4px;"><span style="font-size:0.72rem;color:#94a3b8;font-weight:700;text-transform:uppercase;">Customer:</span> <strong>${name}</strong></div>`;
-  document.getElementById('cancelReason').value='Customer Request';
-  document.getElementById('cancelOtherBox').style.display='none';
-  const adv = j ? parseFloat(j.advance_amount||0) : 0;
-  const refundBox = document.getElementById('cancelRefundBox');
-  if (adv > 0) {
-    refundBox.style.display = 'block';
-    document.getElementById('cancelRefundAmt').innerHTML = `₹${adv.toFixed(2)}`;
-    document.getElementById('cancelRefundAmtInput').value = adv.toFixed(2);
-    document.getElementById('cancelRefundMethod').value = 'Cash';
-  } else {
-    refundBox.style.display = 'none';
-  }
-  openM('cancelModal');
-}
-async function confirmCancel() {
-  const j=JOBS.find(x=>x.id==curId);
-  const adv = j ? parseFloat(j.advance_amount||0) : 0;
-  let reason=document.getElementById('cancelReason').value;
-  if(reason==='Other'){ const t=document.getElementById('cancelOtherText').value.trim(); if(!t){ await showAlert('Please specify the reason.'); return; } reason='Other: '+t; }
-  const refundAmt = adv > 0 ? parseFloat(document.getElementById('cancelRefundAmtInput').value||0) : 0;
-  const refundMethod = adv > 0 ? document.getElementById('cancelRefundMethod').value : '';
-
-  // Open WhatsApp BEFORE any async calls (browser allows popup only in sync click context)
-  let waWin = null;
-  if (adv > 0 && j && j.customer_phone) {
-    const upiNote = ['UPI','Bank Transfer'].includes(refundMethod)
-      ? '\n\nIf the payment method was UPI/Bank, please allow 2-3 business days for the credit to reflect in your account.' : '';
-    const msg = `Dear ${j.customer_name},\n\nYour service request for the ${j.device_model} (Job ID: ${j.id}) has been CANCELLED.\n\nNet Advance Paid: ₹${adv.toFixed(2)}\nRefund Processed: ₹${refundAmt.toFixed(2)} via ${refundMethod}.${upiNote}\n\nWe apologize for any inconvenience.\n\nRegards,\n${SHOP.name}`;
-    waWin = window.open(`https://wa.me/91${j.customer_phone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
-  }
-
-  // Cancel the job
-  const r=await fetch(`/jobs/${curId}/cancel`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({reason})});
-  if(!r.ok){ if(waWin) waWin.close(); toast('Error cancelling job. Try again.'); return; }
-  // Record refund if advance was paid
-  if (refundAmt > 0) {
-    await fetch(`/jobs/${curId}/record_refund`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams({amount:refundAmt, method:refundMethod, date:new Date().toISOString().split('T')[0]})});
-  }
-  closeM('cancelModal');
-  toast(adv>0 ? `Job cancelled. Refund of ₹${refundAmt.toFixed(2)} recorded.` : 'Job cancelled.');
-  setTimeout(()=>location.reload(), 1200);
-}
-
 // ── Rework ──
 function markRework(id) {
   curId=id; const j=JOBS.find(x=>x.id==id); if(!j) return;
-  document.getElementById('reworkInfo').innerHTML=`Job <strong>#${id}</strong> — ${j.customer_name} | ${j.device_model}`;
+  document.getElementById('reworkInfo').innerHTML=`Job <strong>#${id}</strong> — ${esc(j.customer_name)} | ${esc(j.device_model)}`;
   document.getElementById('reworkDetails').value='';
   openM('reworkModal');
 }
@@ -1481,5 +2104,32 @@ async function confirmRework() {
   const r=await fetch(`/jobs/${curId}/rework`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({details})});
   if(r.ok){ closeM('reworkModal'); toast('Rework job created!'); setTimeout(()=>location.reload(),1200); }
 }
+(function openJobFromQuery(){
+  const params = new URLSearchParams(window.location.search);
+  const printBarcodeId = params.get('print_barcode');
+  if (printBarcodeId) {
+    window.open('/jobs/' + printBarcodeId + '/barcode', '_blank');
+  }
+  const id = parseInt(params.get('open')||'',10);
+  if(id) viewJob(id);
+  const actId = parseInt(params.get('action_menu')||'', 10);
+  if(actId) {
+    const r = document.getElementById('row-' + actId);
+    if(r) {
+      r.scrollIntoView({behavior:'smooth', block:'center'});
+      setTimeout(() => toggleMenu(actId), 400);
+    } else {
+      const input = document.getElementById('searchInput');
+      if(input && typeof applyFilters === 'function') {
+        input.value = 'INV-' + actId.toString().padStart(4, '0');
+        applyFilters();
+        setTimeout(() => {
+          const nr = document.getElementById('row-' + actId);
+          if(nr) { nr.scrollIntoView({behavior:'smooth', block:'center'}); toggleMenu(actId); }
+        }, 300);
+      }
+    }
+  }
+})();
 </script>
 {% endblock %}

@@ -11,25 +11,68 @@
 .mt{font-family:'Exo 2',sans-serif;font-weight:800;font-size:1.1rem;color:#1a2332;margin-bottom:16px;display:flex;align-items:center;gap:9px;}
 .pay-method-btn{flex:1;padding:10px;border-radius:10px;border:2px solid #e2e8f0;background:white;cursor:pointer;font-size:0.85rem;font-weight:600;color:#475569;transition:all 0.15s;}
 .pay-method-btn.active{border-color:#00BCD4;background:#e0f7fa;color:#006064;}
+.inv-view-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:.86rem;}
+.inv-view-row span:first-child{color:#64748b;font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.3px;flex-shrink:0;}
+.inv-view-row span:last-child{font-weight:700;color:#0f172a;text-align:right;}
+.inv-view-foot{margin-top:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.sv-staff{margin-left:auto;text-align:right;min-width:110px;}
+.sv-k{font-size:.68rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;}
+.inv-act-print{background:#00BCD4;}
+.inv-act-share{background:#25D366;}
+.inv-act-dl{background:#7C3AED;}
+.inv-act-remind{background:#f97316;}
+.inv-act-settled{background:#16a34a;cursor:default;box-shadow:none;}
+.inv-due{display:block;margin-top:2px;}
 /* ── overflow fix ── */
 html,body{max-width:100vw;overflow-x:hidden;width:100%;}
 .main{min-width:0;}.content{min-width:0;overflow-x:hidden;}.card{max-width:100%;}.table-wrap{max-width:100%;}
 @media(max-width:768px){
   input,select,textarea{font-size:16px!important;}
   .main{margin-left:0;width:100vw;max-width:100vw;overflow-x:hidden;}
-  .content{padding:16px 12px 80px;width:100%;box-sizing:border-box;overflow-x:hidden;}
-  .topbar{padding:0 16px;height:60px;max-width:100vw;box-sizing:border-box;}
+  .content{padding:16px 12px 108px;width:100%;box-sizing:border-box;overflow-x:hidden;}
+  .topbar{padding:0 12px;height:64px;max-width:100vw;box-sizing:border-box;}
   /* bottom sheet modals */
   .mo{align-items:flex-end!important;padding:0!important;}
   .mb{border-radius:20px 20px 0 0!important;max-width:100vw!important;width:100%!important;margin:0!important;padding:24px 16px 36px!important;max-height:92vh;overflow-y:auto;overflow-x:hidden;animation:slideUpInv 0.3s cubic-bezier(0.175,0.885,0.32,1.275);box-sizing:border-box;}
   @keyframes slideUpInv{from{opacity:0;transform:translateY(100%);}to{opacity:1;transform:translateY(0);}}
   /* page header */
-  .page-header{flex-direction:column;align-items:flex-start;gap:10px;}
+  .page-header{flex-direction:column;align-items:center;gap:10px;text-align:center;}
   .page-header .btn{width:100%;justify-content:center;}
-  /* action buttons wrap */
-  td[data-label="Actions"]>div{flex-wrap:wrap;gap:5px;}
-  /* pay method buttons */
+  .inv-view-foot{justify-content:center!important;}
+  td[data-label="Actions"]>div{flex-wrap:nowrap;gap:5px;}
   .pay-method-btn{padding:8px 4px;font-size:0.78rem;}
+  .page-subtitle{display:none;}
+  .inv-cards tbody tr{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:"cust status" "total bal" "acts acts";
+    align-items:center;column-gap:8px;row-gap:4px;
+    padding:10px 12px;margin-bottom:8px;
+  }
+  .inv-cards tbody td{
+    display:block!important;padding:0!important;border:none!important;
+    min-height:0;justify-content:unset!important;gap:0;
+  }
+  .inv-cards tbody td::before{display:none!important;}
+  .inv-cards tbody td.mob-hide{display:none!important;}
+  .inv-cards tbody td[data-label="Customer"]{grid-area:cust;min-width:0;}
+  .inv-cards tbody td[data-label="Customer"] > div { display:flex; align-items:center; gap:6px; flex-wrap:nowrap; }
+  .inv-cards tbody td[data-label="Customer"] strong{font-size:.92rem;display:block;max-width:130px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .inv-cards tbody td[data-label="Customer"] small{font-size:.72rem;}
+  .inv-cards tbody td[data-label="Customer"] .inv-mob-id{display:inline-block!important;margin-top:0;font-weight:600;}
+  .mob-eye-btn{display:inline-flex!important;align-items:center;justify-content:center;}
+  .desk-eye-btn{display:none!important;}
+  .inv-cards tbody td[data-label="Status"]{grid-area:status;justify-self:end;align-self:start;}
+  .inv-cards tbody td[data-label="Status"] span{padding:2px 8px!important;font-size:.68rem!important;}
+  .inv-cards tbody td[data-label="Total (₹)"]{grid-area:total;font-size:.82rem!important;color:#64748b!important;font-weight:700;}
+  .inv-cards tbody td[data-label="Balance Due"]{grid-area:bal;font-size:.82rem!important;text-align:right;}
+  .inv-cards tbody td[data-label="Balance Due"] .inv-due{display:inline;margin-left:6px;margin-top:0;}
+  .inv-cards tbody td[data-label="Actions"]{
+    grid-area:acts;margin:6px 0 0!important;padding-top:8px!important;
+    border-top:1px dashed #e2e8f0!important;width:100%;
+  }
+  .inv-cards tbody td[data-label="Actions"]>div{justify-content:flex-end;}
+  .inv-cards .sale-act{width:32px;height:32px;border-radius:9px;font-size:.82rem;}
 }
 </style>
 {% endblock %}
@@ -38,15 +81,22 @@ html,body{max-width:100vw;overflow-x:hidden;width:100%;}
 <div class="page-header">
   <div>
     <div class="page-title">Invoices</div>
-    <div class="page-subtitle">Manage all customer billing</div>
+    <div class="page-subtitle">Invoices Created When A Job Is Delivered</div>
   </div>
-  <a href="{{ url_for('create_invoice') }}" class="btn btn-primary"><i class="fas fa-plus"></i> New Invoice</a>
 </div>
+
+
+<div class="card" style="margin-bottom:18px;"><div class="card-body search-bar-wrap" style="padding:14px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+  <input type="search" id="invSearch" class="form-control" style="max-width:340px;flex:1;min-width:180px;" placeholder="Search By Customer or INV-..." oninput="filterInv()">
+  <button id="dueFilterBtn" onclick="toggleDueFilter()" style="padding:9px 18px;border:2px solid #fee2e2;border-radius:10px;background:white;color:#b91c1c;font-size:0.85rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;transition:all 0.2s;">
+    <i class="fas fa-wallet"></i> Due Only
+  </button>
+</div></div>
 
 <div class="card">
   <div class="card-body">
     {% if invoices %}
-    <div class="table-wrap mob-cards">
+    <div class="table-wrap mob-cards inv-cards">
       <table>
         <thead>
           <tr><th class="mob-hide">#</th><th>Customer</th><th>Total (₹)</th><th class="mob-hide">Paid</th><th>Balance Due</th><th class="mob-hide">Method</th><th>Status</th><th class="mob-hide">Date</th><th>Actions</th></tr>
@@ -56,52 +106,53 @@ html,body{max-width:100vw;overflow-x:hidden;width:100%;}
           {% set adv = inv.advance_amount if inv.advance_amount else 0 %}
           {% set bal = [0.0, inv.total - adv]|max %}
           {% set pstatus = inv.paid or 'Unpaid' %}
-          <tr id="inv-row-{{ inv.id }}">
+          <tr id="inv-row-{{ inv.id }}"{% if bal > 0 %} data-due="1"{% endif %}>
             <td data-label="#" class="mob-hide" style="color:#94a3b8;font-size:0.82rem;font-weight:700;">INV-{{ '%04d'|format(inv.id) }}</td>
-            <td data-label="Customer"><strong>{{ inv.customer_name }}</strong><br><small style="color:#94a3b8;">{{ inv.customer_phone }}</small></td>
+            <td data-label="Customer">
+              <div>
+                <strong>{{ inv.customer_name }}</strong>
+                <small class="inv-mob-id" style="display:none;color:#94a3b8;font-size:0.75rem;">INV-{{ '%04d'|format(inv.id) }}</small>
+              </div>
+              <small style="color:#94a3b8;">{{ inv.customer_phone }}</small>
+            </td>
             <td data-label="Total (₹)" style="font-weight:700;font-size:1rem;color:#1a2332;">₹{{ '%.2f'|format(inv.total) }}</td>
             <td data-label="Paid" class="mob-hide" style="color:#64748b;" id="inv-adv-{{ inv.id }}">{% if adv > 0 %}₹{{ '%.2f'|format(adv) }}{% else %}—{% endif %}</td>
             <td data-label="Balance Due" style="font-weight:700;" id="inv-bal-{{ inv.id }}">
               {% if bal > 0 %}<span style="color:#ef4444;">₹{{ '%.2f'|format(bal) }}</span>
-              {% if inv.due_date %}<br><small style="color:#f59e0b;font-size:0.72rem;"><i class="fas fa-calendar"></i> Due: {{ inv.due_date }}</small>{% endif %}
+              {% if inv.due_date %}<small class="inv-due" style="color:#f59e0b;font-size:0.72rem;"><i class="fas fa-calendar"></i> Due {{ inv.due_date }}</small>{% endif %}
               {% else %}<span style="color:#16a34a;"><i class="fas fa-check"></i> Nil</span>{% endif %}
             </td>
-            <td data-label="Method" class="mob-hide" style="font-size:0.82rem;color:#64748b;">{{ inv.pay_method or '—' }}</td>
+            <td data-label="Method" class="mob-hide">{{ pay_method_tag(inv.pay_method) }}</td>
             <td data-label="Status" id="inv-status-{{ inv.id }}">
-              {% if pstatus == 'Paid' %}
-                <span style="background:#dcfce7;color:#16a34a;border:1.5px solid #86efac;padding:4px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;">✓ Paid</span>
-              {% elif pstatus == 'Partial' %}
-                <span style="background:#fff7ed;color:#c2410c;border:1.5px solid #fdba74;padding:4px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;">Partial</span>
-              {% else %}
-                <span style="background:#fef2f2;color:#ef4444;border:1.5px solid #fca5a5;padding:4px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;">Unpaid</span>
-              {% endif %}
+              <div style="display:flex;align-items:center;gap:8px;">
+                {% if pstatus == 'Paid' %}
+                  <span style="background:#dcfce7;color:#16a34a;border:1.5px solid #86efac;padding:4px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;">✓ Paid</span>
+                {% elif pstatus == 'Partial' %}
+                  <span style="background:#fff7ed;color:#c2410c;border:1.5px solid #fdba74;padding:4px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;">Partial</span>
+                {% else %}
+                  <span style="background:#fef2f2;color:#ef4444;border:1.5px solid #fca5a5;padding:4px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;">Unpaid</span>
+                {% endif %}
+                <button type="button" class="sale-act sale-act-view mob-eye-btn" style="display:none;width:32px;height:32px;border-radius:9px;font-size:0.82rem;background:#06b6d4;color:white;border:none;cursor:pointer;" onclick="viewInvoice({{ inv.id }})" title="View" aria-label="View"><i class="fas fa-eye"></i></button>
+              </div>
             </td>
             <td data-label="Date" class="mob-hide" style="color:#94a3b8;font-size:0.82rem;">{{ inv.created_at[:16].replace("T"," ") if inv.created_at else "—" }}</td>
             <td data-label="Actions">
               <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <a href="{{ url_for('print_invoice', inv_id=inv.id) }}" target="_blank"
-                   style="background:#00BCD4;color:white;padding:6px 12px;border-radius:8px;font-size:0.8rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
-                  <i class="fas fa-print"></i> Print
-                </a>
+                <button type="button" class="sale-act sale-act-view desk-eye-btn" onclick="viewInvoice({{ inv.id }})" title="View" aria-label="View"><i class="fas fa-eye"></i></button>
+                <a class="sale-act inv-act-print" href="{{ url_for('print_invoice', inv_id=inv.id) }}" target="_blank" title="Print" aria-label="Print"><i class="fas fa-print"></i></a>
+                <button type="button" class="sale-act inv-act-share" onclick="shareInvoicePDF('{{ inv.id }}')" title="Share PDF" aria-label="Share PDF"><i class="fas fa-share-alt"></i></button>
                 {% if pstatus != 'Paid' %}
-                <button onclick="openPayModal({{ inv.id }}, {{ inv.total }}, {{ adv }})"
-                  style="background:linear-gradient(135deg,#4CAF50,#66BB6A);color:white;border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:0.8rem;font-weight:700;display:inline-flex;align-items:center;gap:5px;">
-                  <i class="fas fa-rupee-sign"></i> Collect
-                </button>
+                <button type="button" class="sale-act sale-act-collect" onclick="openPayModal({{ inv.id }}, {{ inv.total }}, {{ adv }})" title="Collect" aria-label="Collect"><i class="fas fa-rupee-sign"></i></button>
+                {% if inv.customer_phone %}
+                <button type="button" class="sale-act inv-act-remind" onclick="sendInvRemind({{ inv.id }})" title="Payment Reminder" aria-label="Payment Reminder"><i class="fas fa-bell"></i></button>
+                {% endif %}
                 {% else %}
-                <span style="color:#16a34a;font-size:0.8rem;font-weight:600;padding:6px 4px;"><i class="fas fa-check-circle"></i> Settled</span>
+                <span class="sale-act inv-act-settled" title="Settled" aria-label="Settled"><i class="fas fa-check-circle"></i></span>
                 {% endif %}
                 {% if inv.customer_phone %}
-                <button onclick="sendInvWA('{{ inv.customer_name }}','{{ inv.customer_phone }}','{{ inv.id }}')"
-                  style="background:#25D366;color:white;border:none;border-radius:8px;padding:6px 11px;cursor:pointer;font-size:0.85rem;">
-                  <i class="fab fa-whatsapp"></i>
-                </button>
+                <button type="button" class="sale-act sale-act-wa" onclick="sendInvWA({{ inv.id }})" title="Send invoice message" aria-label="Send invoice message"><i class="fab fa-whatsapp"></i></button>
                 {% endif %}
-                <button onclick="downloadInvoicePDF('{{ inv.id }}')"
-                  title="Download Invoice PDF"
-                  style="background:#7C3AED;color:white;border:none;border-radius:8px;padding:6px 11px;cursor:pointer;font-size:0.85rem;">
-                  <i class="fas fa-download"></i>
-                </button>
+                <button type="button" class="sale-act inv-act-dl" onclick="downloadInvoicePDF('{{ inv.id }}')" title="Download" aria-label="Download"><i class="fas fa-download"></i></button>
               </div>
             </td>
           </tr>
@@ -113,7 +164,8 @@ html,body{max-width:100vw;overflow-x:hidden;width:100%;}
     <div style="text-align:center;padding:60px 20px;color:#94a3b8;">
       <i class="fas fa-file-invoice" style="font-size:3rem;margin-bottom:16px;display:block;opacity:0.25;"></i>
       <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:8px;color:#cbd5e1;">No invoices yet</div>
-      <a href="{{ url_for('create_invoice') }}" class="btn btn-primary" style="margin-top:10px;text-decoration:none;"><i class="fas fa-plus"></i> Create First Invoice</a>
+      <div style="font-size:0.9rem;margin-bottom:12px;">Invoices are created when you deliver a repair job.</div>
+      <a href="{{ url_for('jobs') }}" class="btn btn-primary" style="margin-top:10px;text-decoration:none;"><i class="fas fa-tools"></i> Go to Repair Jobs</a>
     </div>
     {% endif %}
   </div>
@@ -151,8 +203,8 @@ html,body{max-width:100vw;overflow-x:hidden;width:100%;}
 
     <div id="dueDateBox" style="display:none;background:#fff7ed;border:1.5px solid #fbbf24;border-radius:10px;padding:12px;margin-bottom:14px;">
       <label style="font-size:0.82rem;font-weight:700;color:#92400e;display:block;margin-bottom:6px;"><i class="fas fa-calendar"></i> Due Date for remaining balance <span style="color:#ef4444;">*</span></label>
-      <input type="date" id="payDueDate" class="form-control" style="border:1.5px solid #fbbf24;">
-      <small style="color:#b45309;font-size:0.75rem;">Customer must pay remaining balance by this date</small>
+      <input type="date" id="payDueDate" class="form-control" min="{{ due_min }}" max="{{ due_max }}" style="border:1.5px solid #fbbf24;">
+      <small style="color:#b45309;font-size:0.75rem;">Due date can be today through {{ due_max }}.</small>
     </div>
     <div id="payFullBadge" style="display:none;background:#dcfce7;border:1.5px solid #86efac;border-radius:10px;padding:10px;text-align:center;margin-bottom:14px;">
       <strong style="color:#16a34a;font-size:0.9rem;">✓ This will fully settle the invoice!</strong>
@@ -163,23 +215,127 @@ html,body{max-width:100vw;overflow-x:hidden;width:100%;}
         <i class="fas fa-check"></i> Confirm Payment
       </button>
       <button onclick="document.getElementById('payModal').classList.remove('show')"
-              style="padding:12px 20px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;font-family:inherit;color:#6b7c93;">
+              style="padding:12px 20px;border-radius:10px;border:1.5px solid #94a3b8;background:#f1f5f9;cursor:pointer;font-family:inherit;color:#0f172a;font-weight:700;">
         Cancel
       </button>
     </div>
   </div>
 </div>
 
-<div id="toast" style="position:fixed;bottom:22px;right:22px;background:#1a2332;color:white;padding:12px 20px;border-radius:12px;font-size:0.875rem;font-weight:500;z-index:9999;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.2);">
+<div class="mo" id="invViewModal" onclick="if(event.target===this)closeInvView()">
+  <div class="mb" style="max-width:520px;" onclick="event.stopPropagation()">
+    <div class="mt"><i class="fas fa-file-invoice" style="color:#00BCD4;"></i> Invoice Details</div>
+    <div id="invViewContent"></div>
+    <div class="inv-view-foot" id="invViewFoot"></div>
+  </div>
+</div>
+
+<div id="toast" style="position:fixed;bottom:22px;right:22px;background:#1a2332;color:white;padding:12px 20px;border-radius:12px;font-size:0.875rem;font-weight:500;z-index:11000;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.2);">
   <i class="fas fa-check-circle" style="color:#4CAF50;margin-right:8px;"></i><span id="toastMsg"></span>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-const INVOICES = {{ invoices_json|safe }};
+const INVOICES = JSON.parse({{ invoices_json|tojson }});
+const IS_OWNER = {{ 'true' if is_owner else 'false' }};
 const SHOP = { name:{{ user.shop_name|default('My Shop')|tojson }}, phone:{{ (user.phone or '')|tojson }}, address:{{ user.address|default('')|tojson }}, review:{{ (user.google_review_link or '')|tojson }} };
 let curInvId = null, curInvTotal = 0, curInvAdv = 0;
+
+function esc(s){
+  return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function servedByHtml(row){
+  if(!IS_OWNER) return '';
+  const name = String(row.staff_name||'OWNER').trim() || 'OWNER';
+  const label = (row.staff_id && name.toUpperCase()!=='OWNER') ? 'Sales person' : 'Handled by';
+  return `<div class="sv-staff"><div class="sv-k" style="margin-bottom:2px;">${label}</div><div style="font-weight:800;color:#0f172a;">${esc(name)}</div></div>`;
+}
+function payEntries(inv){
+  let hist=[];
+  try{
+    hist = typeof inv.payment_history==='string' ? JSON.parse(inv.payment_history||'[]') : (inv.payment_history||[]);
+  }catch(e){ hist=[]; }
+  if(!Array.isArray(hist)) hist=[];
+  hist=hist.filter(e=>parseFloat(e.amount||0)>0.009);
+  if(hist.length) return hist;
+  const adv=parseFloat(inv.advance_amount||0);
+  if(adv>0.009){
+    return [{amount:adv, method:inv.pay_method||'Cash', date:String(inv.created_at||'').replace('T',' ').slice(0,19), note:'Paid'}];
+  }
+  return [];
+}
+function payLogHtml(hist, totalPaid){
+  if(!hist.length) return '';
+  const rows=hist.map(e=>`<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;background:#b2dfdb;border-radius:7px;padding:6px 10px;margin-bottom:4px;font-size:0.82rem;">
+      <span style="font-weight:800;color:#004d40;">₹${parseFloat(e.amount).toFixed(2)}</span>
+      <span style="color:#00695c;font-weight:700;">${payMethodTag(e.method||'Cash')}</span>
+      <span style="color:#0f766e;font-weight:700;">${esc(e.note||'Payment')}</span>
+      <span style="color:#546e7a;font-size:0.72rem;">${esc(e.date||'')}</span>
+    </div>`).join('');
+  return `<div style="background:#e0f7fa;border:1.5px solid #b2ebf2;border-radius:10px;padding:12px;margin:10px 0 8px;">
+    <div style="font-size:0.72rem;font-weight:800;color:#006064;text-transform:uppercase;margin-bottom:8px;">Payment Details <span style="color:#00838f;">Total: ₹${parseFloat(totalPaid||0).toFixed(2)}</span></div>
+    ${rows}</div>`;
+}
+function closeInvView(){ document.getElementById('invViewModal').classList.remove('show'); }
+function viewInvoice(id){
+  const inv = INVOICES.find(x => x.id == id);
+  if(!inv){ toast('Invoice not found'); return; }
+  const adv = parseFloat(inv.advance_amount||0);
+  const disc = parseFloat(inv.discount||0);
+  const total = parseFloat(inv.total||0);
+  const bal = Math.max(0, total - adv);
+  const paid = inv.paid || 'Unpaid';
+  let items=[];
+  try{ items = JSON.parse(inv.items||'[]'); }catch(e){}
+  const statusHtml = paid==='Paid'
+    ? '<span style="background:#dcfce7;color:#16a34a;border:1.5px solid #86efac;padding:3px 10px;border-radius:999px;font-size:.75rem;font-weight:800;">Paid</span>'
+    : paid==='Partial'
+    ? '<span style="background:#fff7ed;color:#c2410c;border:1.5px solid #fdba74;padding:3px 10px;border-radius:999px;font-size:.75rem;font-weight:800;">Partial</span>'
+    : '<span style="background:#fef2f2;color:#ef4444;border:1.5px solid #fca5a5;padding:3px 10px;border-radius:999px;font-size:.75rem;font-weight:800;">Unpaid</span>';
+  let itemRows='';
+  if(items.length){
+    itemRows = `<div style="margin:10px 0 6px;font-size:.72rem;font-weight:800;color:#64748b;text-transform:uppercase;">Line items</div>
+      <div style="background:#f8fafc;border-radius:10px;padding:8px 10px;margin-bottom:8px;">` +
+      items.map(i=>{
+        const qty=i.qty||1, price=parseFloat(i.price||0), amt=qty*price;
+        return `<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px dashed #e2e8f0;font-size:.82rem;">
+          <span style="font-weight:700;color:#0f172a;">${esc(i.desc||'—')} <span style="color:#64748b;font-weight:600;">× ${qty}</span></span>
+          <span style="font-weight:800;">₹${amt.toFixed(2)}</span></div>`;
+      }).join('') + `</div>`;
+  }
+  document.getElementById('invViewContent').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px;">
+      <div>
+        <div style="font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.15rem;color:#0f172a;">INV-${String(inv.id).padStart(4,'0')}</div>
+        <div style="font-size:.8rem;font-weight:700;color:#334155;margin-top:2px;">${esc(inv.customer_name||'')}</div>
+        <div style="font-size:.78rem;color:#64748b;">${esc(inv.customer_phone||'')}</div>
+      </div>
+      ${statusHtml}
+    </div>
+    <div class="inv-view-row"><span>Job ID</span><span>${inv.job_id ? '#'+inv.job_id : '—'}</span></div>
+    <div class="inv-view-row"><span>Date</span><span>${esc((inv.created_at||'').slice(0,16).replace('T',' '))}</span></div>
+    <div class="inv-view-row"><span>Method</span><span>${payMethodTag(inv.pay_method||'')}</span></div>
+    ${itemRows}
+    ${payLogHtml(payEntries(inv), adv)}
+    <div class="inv-view-row"><span>Subtotal</span><span>₹${(total+disc).toFixed(2)}</span></div>
+    ${disc>0?`<div class="inv-view-row"><span>Discount</span><span>-₹${disc.toFixed(2)}</span></div>`:''}
+    <div class="inv-view-row"><span>Grand Total</span><span>₹${total.toFixed(2)}</span></div>
+    <div class="inv-view-row"><span>Amount Paid</span><span style="color:#16a34a;">₹${adv.toFixed(2)}</span></div>
+    <div class="inv-view-row"><span>Balance Due</span><span style="color:${bal>0.01?'#ef4444':'#16a34a'};">${bal>0.01?'₹'+bal.toFixed(2):'Nil'}</span></div>
+    ${inv.due_date && bal>0.01?`<div class="inv-view-row"><span>Due Date</span><span style="color:#d97706;">${esc(inv.due_date)}</span></div>`:''}
+  `;
+  let foot = `<button type="button" onclick="window.open('/invoices/${inv.id}/print','_blank')" class="btn btn-primary" style="padding:9px 14px;font-size:1.1rem;" title="Print"><i class="fas fa-print"></i></button>`;
+  foot += `<button type="button" onclick="shareInvoicePDF('${inv.id}')" style="background:#ef4444;color:white;border:none;border-radius:10px;padding:9px 14px;cursor:pointer;font-weight:700;font-size:1.1rem;" title="Share PDF"><i class="fas fa-file-pdf"></i></button>`;
+  if(inv.customer_phone){
+    foot += `<button type="button" onclick="sendInvWA(${inv.id})" style="background:#25D366;color:white;border:none;border-radius:10px;padding:9px 14px;cursor:pointer;font-weight:700;font-size:1.1rem;" title="Message"><i class="fab fa-whatsapp"></i></button>`;
+  }
+  foot += `<button type="button" onclick="downloadInvoicePDF('${inv.id}')" style="background:#7C3AED;color:white;border:none;border-radius:10px;padding:9px 14px;cursor:pointer;font-size:1.1rem;" title="Download"><i class="fas fa-download"></i></button>`;
+  foot += `<button type="button" onclick="closeInvView()" style="padding:9px 16px;border-radius:10px;border:1.5px solid #94a3b8;background:#f1f5f9;cursor:pointer;color:#0f172a;font-size:1.1rem;" title="Close"><i class="fas fa-times"></i></button>`;
+  foot += servedByHtml(inv);
+  document.getElementById('invViewFoot').innerHTML = foot;
+  document.getElementById('invViewModal').classList.add('show');
+}
 
 function openPayModal(invId, total, adv) {
   curInvId = invId; curInvTotal = total; curInvAdv = adv;
@@ -189,7 +345,8 @@ function openPayModal(invId, total, adv) {
     (adv > 0 ? ` &nbsp;|&nbsp; Amount Paid: <strong style="color:#4CAF50;">₹${adv.toFixed(2)}</strong>` : '') +
     `<br><span style="color:#ef4444;font-weight:700;">Balance Due: ₹${bal.toFixed(2)}</span>`;
   document.getElementById('payAmount').value = bal.toFixed(2);
-  document.getElementById('payDueDate').value = '';
+  const dueEl = document.getElementById('payDueDate');
+  dueEl.value = dueEl.min || '';
   document.getElementById('dueDateBox').style.display = 'none';
   document.getElementById('selectedPayMethod').value = 'Cash';
   document.querySelectorAll('.pay-method-btn').forEach(b => b.classList.toggle('active', b.textContent==='Cash'));
@@ -233,6 +390,10 @@ async function confirmPayment() {
   const remaining = Math.max(0, bal - amt);
   const dueDate = document.getElementById('payDueDate').value;
   if (remaining > 0.01 && !dueDate) { await showAlert('Please set a due date for the remaining balance.'); return; }
+  const dueEl = document.getElementById('payDueDate');
+  if (remaining > 0.01 && (dueDate < dueEl.min || dueDate > dueEl.max)) {
+    await showAlert('Due date must be within 15 days from today.'); return;
+  }
   const method = document.getElementById('selectedPayMethod').value;
   let data;
   try {
@@ -261,6 +422,31 @@ async function confirmPayment() {
     if (invIdx >= 0) {
       INVOICES[invIdx].advance_amount = data.advance;
       INVOICES[invIdx].paid = data.paid;
+      INVOICES[invIdx].pay_method = method;
+      INVOICES[invIdx].due_date = data.balance > 0.01 ? (dueDate || INVOICES[invIdx].due_date) : null;
+      if (data.payment_history) INVOICES[invIdx].payment_history = JSON.stringify(data.payment_history);
+    }
+    const inv = invIdx >= 0 ? INVOICES[invIdx] : null;
+    if (inv && amt > 0) {
+      const now = new Date();
+      toast('Preparing payment receipt PDF…');
+      const result = await window.sharePaymentReceiptPdf({
+        customer: inv.customer_name,
+        refLabel: 'Invoice',
+        refValue: 'INV-'+String(inv.id).padStart(4,'0'),
+        extraLabel: inv.job_id ? 'Job ID' : '',
+        extra: inv.job_id ? '#'+inv.job_id : '',
+        date: now.getDate()+'/'+(now.getMonth()+1)+'/'+now.getFullYear(),
+        amount: amt,
+        method: method,
+        billTotal: parseFloat(inv.total || 0),
+        totalPaid: parseFloat(inv.advance_amount || 0),
+        balance: data.balance,
+        dueDate: dueDate,
+        filename: 'Receipt_INV-'+String(inv.id).padStart(4,'0')+'.pdf',
+        text: 'Payment receipt from '+(SHOP.name||'')
+      });
+      toast(result === 'downloaded' ? 'Receipt PDF downloaded ✓' : 'Receipt PDF shared ✓');
     }
     // Update row in-place
     const advEl = document.getElementById(`inv-adv-${curInvId}`);
@@ -271,8 +457,8 @@ async function confirmPayment() {
       if (data.balance < 0.01) {
         balEl.innerHTML = '<span style="color:#16a34a;"><i class="fas fa-check"></i> Nil</span>';
       } else {
-        const dueTxt = dueDate ? `<br><small style="color:#f59e0b;font-size:0.72rem;"><i class="fas fa-calendar"></i> Due: ${dueDate}</small>` : '';
-        balEl.innerHTML = `<span style="color:#ef4444;font-weight:700;">₹${data.balance.toFixed(2)}</span>${dueTxt}<br><small style="color:#7c3aed;font-size:0.7rem;font-weight:600;">Credit Balance</small>`;
+        const dueTxt = dueDate ? `<small class="inv-due" style="color:#f59e0b;font-size:0.72rem;"><i class="fas fa-calendar"></i> Due ${dueDate}</small>` : '';
+        balEl.innerHTML = `<span style="color:#ef4444;font-weight:700;">₹${data.balance.toFixed(2)}</span>${dueTxt}`;
       }
     }
     if (statusEl) {
@@ -280,55 +466,99 @@ async function confirmPayment() {
         statusEl.innerHTML = '<span style="background:#dcfce7;color:#16a34a;border:1.5px solid #86efac;padding:4px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;">✓ Paid</span>';
         // Replace Collect button with Settled
         const collectBtn = statusEl.parentElement.querySelector('button[onclick*="openPayModal"]');
-        if (collectBtn) collectBtn.outerHTML = '<span style="color:#16a34a;font-size:0.8rem;font-weight:600;padding:6px 4px;"><i class="fas fa-check-circle"></i> Settled</span>';
+        if (collectBtn) collectBtn.outerHTML = '<span class="sale-act inv-act-settled" title="Settled" aria-label="Settled"><i class="fas fa-check-circle"></i></span>';
       } else {
         statusEl.innerHTML = '<span style="background:#fff7ed;color:#c2410c;border:1.5px solid #fdba74;padding:4px 12px;border-radius:999px;font-size:0.78rem;font-weight:700;">Partial</span>';
       }
     }
     if (data.paid !== 'Paid') {
-      toast(`₹${amt.toFixed(2)} collected. Balance: ₹${data.balance.toFixed(2)} — Due: ${dueDate||'—'}`);
-      setTimeout(() => location.reload(), 1500);
+      toast(`₹${amt.toFixed(2)} collected.`);
+      setTimeout(() => location.reload(), 400);
     } else {
-      toast('Invoice fully settled! ✓');
+      toast('Invoice fully settled!');
     }
   } else {
     toast('Error saving payment. Try again.');
   }
 }
 
-function downloadInvoicePDF(invId) {
-  window.open(window.location.origin + '/invoices/' + invId + '/print?download=1', '_blank');
+
+function buildPaymentReceiptMsg(inv, amountNow, method, balance, dueDate) {
+  const lang = getWaLang();
+  const total = parseFloat(inv.total || 0);
+  const totalPaid = parseFloat(inv.advance_amount || 0);
+  return WaMsg.build('payment_receipt', {
+    shop: SHOP.name, address: SHOP.address || '', phone: SHOP.phone || '',
+    name: inv.customer_name,
+    ref_label: lang === 'ta' ? 'இன்வாய்ஸ்' : (lang === 'hi' ? 'इनवॉइस' : 'Invoice'),
+    ref_value: 'INV-' + String(inv.id).padStart(4, '0'),
+    extra_label: inv.job_id ? (lang === 'ta' ? 'வேலை எண்' : (lang === 'hi' ? 'जॉब ID' : 'Job ID')) : '',
+    extra: inv.job_id ? '#' + inv.job_id : '',
+    date: (function(){ const n=new Date(); return n.getDate()+'/'+(n.getMonth()+1)+'/'+n.getFullYear(); })(),
+    amount: amountNow, method: method, bill_total: total, total_paid: totalPaid,
+    balance: balance, due_date: dueDate || ''
+  }, lang);
 }
 
-function sendInvWA(name, phone, invId) {
-  const inv = INVOICES.find(x => x.id == invId); if(!inv) return;
-  const now = new Date();
-  const dateStr = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
+function sendInvRemind(invId) {
+  const inv = INVOICES.find(x => x.id == invId);
+  if (!inv) return;
+  const bal = Math.max(0, parseFloat(inv.total || 0) - parseFloat(inv.advance_amount || 0));
+  openWA(inv.customer_phone, {
+    kind: 'payment_reminder',
+    vars: {
+      shop: SHOP.name, phone: SHOP.phone || '', address: SHOP.address || '',
+      name: inv.customer_name || 'Customer',
+      amount: bal,
+      ref_text: 'Invoice INV-' + String(inv.id).padStart(4, '0'),
+      due_date: inv.due_date || ''
+    }
+  });
+}
+
+function sendInvWA(invId) {
+  const inv = INVOICES.find(x => x.id == invId);
+  if (!inv) { toast('Invoice not found'); return; }
+  const ph = String(inv.customer_phone || '').replace(/\D/g, '').slice(-10);
+  if (ph.length !== 10) { toast('Customer phone is missing or invalid'); return; }
   const adv = parseFloat(inv.advance_amount || 0);
   const disc = parseFloat(inv.discount || 0);
   const total = parseFloat(inv.total || 0);
   const credit = Math.max(0, total - adv);
   let items = [];
   try { items = JSON.parse(inv.items || '[]'); } catch(e) {}
-  let m = `*--- INVOICE ---*\n*${SHOP.name}*\n${SHOP.address}\nPhone: ${SHOP.phone}\n\n`;
-  m += `Dear *${name}*,\nHere is your invoice.\n\n`;
-  m += `*Invoice:* INV-${String(invId).padStart(4,'0')}\n*Date:* ${dateStr}\n\n`;
-  if(items.length) {
-    m += `*Services/Parts:*\n`;
-    items.forEach(i => { m += `- ${i.qty||1} x ${i.desc} @ ₹${parseFloat(i.price).toFixed(2)} = ₹${((i.qty||1)*i.price).toFixed(2)}\n`; });
-    m += `\n-----------------------------------\n`;
-    const sub = items.reduce((s,i) => s+(i.qty||1)*i.price, 0);
-    m += `*Subtotal:* ₹${sub.toFixed(2)}\n`;
-    if(disc > 0) m += `*Discount:* -₹${disc.toFixed(2)}\n`;
-    m += `*Grand Total:* ₹${total.toFixed(2)}\n`;
-    m += `-----------------------------------\n\n`;
+  const lang = getWaLang();
+  let items_lines = WaMsg.itemsBlock(items.map(i => ({ desc: i.desc, qty: i.qty || 1, price: i.price })), lang);
+  if (items.length) {
+    const sub = items.reduce((s, i) => s + (i.qty || 1) * i.price, 0);
+    items_lines += '*Subtotal:* Rs ' + sub.toFixed(2) + '\n';
+    if (disc > 0) items_lines += '*Discount:* -Rs ' + disc.toFixed(2) + '\n';
+    items_lines += '*Grand Total:* Rs ' + total.toFixed(2) + '\n-----------------------------------\n\n';
   }
-  m += `*Total Paid:* ₹${adv.toFixed(2)}\n`;
-  const statusTxt = credit < 0.01 ? 'COMPLETED' : `PARTIAL — Balance Due: ₹${credit.toFixed(2)}`;
-  m += `*Payment Status:* ${statusTxt}\n\n`;
-  m += `Thank you for your business!\n`;
-  if(SHOP.review) m += `\nWe value your feedback! Please take a moment to leave us a review:\n${SHOP.review}`;
-  window.open('https://wa.me/91'+phone.replace(/\D/g,'').slice(-10)+'?text='+encodeURIComponent(m),'_blank');
+  const statusTxt = credit < 0.01
+    ? (lang === 'ta' ? 'முழுமையாக செலுத்தப்பட்டது' : (lang === 'hi' ? 'पूर्ण भुगतान' : 'COMPLETED'))
+    : (lang === 'ta' ? 'பகுதி - மீதி: Rs ' + credit.toFixed(2) : (lang === 'hi' ? 'आंशिक - बकाया: Rs ' + credit.toFixed(2) : 'PARTIAL - Balance Due: Rs ' + credit.toFixed(2)));
+  openWA(ph, {
+    kind: 'invoice',
+    vars: {
+      shop: SHOP.name, address: SHOP.address, phone: SHOP.phone, review: SHOP.review,
+      name: inv.customer_name || 'Customer', inv_id: inv.id,
+      date: (function(){ const n=new Date(); return n.getDate()+'/'+(n.getMonth()+1)+'/'+n.getFullYear(); })(),
+      items_lines: items_lines, total_paid: adv, status_txt: statusTxt
+    }
+  });
+}
+
+function downloadInvoicePDF(invId) {
+  window.open(window.location.origin + '/invoices/' + invId + '/print?download=1', '_blank');
+}
+async function shareInvoicePDF(invId) {
+  try {
+    await window.sharePrintPagePdf('/invoices/' + invId + '/print', { wait: 1200 });
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;
+    toast('Could not share PDF. Try Download instead.');
+  }
 }
 
 function toast(msg) {
@@ -341,5 +571,47 @@ document.getElementById('payModal').addEventListener('click', e => {
   if (e.target === document.getElementById('payModal'))
     document.getElementById('payModal').classList.remove('show');
 });
+
+(function initCollectFromUrl(){
+  const cid = new URLSearchParams(location.search).get('collect');
+  if (!cid) return;
+  const inv = INVOICES.find(x => String(x.id) === String(cid));
+  if (inv && (inv.paid || 'Unpaid') !== 'Paid') {
+    setTimeout(() => openPayModal(inv.id, parseFloat(inv.total || 0), parseFloat(inv.advance_amount || 0)), 250);
+  } else if (inv) {
+    setTimeout(() => viewInvoice(inv.id), 250);
+  }
+  if (history.replaceState) history.replaceState(null, '', location.pathname);
+})();
+
+let _dueOnly = false;
+function toggleDueFilter() {
+  _dueOnly = !_dueOnly;
+  const btn = document.getElementById('dueFilterBtn');
+  if (_dueOnly) {
+    btn.style.background = '#fee2e2';
+    btn.style.borderColor = '#b91c1c';
+    btn.style.color = '#b91c1c';
+  } else {
+    btn.style.background = 'white';
+    btn.style.borderColor = '#fee2e2';
+    btn.style.color = '#b91c1c';
+  }
+  filterInv();
+}
+
+function filterInv() {
+  const q = document.getElementById('invSearch').value.toLowerCase();
+  document.querySelectorAll('.inv-cards tbody tr').forEach(row => {
+    const matchSearch = row.textContent.toLowerCase().includes(q);
+    const matchDue = !_dueOnly || row.dataset.due === '1';
+    if (matchSearch && matchDue) {
+      row.style.removeProperty('display');
+    } else {
+      row.style.setProperty('display', 'none', 'important');
+    }
+  });
+}
+
 </script>
 {% endblock %}

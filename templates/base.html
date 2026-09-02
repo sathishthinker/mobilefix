@@ -3,36 +3,55 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% include '_csrf.html' %}
 <title>{% block title %}MobileFix Pro{% endblock %}</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+/* Remove default browser eye icon for password inputs (Edge/IE) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}
+
 :root {
   --teal: #00BCD4;
   --teal-dark: #0097A7;
   --teal-light: #E0F7FA;
   --teal-glow: rgba(0,188,212,0.25);
-  --bg: #f0f4f8;
+  --purple: #7c3aed;
+  --bg: #eef2ff;
   --white: #ffffff;
   --card: #ffffff;
   --text: #1a2332;
-  --text-muted: #6b7c93;
-  --border: #e2e8f0;
+  --text-muted: #475569;
+  --border: #c4b5fd;
   --danger: #ef4444;
   --success: #10b981;
   --warning: #f59e0b;
   --sidebar-w: 260px;
   --radius: 14px;
-  --shadow: 0 8px 24px rgba(0,0,0,0.08);
+  --shadow: 0 8px 24px rgba(124,58,237,0.10);
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+body { font-family: 'DM Sans', sans-serif; background: linear-gradient(180deg,#ecfeff 0%,#f5f3ff 42%,#ecfdf5 100%); background-attachment: fixed; color: var(--text); min-height: 100vh; display: flex; }
+
+/* Hide number input spinners globally */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
 
 /* ── SIDEBAR ── */
 .sidebar {
-  width: var(--sidebar-w); min-height: 100vh; background: #0d1b2a;
+  width: var(--sidebar-w); min-height: 100vh;
+  background: linear-gradient(180deg,#0f172a 0%,#134e4a 48%,#4c1d95 100%);
   display: flex; flex-direction: column; position: fixed; left: 0; top: 0; z-index: 100;
-  box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+  box-shadow: 4px 0 24px rgba(76,29,149,0.28);
 }
 .sidebar-logo {
   padding: 28px 24px 22px;
@@ -55,38 +74,60 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   font-size: 0.9rem; font-weight: 500; transition: all 0.2s;
 }
 .nav-link i { width: 18px; text-align: center; font-size: 0.95rem; }
-.nav-link:hover { background: rgba(255,255,255,0.06); color: #c8d6e5; }
-.nav-link.active { background: linear-gradient(135deg, rgba(0,188,212,0.2), rgba(0,151,167,0.15)); color: var(--teal); border: 1px solid rgba(0,188,212,0.2); }
+.nav-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.nav-link.active { background: linear-gradient(135deg,#0891b2,#7c3aed); color: #fff; border: 1px solid transparent; }
 .sidebar-footer { padding: 16px 12px 24px; border-top: 1px solid rgba(255,255,255,0.07); }
 
 /* ── MAIN ── */
 .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
 .topbar {
-  background: var(--white); padding: 0 30px; height: 66px;
-  display: flex; align-items: center; justify-content: space-between;
-  border-bottom: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  background: linear-gradient(90deg,#ffffff,#ecfeff 45%,#f5f3ff);
+  padding: 0 30px; height: 66px;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 2px solid #a5f3fc; box-shadow: 0 4px 16px rgba(8,145,178,0.08);
   position: sticky; top: 0; z-index: 90;
 }
+.topbar-left { display:flex; align-items:center; gap:12px; flex-shrink:0; min-width:0; }
 .topbar-title { font-family: 'Exo 2', sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--text); }
-.topbar-right { display: flex; align-items: center; gap: 16px; }
+.topbar-brand {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  flex: 1; min-width: 0; text-decoration: none; color: inherit;
+}
+.tb-logo {
+  width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 0.95rem; box-shadow: 0 3px 8px var(--teal-glow);
+}
+.tb-name { font-family: 'Exo 2', sans-serif; font-weight: 900; font-size: 0.98rem; color: #0f172a; line-height: 1.1; }
+.tb-name span { color: var(--teal); }
+.tb-slogan { font-size: 0.58rem; font-weight: 700; color: #64748b; letter-spacing: .4px; text-transform: uppercase; margin-top: 1px; white-space: nowrap; }
+.topbar-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
 .sub-badge { padding: 5px 14px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; }
 .sub-badge.trial { background: #fef3c7; color: #92400e; }
 .sub-badge.active { background: #d1fae5; color: #065f46; }
 .sub-badge.expired { background: #fee2e2; color: #991b1b; }
 .sub-badge.inactive { background: #f1f5f9; color: #64748b; }
 .avatar { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg,var(--teal),var(--teal-dark)); display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.9rem;}
+img.avatar, img.shop-logo-img { object-fit: contain; background: #e0f7fa; padding: 3px; border: 1.5px solid #b2ebf2; }
+.header-shop-logo, .header-shop-fallback { display: none; }
 .content { padding: 30px; flex: 1; }
 
 /* ── CARDS ── */
-.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; border: 1.5px solid #ddd6fe; }
 .card-header { padding: 20px 24px 0; }
 .card-body { padding: 24px; }
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; margin-bottom: 30px; }
-.stat-card { background: var(--white); border-radius: var(--radius); padding: 22px 24px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 16px; border-left: 4px solid var(--teal); }
-.stat-card.danger { border-left-color: var(--danger); }
-.stat-card.success { border-left-color: var(--success); }
-.stat-card.warning { border-left-color: var(--warning); }
-.stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; background: var(--teal-light); color: var(--teal); }
+.stat-card { background: linear-gradient(180deg,#fff,#ecfeff); border-radius: var(--radius); padding: 22px 24px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 16px; border: 1.5px solid #a5f3fc; border-left: 5px solid #06b6d4; }
+.stat-card:nth-child(2) { background: linear-gradient(180deg,#fff,#fffbeb); border-color:#fde68a; border-left-color:#f59e0b; }
+.stat-card:nth-child(3) { background: linear-gradient(180deg,#fff,#f0fdf4); border-color:#bbf7d0; border-left-color:#16a34a; }
+.stat-card:nth-child(4) { background: linear-gradient(180deg,#fff,#f5f3ff); border-color:#ddd6fe; border-left-color:#7c3aed; }
+.stat-card:nth-child(5) { background: linear-gradient(180deg,#fff,#fdf2f8); border-color:#fbcfe8; border-left-color:#ec4899; }
+.stat-card:nth-child(6) { background: linear-gradient(180deg,#fff,#eff6ff); border-color:#bfdbfe; border-left-color:#2563eb; }
+.stat-card.danger { border-left-color: var(--danger); background: linear-gradient(180deg,#fff,#fef2f2); border-color:#fecaca; }
+.stat-card.success { border-left-color: var(--success); background: linear-gradient(180deg,#fff,#f0fdf4); border-color:#bbf7d0; }
+.stat-card.warning { border-left-color: var(--warning); background: linear-gradient(180deg,#fff,#fffbeb); border-color:#fde68a; }
+.stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; background: linear-gradient(135deg,#06b6d4,#7c3aed); color: #fff; }
 .stat-icon.danger { background: #fee2e2; color: var(--danger); }
 .stat-icon.success { background: #d1fae5; color: var(--success); }
 .stat-icon.warning { background: #fef3c7; color: var(--warning); }
@@ -95,16 +136,16 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 
 /* ── BUTTONS ── */
 .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 600; font-family: inherit; text-decoration: none; transition: all 0.2s; }
-.btn-primary { background: linear-gradient(135deg, var(--teal), var(--teal-dark)); color: white; box-shadow: 0 4px 12px var(--teal-glow); }
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px var(--teal-glow); }
+.btn-primary { background: linear-gradient(135deg,#0891b2,#7c3aed); color: white; box-shadow: 0 4px 14px rgba(124,58,237,.28); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(8,145,178,.3); }
 .btn-sm { padding: 6px 14px; font-size: 0.8rem; border-radius: 8px; }
 .btn-danger { background: #fee2e2; color: var(--danger); }
 .btn-danger:hover { background: var(--danger); color: white; }
 .btn-success { background: #d1fae5; color: #065f46; }
 .btn-success:hover { background: var(--success); color: white; }
 .btn-warning { background: #fef3c7; color: #92400e; }
-.btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text-muted); }
-.btn-outline:hover { border-color: var(--teal); color: var(--teal); }
+.btn-outline { background: #fff; border: 1.5px solid #c4b5fd; color: #6d28d9; }
+.btn-outline:hover { border-color: #7c3aed; color: #5b21b6; background: #f5f3ff; }
 .btn-ghost { background: transparent; color: var(--text-muted); padding: 8px 12px; }
 .btn-ghost:hover { background: var(--bg); color: var(--text); }
 
@@ -119,10 +160,11 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 /* ── TABLE ── */
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-thead th { padding: 12px 16px; background: #f8fafc; color: var(--text-muted); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border); text-align: left; }
-tbody td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-tbody tr:hover { background: #fafcff; }
+thead th { padding: 12px 16px; background: linear-gradient(90deg,#ecfeff,#f5f3ff); color: #6d28d9; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid #ddd6fe; text-align: left; }
+tbody td { padding: 14px 16px; border-bottom: 1px solid #ede9fe; vertical-align: middle; }
+tbody tr:hover { background: #ecfeff; }
 tbody tr:last-child td { border-bottom: none; }
+.pay-m-tag{display:inline-block;padding:3px 10px;border-radius:999px;font-size:0.78rem;font-weight:800;letter-spacing:0.02em;white-space:nowrap;}
 
 /* ── BADGES ── */
 .badge { padding: 4px 10px; border-radius: 999px; font-size: 0.74rem; font-weight: 700; }
@@ -142,10 +184,12 @@ tbody tr:last-child td { border-bottom: none; }
 /* ── MODAL ── */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
 .modal-overlay.show { display: flex; }
-.modal-box { background: white; border-radius: 18px; padding: 32px; width: 90%; max-width: 440px; box-shadow: 0 25px 60px rgba(0,0,0,0.2); animation: slideUp 0.3s ease; }
+.modal-box { background: white; border-radius: 18px; padding: 32px; width: 90%; max-width: 440px; box-shadow: 0 25px 60px rgba(0,0,0,0.2); animation: slideUp 0.3s ease; position: relative; }
 @keyframes slideUp { from { opacity:0; transform: translateY(30px); } to { opacity:1; transform: translateY(0); } }
-.modal-title { font-family: 'Exo 2', sans-serif; font-weight: 700; font-size: 1.2rem; margin-bottom: 8px; }
+.modal-title { font-family: 'Exo 2', sans-serif; font-weight: 700; font-size: 1.2rem; margin-bottom: 8px; padding-right: 40px; }
 .modal-body { margin-top: 16px; }
+.modal-exit{position:absolute;top:12px;right:12px;background:#475569;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;color:#fff;z-index:2;font-size:1rem;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(15,23,42,.18);}
+.modal-exit:hover{background:#334155;color:#fff;}
 
 /* ── SUBSCRIPTION BUTTONS ── */
 .plan-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 20px; }
@@ -155,9 +199,50 @@ tbody tr:last-child td { border-bottom: none; }
 .plan-btn .plan-desc { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
 
 /* ── PAGE HEADER ── */
-.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-.page-title { font-family: 'Exo 2', sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--text); }
-.page-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
+.page-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 24px; padding: 16px 18px; border-radius: 18px;
+  background: linear-gradient(135deg,#0891b2,#7c3aed);
+  box-shadow: 0 10px 28px rgba(8,145,178,.28);
+}
+.page-title { font-family: 'Exo 2', sans-serif; font-size: 1.4rem; font-weight: 800; color: #fff; }
+.page-subtitle { font-size: 0.85rem; color: rgba(255,255,255,.88); margin-top: 2px; }
+.page-header .btn-primary,
+.page-header .btn-outline,
+.page-header .btn {
+  background: #fff; color: #6d28d9; border: none; font-weight: 800;
+  box-shadow: 0 4px 12px rgba(15,23,42,.12);
+}
+.page-header .btn-primary:hover,
+.page-header .btn-outline:hover,
+.page-header .btn:hover {
+  background: #f5f3ff; color: #5b21b6; border: none; transform: none;
+}
+.hub-card {
+  background: linear-gradient(180deg,#fff,#f5f3ff); border-radius: 16px; padding: 18px;
+  text-decoration: none; box-shadow: var(--shadow); display: flex; align-items: center; gap: 12px;
+  color: #0f172a; border: 1.5px solid #ddd6fe;
+}
+.hub-card:nth-child(2) { background: linear-gradient(180deg,#fff,#f0fdf4); border-color: #bbf7d0; }
+.hub-card:nth-child(3) { background: linear-gradient(180deg,#fff,#fff7ed); border-color: #fed7aa; }
+.hub-card:nth-child(4) { background: linear-gradient(180deg,#fff,#ecfeff); border-color: #a5f3fc; }
+.sales-kpi,.inv-kpi {
+  background: linear-gradient(180deg,#fff,#ecfeff); border-radius: 14px; padding: 14px 16px;
+  box-shadow: var(--shadow); border: 1.5px solid #a5f3fc; border-left: 5px solid #06b6d4;
+}
+.sales-kpi:nth-child(2),.inv-kpi:nth-child(2) { background: linear-gradient(180deg,#fff,#f0fdf4); border-color:#bbf7d0; border-left-color:#16a34a; }
+.sales-kpi:nth-child(3),.inv-kpi:nth-child(3) { background: linear-gradient(180deg,#fff,#fffbeb); border-color:#fde68a; border-left-color:#f59e0b; }
+.sales-kpi:nth-child(4) { background: linear-gradient(180deg,#fff,#fef2f2); border-color:#fecaca; border-left-color:#ef4444; }
+.pay-method-btn[data-pay="Cash"]{background:#f0fdf4;border-color:#86efac;color:#15803d;}
+.pay-method-btn[data-pay="Cash"].active{background:#16a34a;border-color:#16a34a;color:#fff;}
+.pay-method-btn[data-pay="UPI"]{background:#f5f3ff;border-color:#c4b5fd;color:#6d28d9;}
+.pay-method-btn[data-pay="UPI"].active{background:#7c3aed;border-color:#7c3aed;color:#fff;}
+.pay-method-btn[data-pay="Card"]{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8;}
+.pay-method-btn[data-pay="Card"].active{background:#2563eb;border-color:#2563eb;color:#fff;}
+.pay-method-btn[data-pay="Bank"]{background:#fff7ed;border-color:#fdba74;color:#c2410c;}
+.pay-method-btn[data-pay="Bank"].active{background:#ea580c;border-color:#ea580c;color:#fff;}
+.pay-method-btn[data-pay="Credit"]{background:#fff1f2;border-color:#fda4af;color:#be123c;}
+.pay-method-btn[data-pay="Credit"].active{background:#e11d48;border-color:#e11d48;color:#fff;}
 
 /* ── EXPIRY POPUP ── */
 #expiry-popup {
@@ -171,28 +256,42 @@ tbody tr:last-child td { border-bottom: none; }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
-  .sidebar.open { transform: translateX(0); }
-  .sidebar-overlay { display: block; }
+  .sidebar, .sidebar-overlay { display: none !important; }
   .main { margin-left: 0; }
-  .content { padding: 16px 12px 80px; }
-  .topbar { padding: 0 14px; height: 56px; }
-  .topbar-title { font-size: 0.95rem; }
+  .content { padding: 16px 12px 108px; }
+  .topbar { padding: 0 10px; height: 64px; gap: 8px; }
+  .tb-logo { width: 40px; height: 40px; border-radius: 11px; font-size: 1.15rem; }
+  .tb-name { font-size: 1.12rem; }
+  .tb-slogan { font-size: 0.62rem; letter-spacing: .35px; }
   .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
   .stat-card { padding: 12px 10px; gap: 10px; }
   .stat-num { font-size: 1.4rem; }
   .stat-icon { width: 38px; height: 38px; font-size: 1rem; }
   .stat-label { font-size: 0.72rem; }
-  /* Modal → bottom sheet */
-  .modal-overlay { align-items: flex-end !important; }
-  .modal-box { border-radius: 20px 20px 0 0 !important; max-width: 100% !important; width: 100% !important; padding: 24px 18px 28px !important; max-height: 92vh; overflow-y: auto; }
+  /* Modal → bottom sheet, stopping above bottom nav */
+  .modal-overlay { 
+    align-items: flex-end !important; 
+    bottom: 0 !important;
+  }
+  .modal-overlay.modal-center { align-items: center !important; }
+  .modal-box { border-radius: 20px 20px 0 0 !important; max-width: 100% !important; width: 100% !important; padding: 24px 18px 28px !important; max-height: 100%; overflow-y: auto; }
   /* Page header stacks vertically */
-  .page-header { flex-direction: column; align-items: flex-start !important; gap: 10px; }
+  .page-header { flex-direction: column; align-items: center !important; gap: 10px; text-align: center; }
   .page-header .btn { width: 100%; justify-content: center; }
   /* Hamburger / bottom nav */
-  .hamburger { display: flex !important; }
+  .hamburger { display: none !important; }
   .sub-badge { display: none; }
   .bottom-nav { display: flex !important; }
+  .topbar-title { display: none; }
+  .topbar-left { display: flex; }
+  .topbar { position: sticky; }
+  .topbar-brand { position: absolute; left: 50%; transform: translateX(-50%); flex: none; }
+  .topbar-right { margin-left: auto; gap: 8px; }
+  .topbar-logout { display: flex !important; }
+  .topbar-profile { display: flex !important; }
+  .header-shop-logo { display: block; width: 40px; height: 40px; object-fit: contain; border-radius: 10px; background: #e0f7fa; border: 1.5px solid #b2ebf2; padding: 3px; }
+  .header-shop-fallback { display: flex !important; }
+  .desktop-avatar { display: none !important; }
   /* Plan grid single column */
   .plan-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
   /* Card body less padding */
@@ -205,9 +304,9 @@ tbody tr:last-child td { border-bottom: none; }
   .mob-cards th, .mob-cards td, .mob-cards tr { display: block; }
   .mob-cards thead tr { display: none; }
   .mob-cards tbody tr {
-    background: white; border-radius: 12px; margin-bottom: 10px;
-    padding: 12px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    border: 1px solid #f1f5f9;
+    background: linear-gradient(180deg,#fff,#f5f3ff); border-radius: 12px; margin-bottom: 10px;
+    padding: 12px 14px; box-shadow: 0 6px 16px rgba(124,58,237,0.08);
+    border: 1.5px solid #ddd6fe;
   }
   .mob-cards tbody td {
     display: flex; justify-content: space-between; align-items: center;
@@ -237,6 +336,10 @@ tbody tr:last-child td { border-bottom: none; }
   .hamburger { display: none !important; }
   .bottom-nav { display: none !important; }
   .sidebar-overlay { display: none !important; }
+  .topbar-brand { display: none !important; }
+  .topbar-logout { display: none !important; }
+  .topbar-profile { display: none !important; }
+  .header-shop-logo, .header-shop-fallback { display: none !important; }
 }
 
 /* ── SIDEBAR OVERLAY ── */
@@ -260,19 +363,101 @@ tbody tr:last-child td { border-bottom: none; }
 /* ── BOTTOM NAV ── */
 .bottom-nav {
   display: none; position: fixed; bottom: 0; left: 0; right: 0;
-  height: 62px; background: white; border-top: 1px solid var(--border);
-  z-index: 90; box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+  min-height: 86px; height: auto;
+  background: linear-gradient(90deg,#ecfeff,#f5f3ff 50%,#ecfdf5);
+  border-top: 2px solid #a5f3fc;
+  z-index: 90; box-shadow: 0 -8px 24px rgba(8,145,178,0.12);
   align-items: stretch;
+  padding: 10px 4px calc(12px + env(safe-area-inset-bottom, 0px));
 }
+body:has(.modal-overlay.show) .bottom-nav { display: none !important; }
+body:has(.hist-modal.show) .bottom-nav { display: none !important; }
 .bnav-item {
   flex: 1; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 3px; text-decoration: none;
-  color: #94a3b8; font-size: 0.62rem; font-weight: 600;
-  padding: 6px 4px; transition: color 0.2s; border: none; background: none;
+  justify-content: center; gap: 6px; text-decoration: none;
+  color: #0f172a; font-size: 0.72rem; font-weight: 800;
+  padding: 0; line-height: 1.15; transition: transform 0.15s; border: none; background: none;
+  font-family: 'Exo 2', sans-serif;
 }
-.bnav-item i { font-size: 1.1rem; }
-.bnav-item.active { color: var(--teal); }
-.bnav-item.active i { color: var(--teal); }
+.bnav-item i {
+  width: 40px; height: 40px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff !important; font-size: 1.05rem; line-height: 1;
+  box-shadow: 0 3px 8px rgba(0,0,0,.16);
+}
+.bnav-item span { line-height: 1.15; font-weight: 800; }
+.bnav-home i { background: linear-gradient(135deg,#00BCD4,#26C6DA); }
+.bnav-attend i { background: linear-gradient(135deg,#2563eb,#60a5fa); }
+.bnav-profile i { background: linear-gradient(135deg,#6366f1,#818cf8); }
+.bnav-jobs i { background: linear-gradient(135deg,#1E88E5,#4FC3F7); }
+.bnav-sales i { background: linear-gradient(135deg,#00897B,#26A69A); }
+.bnav-inv i { background: linear-gradient(135deg,#8E24AA,#BA68C8); }
+.bnav-cust i { background: linear-gradient(135deg,#43A047,#81C784); }
+.bnav-rep i { background: linear-gradient(135deg,#00ACC1,#4DD0E1); }
+.bnav-set i { background: linear-gradient(135deg,#FF9800,#FFC107); }
+.bnav-admin i { background: linear-gradient(135deg,#00BCD4,#0097A7); }
+.bnav-act i { background: linear-gradient(135deg,#6366f1,#818cf8); }
+.bnav-tools i { background: linear-gradient(135deg,#00BCD4,#0097A7); }
+.bnav-item.active { color: #0f172a; transform: translateY(-2px); }
+.bnav-item.active i { box-shadow: 0 5px 12px rgba(0,0,0,.22); }
+.sale-act {
+  width: 36px; height: 36px; padding: 0; border: none; border-radius: 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; color: #fff !important; text-decoration: none; flex-shrink: 0;
+  font-size: 0.92rem; line-height: 1; box-shadow: 0 2px 6px rgba(0,0,0,.12);
+}
+.sale-act-view { background: #0ea5e9; }
+.sale-act-print { background: #64748b; }
+.sale-act-share { background: #25D366; }
+.sale-act-collect { background: linear-gradient(135deg,#4CAF50,#66BB6A); }
+.sale-act-wa { background: #25D366; }
+.sale-act-return { background: #ef4444; }
+.sale-act-edit { background: #1E88E5; }
+.sale-act-in { background: #43A047; }
+.sale-act-warranty { background: #7c3aed; }
+.sale-act-replaced { background: #16a34a; }
+.sale-act-log { background: #78909C; }
+.sale-act-sale { background: linear-gradient(135deg,#00BCD4,#26C6DA); }
+.sale-act-hist { background: #8E24AA; }
+.topbar-logout {
+  display: none; width: 36px; height: 36px; border-radius: 10px;
+  align-items: center; justify-content: center; color: #dc2626;
+  background: #fee2e2; text-decoration: none; font-size: 0.9rem;
+}
+.topbar-profile {
+  display: none; width: 36px; height: 36px; border-radius: 10px;
+  align-items: center; justify-content: center; color: #1d4ed8;
+  background: #dbeafe; text-decoration: none; font-size: 0.9rem;
+}
+
+/* ── iOS-style date wheel ── */
+.ios-date-ov{display:none;position:fixed;inset:0;z-index:200000;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center;}
+.ios-date-ov.show{display:flex;}
+.ios-date-sheet{width:100%;max-width:420px;background:#f2f2f7;border-radius:16px 16px 0 0;padding:10px 12px 18px;box-shadow:0 -8px 32px rgba(0,0,0,.18);}
+.ios-date-bar{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 10px;}
+.ios-date-bar button{border:none;background:none;font-family:inherit;font-size:.95rem;font-weight:700;cursor:pointer;padding:8px 10px;}
+.ios-date-bar .ios-cancel{color:#8e8e93;}
+.ios-date-bar .ios-done{color:#007aff;}
+.ios-date-bar span{font-weight:700;font-size:.88rem;color:#1c1c1e;}
+.ios-wheels{position:relative;height:252px;display:flex;border-radius:12px;overflow:hidden;background:#e8e8ed;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 18%,#000 82%,transparent 100%);
+  mask-image:linear-gradient(to bottom,transparent 0%,#000 18%,#000 82%,transparent 100%);}
+.ios-hl{position:absolute;left:8px;right:8px;top:50%;height:36px;margin-top:-18px;background:rgba(120,120,128,.18);border-radius:8px;pointer-events:none;z-index:1;}
+.ios-col{flex:1;height:252px;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:relative;z-index:2;}
+.ios-col::-webkit-scrollbar{display:none;}
+.ios-item{height:36px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;font-size:1.28rem;font-weight:500;color:#8e8e93;flex-shrink:0;user-select:none;}
+.ios-item.on{color:#1c1c1e;font-weight:700;}
+.ios-pad{height:108px;flex-shrink:0;pointer-events:none;}
+input.ios-date-display{caret-color:transparent;cursor:pointer;}
+@media(min-width:769px){
+  .ios-date-ov{align-items:center;padding:24px;}
+  .ios-date-sheet{border-radius:16px;max-width:380px;}
+}
+.fa-rupee-sign::before {
+  content: "\20B9" !important;
+  font-family: inherit !important;
+  font-weight: 700 !important;
+}
 </style>
 {% block extra_head %}{% endblock %}
 </head>
@@ -282,16 +467,48 @@ tbody tr:last-child td { border-bottom: none; }
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="logo-icon"><i class="fas fa-mobile-alt"></i></div>
-    <div class="logo-text">Mobile<span>Fix</span><br><small style="font-size:0.65rem;color:#7a90a8;font-weight:400;">Repair Management</small></div>
+    <div class="logo-text">Mobile<span>Fix</span><br><small style="font-size:0.65rem;color:#7a90a8;font-weight:400;">{% if app_area=='sales' %}Sales Billing{% elif app_area=='service' %}Service Booking{% else %}Choose workspace{% endif %}</small></div>
   </div>
   <div class="sidebar-shop">{{ session.get('shop_name','My Shop') }}</div>
   <nav class="sidebar-nav">
-    <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint=='dashboard' %}active{% endif %}"><i class="fas fa-th-large"></i> Dashboard</a>
-    <a href="{{ url_for('jobs') }}" class="nav-link {% if 'job' in request.endpoint %}active{% endif %}"><i class="fas fa-tools"></i> Repair Jobs</a>
+    <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint=='dashboard' %}active{% endif %}"><i class="fas fa-th-large"></i> Home</a>
+    {% if not is_owner %}
+    <a href="{{ url_for('shop_profile') }}" class="nav-link {% if request.endpoint in ('shop_profile','shop_attendance') %}active{% endif %}"><i class="fas fa-user"></i> Profile</a>
+    {% endif %}
+    {% if app_area == 'sales' %}
+    {% if is_owner or can_sale %}
+    <a href="{{ url_for('sales_hub') }}" class="nav-link {% if request.endpoint=='sales_hub' %}active{% endif %}"><i class="fas fa-cash-register"></i> Sales</a>
+    <a href="{{ url_for('sale_new') }}" class="nav-link {% if request.endpoint=='sale_new' %}active{% endif %}"><i class="fas fa-plus"></i> New Sale</a>
+    <a href="{{ url_for('sales_customers') }}" class="nav-link {% if request.endpoint=='sales_customers' %}active{% endif %}"><i class="fas fa-users"></i> Customers</a>
+    {% endif %}
+    {% if is_owner %}
+    <a href="{{ url_for('purchases') }}" class="nav-link {% if request.endpoint in ('purchases', 'purchase_new') %}active{% endif %}"><i class="fas fa-shopping-cart"></i> Purchases</a>
+    <a href="{{ url_for('gst_reports') }}" class="nav-link {% if request.endpoint=='gst_reports' %}active{% endif %}"><i class="fas fa-file-invoice-dollar"></i> GST Reports</a>
+    <a href="{{ url_for('inventory') }}" class="nav-link {% if request.endpoint=='inventory' %}active{% endif %}"><i class="fas fa-boxes-stacked"></i> Inventory</a>
+    <a href="{{ url_for('reports') }}" class="nav-link {% if request.endpoint=='reports' %}active{% endif %}"><i class="fas fa-chart-line"></i> Reports</a>
+    {% endif %}
+    {% elif app_area == 'service' %}
+    <a href="{{ url_for('service_hub') }}" class="nav-link {% if request.endpoint=='service_hub' %}active{% endif %}"><i class="fas fa-tools"></i> Service</a>
+    <a href="{{ url_for('jobs') }}" class="nav-link {% if 'job' in request.endpoint %}active{% endif %}"><i class="fas fa-clipboard-list"></i> Jobs</a>
     <a href="{{ url_for('invoices') }}" class="nav-link {% if 'invoice' in request.endpoint %}active{% endif %}"><i class="fas fa-file-invoice"></i> Invoices</a>
     <a href="{{ url_for('customers') }}" class="nav-link {% if request.endpoint=='customers' %}active{% endif %}"><i class="fas fa-users"></i> Customers</a>
+    {% if is_owner %}
     <a href="{{ url_for('reports') }}" class="nav-link {% if request.endpoint=='reports' %}active{% endif %}"><i class="fas fa-chart-line"></i> Reports</a>
+    {% endif %}
+    {% else %}
+    {% if is_owner or can_jobs %}
+    <a href="{{ url_for('service_hub') }}" class="nav-link"><i class="fas fa-tools"></i> Service Booking</a>
+    {% endif %}
+    {% if is_owner or can_sale %}
+    <a href="{{ url_for('sales_hub') }}" class="nav-link"><i class="fas fa-cash-register"></i> Sales Billing</a>
+    {% endif %}
+    {% endif %}
+    <a href="{{ url_for('smart_tools') }}" class="nav-link {% if 'smart_tools' in request.endpoint or request.endpoint == 'e_aadhaar_print' %}active{% endif %}"><i class="fas fa-magic"></i> Smart Tools</a>
+    {% if is_owner %}
+    <a href="{{ url_for('shop_team') }}" class="nav-link {% if request.endpoint=='shop_team' %}active{% endif %}"><i class="fas fa-user-tag"></i> Team</a>
+    <a href="{{ url_for('manage_categories') }}" class="nav-link {% if request.endpoint=='manage_categories' %}active{% endif %}"><i class="fas fa-tags"></i> Categories</a>
     <a href="{{ url_for('settings') }}" class="nav-link {% if request.endpoint=='settings' %}active{% endif %}"><i class="fas fa-cog"></i> Settings</a>
+    {% endif %}
   </nav>
   <div class="sidebar-footer">
     <a href="{{ url_for('logout') }}" class="nav-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -305,7 +522,10 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
   <nav class="sidebar-nav">
     <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint=='admin_dashboard' %}active{% endif %}"><i class="fas fa-users-cog"></i> Manage Shops</a>
+    <a href="{{ url_for('admin_imei_search') }}" class="nav-link {% if request.endpoint=='admin_imei_search' %}active{% endif %}"><i class="fas fa-barcode"></i> IMEI Search</a>
+    <a href="{{ url_for('admin_broadcasts') }}" class="nav-link {% if request.endpoint=='admin_broadcasts' %}active{% endif %}"><i class="fas fa-bullhorn"></i> Broadcasts</a>
     <a href="{{ url_for('admin_login_activity') }}" class="nav-link {% if request.endpoint=='admin_login_activity' %}active{% endif %}"><i class="fas fa-shield-halved"></i> Login Activity</a>
+    <a href="{{ url_for('admin_page_activity') }}" class="nav-link {% if request.endpoint=='admin_page_activity' %}active{% endif %}"><i class="fas fa-eye"></i> Page Activity</a>
   </nav>
   <div class="sidebar-footer">
     <a href="{{ url_for('logout') }}" class="nav-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -314,14 +534,34 @@ tbody tr:last-child td { border-bottom: none; }
 {% endif %}
 
 <div class="main">
+{% if session.get('impersonator_id') %}
+<div style="background:#fff7ed;border-bottom:1px solid #fdba74;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+  <span style="font-size:.85rem;font-weight:700;color:#9a3412;">
+    Viewing as shop: {{ session.get('impersonator_shop') or session.get('shop_name') }}
+  </span>
+  <a href="{{ url_for('admin_stop_impersonate') }}" style="font-size:.82rem;font-weight:800;color:#9a3412;text-decoration:none;">Back to admin</a>
+</div>
+{% endif %}
 {% if session.get('user_id') %}
   <div class="topbar">
-    <div style="display:flex;align-items:center;gap:12px;">
+    <div class="topbar-left">
       <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
         <span></span><span></span><span></span>
       </button>
       <span class="topbar-title">{% block page_title %}MobileFix Pro{% endblock %}</span>
+      {% if shop_logo %}
+      <img class="header-shop-logo" src="{{ shop_logo }}" alt="Shop logo">
+      {% else %}
+      <div class="avatar header-shop-fallback">{{ (session.get('shop_name') or 'A')[0].upper() }}</div>
+      {% endif %}
     </div>
+    <a class="topbar-brand" href="{% if session.get('role') == 'admin' %}{{ url_for('admin_dashboard') }}{% else %}{{ url_for('dashboard') }}{% endif %}" aria-label="MobileFix Pro">
+      <div class="tb-logo"><i class="fas fa-mobile-alt"></i></div>
+      <div>
+        <div class="tb-name">Mobile<span>Fix</span></div>
+        <div class="tb-slogan">{% if app_area=='sales' %}Sales Billing{% elif app_area=='service' %}Service Booking{% else %}MobileFix Pro{% endif %}{% if session.get('role') != 'admin' %} · {% if is_owner %}Owner{% elif staff_kind=='tech' %}Tech{% else %}Sales{% endif %}{% endif %}</div>
+      </div>
+    </a>
     <div class="topbar-right">
       {% if session.get('role') != 'admin' %}
         {% if status is defined %}
@@ -338,7 +578,10 @@ tbody tr:last-child td { border-bottom: none; }
       {% else %}
         <span class="sub-badge active"><i class="fas fa-user-shield"></i> Administrator</span>
       {% endif %}
-      <div class="avatar">{{ (session.get('shop_name') or 'A')[0].upper() }}</div>
+      {% if not is_owner and session.get('role') != 'admin' %}
+      <a href="{{ url_for('shop_profile') }}" class="topbar-profile {% if request.endpoint=='shop_profile' %}active{% endif %}" title="Profile" aria-label="Profile"><i class="fas fa-user"></i></a>
+      {% endif %}
+      <a href="{{ url_for('logout') }}" class="topbar-logout" title="Logout" aria-label="Logout"><i class="fas fa-sign-out-alt"></i></a>
     </div>
   </div>
 {% endif %}
@@ -355,22 +598,77 @@ tbody tr:last-child td { border-bottom: none; }
 
 {% block expiry_popup %}{% endblock %}
 
-{% if session.get('user_id') and session.get('role') != 'admin' %}
+{% if session.get('user_id') and session.get('role') != 'admin' and request.endpoint != 'dashboard' %}
 <nav class="bottom-nav">
-  <a href="{{ url_for('dashboard') }}" class="bnav-item {% if request.endpoint=='dashboard' %}active{% endif %}">
-    <i class="fas fa-th-large"></i>Home
+  <a href="{{ url_for('dashboard') }}" class="bnav-item bnav-home {% if request.endpoint=='dashboard' %}active{% endif %}">
+    <i class="fas fa-th-large"></i><span>Home</span>
   </a>
-  <a href="{{ url_for('jobs') }}" class="bnav-item {% if 'job' in request.endpoint %}active{% endif %}">
-    <i class="fas fa-tools"></i>Jobs
+  {% if not is_owner %}
+  <a href="{{ url_for('shop_profile') }}" class="bnav-item bnav-profile {% if request.endpoint in ('shop_profile','shop_attendance') %}active{% endif %}">
+    <i class="fas fa-user"></i><span>Profile</span>
   </a>
-  <a href="{{ url_for('invoices') }}" class="bnav-item {% if 'invoice' in request.endpoint %}active{% endif %}">
-    <i class="fas fa-file-invoice"></i>Invoices
+  {% endif %}
+  {% if app_area == 'sales' %}
+  {% if is_owner or can_sale %}
+  <a href="{{ url_for('sales_hub') }}" class="bnav-item bnav-sales {% if request.endpoint=='sales_hub' %}active{% endif %}">
+    <i class="fas fa-receipt"></i><span>Bills</span>
   </a>
-  <a href="{{ url_for('customers') }}" class="bnav-item {% if request.endpoint=='customers' %}active{% endif %}">
-    <i class="fas fa-users"></i>Customers
+  <a href="{{ url_for('sale_new') }}" class="bnav-item bnav-jobs {% if request.endpoint=='sale_new' %}active{% endif %}">
+    <i class="fas fa-plus"></i><span>New Sale</span>
   </a>
-  <a href="{{ url_for('settings') }}" class="bnav-item {% if request.endpoint=='settings' %}active{% endif %}">
-    <i class="fas fa-cog"></i>Settings
+  <a href="{{ url_for('sales_customers') }}" class="bnav-item bnav-cust {% if request.endpoint=='sales_customers' %}active{% endif %}">
+    <i class="fas fa-users"></i><span>Customers</span>
+  </a>
+  {% endif %}
+  {% if is_owner %}
+  <a href="{{ url_for('inventory') }}" class="bnav-item bnav-inv {% if request.endpoint=='inventory' %}active{% endif %}">
+    <i class="fas fa-boxes-stacked"></i><span>Stock</span>
+  </a>
+  {% endif %}
+  {% elif app_area == 'service' %}
+  <a href="{{ url_for('jobs') }}" class="bnav-item bnav-jobs {% if 'job' in request.endpoint %}active{% endif %}">
+    <i class="fas fa-tools"></i><span>Jobs</span>
+  </a>
+  <a href="{{ url_for('invoices') }}" class="bnav-item bnav-inv {% if 'invoice' in request.endpoint %}active{% endif %}">
+    <i class="fas fa-file-invoice"></i><span>Invoices</span>
+  </a>
+  <a href="{{ url_for('customers') }}" class="bnav-item bnav-cust {% if request.endpoint=='customers' %}active{% endif %}">
+    <i class="fas fa-users"></i><span>Customers</span>
+  </a>
+  {% if is_owner %}
+  <a href="{{ url_for('reports') }}" class="bnav-item bnav-rep {% if request.endpoint=='reports' %}active{% endif %}">
+    <i class="fas fa-chart-line"></i><span>Reports</span>
+  </a>
+  {% endif %}
+  {% else %}
+  {% if is_owner or can_jobs %}
+  <a href="{{ url_for('service_hub') }}" class="bnav-item bnav-jobs">
+    <i class="fas fa-tools"></i><span>Service</span>
+  </a>
+  {% endif %}
+  {% if is_owner or can_sale %}
+  <a href="{{ url_for('sales_hub') }}" class="bnav-item bnav-sales">
+    <i class="fas fa-cash-register"></i><span>Sales</span>
+  </a>
+  {% endif %}
+  <a href="{{ url_for('smart_tools') }}" class="bnav-item bnav-tools {% if 'smart_tools' in request.endpoint or request.endpoint == 'e_aadhaar_print' %}active{% endif %}">
+    <i class="fas fa-magic"></i><span>Tools</span>
+  </a>
+  {% endif %}
+</nav>
+{% elif session.get('role') == 'admin' %}
+<nav class="bottom-nav">
+  <a href="{{ url_for('admin_dashboard') }}" class="bnav-item bnav-admin {% if request.endpoint=='admin_dashboard' %}active{% endif %}">
+    <i class="fas fa-users-cog"></i><span>Shops</span>
+  </a>
+  <a href="{{ url_for('admin_broadcasts') }}" class="bnav-item bnav-admin {% if request.endpoint=='admin_broadcasts' %}active{% endif %}">
+    <i class="fas fa-bullhorn"></i><span>Broadcasts</span>
+  </a>
+  <a href="{{ url_for('admin_login_activity') }}" class="bnav-item bnav-act {% if request.endpoint=='admin_login_activity' %}active{% endif %}">
+    <i class="fas fa-shield-halved"></i><span>Logins</span>
+  </a>
+  <a href="{{ url_for('admin_page_activity') }}" class="bnav-item bnav-act {% if request.endpoint=='admin_page_activity' %}active{% endif %}">
+    <i class="fas fa-eye"></i><span>Pages</span>
   </a>
 </nav>
 {% endif %}
@@ -387,8 +685,15 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
 </div>
 <style>
+/* Remove default browser eye icon for password inputs (Edge/IE) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}
+
 @keyframes dlgIn{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
 </style>
+{% include 'includes/wa_helpers.html' %}
 <script>
 (function(){
   const dlg=document.getElementById('customDialog');
@@ -434,6 +739,170 @@ tbody tr:last-child td { border-bottom: none; }
     });
   };
 })();
+window.payMethodTag = function(method) {
+  const map = {
+    Cash: ['#15803d', '#dcfce7'],
+    UPI: ['#6d28d9', '#ede9fe'],
+    Card: ['#0369a1', '#e0f2fe'],
+    Bank: ['#c2410c', '#ffedd5'],
+    'Bank Transfer': ['#c2410c', '#ffedd5'],
+    Credit: ['#be123c', '#ffe4e6'],
+  };
+  const m = String(method || '').trim();
+  if (!m) return '<span style="color:#94a3b8;">—</span>';
+  const pair = map[m] || ['#475569', '#f1f5f9'];
+  const safe = m.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return `<span class="pay-m-tag" style="color:${pair[0]};background:${pair[1]};">${safe}</span>`;
+};
+window.ensureHtml2Pdf = function() {
+  return new Promise(function(resolve, reject) {
+    if (window.html2pdf) return resolve(window.html2pdf);
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+    s.onload = function() { resolve(window.html2pdf); };
+    s.onerror = function() { reject(new Error('Could not load PDF library')); };
+    document.head.appendChild(s);
+  });
+};
+window.isMobileShareDevice = function() {
+  var ua = navigator.userAgent || '';
+  if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) return true;
+  if (navigator.maxTouchPoints > 1 && /Macintosh/i.test(ua)) return true;
+  return false;
+};
+window.downloadPdfBlob = function(blob, filename) {
+  var a = document.createElement('a');
+  var url = URL.createObjectURL(blob);
+  a.href = url;
+  a.download = filename || 'document.pdf';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(function() { URL.revokeObjectURL(url); }, 2500);
+  return 'downloaded';
+};
+window.sharePdfBlob = async function(blob, filename, title, text) {
+  filename = filename || 'document.pdf';
+  if (!window.isMobileShareDevice()) {
+    return window.downloadPdfBlob(blob, filename);
+  }
+  var file = new File([blob], filename, { type: 'application/pdf' });
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: title || filename, text: text || '' });
+      return 'shared';
+    } catch (e) {
+      if (e && e.name === 'AbortError') return 'cancelled';
+    }
+  }
+  return window.downloadPdfBlob(blob, filename);
+};
+window.shareHtmlAsPdf = async function(el, filename, title, text, opt) {
+  await window.ensureHtml2Pdf();
+  // Clone element and reset position styles — then use html2pdf 'string' mode
+  // which creates its own container at position:absolute;top:0;left:0.
+  // This is CRITICAL: passing a DOM element positioned off-screen causes
+  // html2canvas to measure a 0x0 or out-of-viewport bounding rect → blank PDF.
+  var clone = el && el.cloneNode ? el.cloneNode(true) : null;
+  if (clone) {
+    clone.style.position = 'static';
+    clone.style.top = '';
+    clone.style.left = '';
+    clone.style.zIndex = '';
+    clone.style.pointerEvents = '';
+    clone.style.visibility = '';
+  }
+  var src = clone ? clone.outerHTML : String(el);
+  const blob = await html2pdf().set(Object.assign({
+    margin: 0.35,
+    filename: filename,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0 },
+    jsPDF: { unit: 'in', format: 'a5', orientation: 'portrait' }
+  }, opt || {})).from(src, 'string').outputPdf('blob');
+  return window.sharePdfBlob(blob, filename, title, text);
+};
+window.sharePaymentReceiptPdf = async function(info) {
+  info = info || {};
+  const esc = function(s) {
+    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  };
+  const shop = (typeof SHOP !== 'undefined' && SHOP) ? SHOP : {};
+  const name = esc(info.shopName || shop.name || '');
+  const addr = esc(info.shopAddress || shop.address || '');
+  const phone = esc(info.shopPhone || shop.phone || '');
+  const bal = parseFloat(info.balance || 0);
+  const paidFull = bal < 0.01;
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;left:0;top:100vh;width:420px;background:#fff;color:#0f172a;font-family:Arial,Helvetica,sans-serif;pointer-events:none;z-index:0;';
+  const contact = [addr, phone].filter(Boolean).join(' | ');
+  wrap.innerHTML = '<div style="padding:28px 24px;">'
+    + '<div style="text-align:center;border-bottom:2px solid #0f172a;padding-bottom:12px;margin-bottom:16px;">'
+    + '<div style="font-size:18px;font-weight:800;">'+name+'</div>'
+    + (contact ? '<div style="font-size:11px;color:#475569;margin-top:4px;">'+contact+'</div>' : '')
+    + '<div style="font-size:13px;font-weight:800;letter-spacing:1px;margin-top:10px;">PAYMENT RECEIPT</div>'
+    + '</div>'
+    + '<table style="width:100%;border-collapse:collapse;font-size:12px;">'
+    + '<tr><td style="padding:6px 0;color:#64748b;">Customer</td><td style="padding:6px 0;text-align:right;font-weight:700;">'+esc(info.customer)+'</td></tr>'
+    + '<tr><td style="padding:6px 0;color:#64748b;">'+esc(info.refLabel || 'Ref')+'</td><td style="padding:6px 0;text-align:right;font-weight:700;">'+esc(info.refValue)+'</td></tr>'
+    + (info.extra ? '<tr><td style="padding:6px 0;color:#64748b;">'+esc(info.extraLabel || '')+'</td><td style="padding:6px 0;text-align:right;font-weight:700;">'+esc(info.extra)+'</td></tr>' : '')
+    + '<tr><td style="padding:6px 0;color:#64748b;">Date</td><td style="padding:6px 0;text-align:right;font-weight:700;">'+esc(info.date || '')+'</td></tr>'
+    + '<tr><td style="padding:6px 0;color:#64748b;">Method</td><td style="padding:6px 0;text-align:right;font-weight:700;">'+esc(info.method || 'Cash')+'</td></tr>'
+    + (parseFloat(info.billTotal || 0) > 0 ? '<tr><td style="padding:6px 0;color:#64748b;">Bill Total</td><td style="padding:6px 0;text-align:right;font-weight:700;">₹'+parseFloat(info.billTotal).toFixed(2)+'</td></tr>' : '')
+    + (parseFloat(info.totalPaid || 0) > 0 ? '<tr><td style="padding:6px 0;color:#64748b;">Total Paid</td><td style="padding:6px 0;text-align:right;font-weight:700;">₹'+parseFloat(info.totalPaid).toFixed(2)+'</td></tr>' : '')
+    + (!paidFull ? '<tr><td style="padding:6px 0;color:#64748b;">Balance Due</td><td style="padding:6px 0;text-align:right;font-weight:700;color:#c2410c;">₹'+bal.toFixed(2)+'</td></tr>' : '')
+    + (!paidFull && info.dueDate ? '<tr><td style="padding:6px 0;color:#64748b;">Due Date</td><td style="padding:6px 0;text-align:right;font-weight:700;">'+esc(info.dueDate)+'</td></tr>' : '')
+    + '</table>'
+    + '<div style="margin-top:18px;text-align:center;font-size:22px;font-weight:800;">₹'+parseFloat(info.amount || 0).toFixed(2)+'</div>'
+    + '<div style="text-align:center;font-size:11px;color:#64748b;">Amount received</div>'
+    + '<div style="margin-top:12px;text-align:center;font-weight:800;color:'+(paidFull?'#15803d':'#c2410c')+';">'+(paidFull?'PAID IN FULL':'PARTIAL')+'</div>'
+    + '<div style="margin-top:24px;text-align:center;font-size:11px;color:#64748b;">Thank you for your business.</div>'
+    + '</div>';
+  document.body.appendChild(wrap);
+  try {
+    return await window.shareHtmlAsPdf(
+      wrap,
+      info.filename || 'Payment_Receipt.pdf',
+      info.title || 'Payment Receipt',
+      info.text || ('Payment receipt from ' + (info.shopName || shop.name || ''))
+    );
+  } finally {
+    wrap.remove();
+  }
+};
+window.sharePrintPagePdf = async function(path, opts) {
+  opts = opts || {};
+  var sep = path.indexOf('?') >= 0 ? '&' : '?';
+  if (!window.isMobileShareDevice()) {
+    // Desktop: open in new tab with ?download=1 — page auto-downloads the PDF
+    window.open(path + sep + 'download=1', '_blank');
+    return 'downloaded';
+  }
+  // Mobile: open in new tab with ?share=1 — page auto-calls sharePDF() on load
+  window.open(path + sep + 'share=1', '_blank');
+  return 'opened';
+};
+</script>
+<script>
+window.GST_STATES = {{ gst_states|default([])|tojson }};
+window.gstStateFromGstin = function(gstin){
+  var raw = String(gstin||'').toUpperCase().replace(/[^0-9A-Z]/g,'');
+  var code = raw.slice(0,2);
+  if(!/^\d{2}$/.test(code)) return '';
+  var st = (window.GST_STATES||[]).find(function(s){ return s.code === code; });
+  return st ? (st.code + '-' + st.name) : '';
+};
+window.bindGstinState = function(gstinEl, stateEl){
+  if(!gstinEl || !stateEl) return;
+  function fill(){
+    var label = window.gstStateFromGstin(gstinEl.value);
+    if(label) stateEl.value = label;
+  }
+  gstinEl.addEventListener('input', fill);
+  gstinEl.addEventListener('change', fill);
+  gstinEl.addEventListener('blur', fill);
+  fill();
+};
 </script>
 
 {% block scripts %}{% endblock %}
@@ -441,6 +910,12 @@ tbody tr:last-child td { border-bottom: none; }
 <!-- ── IMEI Barcode Scanner — Quagga2 (best cross-platform 1D/Code-128) ── -->
 <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
 <style>
+/* Remove default browser eye icon for password inputs (Edge/IE) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}
+
 /* Quagga2 injects video + canvas into the viewfinder div */
 #imeiScanViewfinder video {
   width:100%;display:block;max-height:260px;object-fit:cover;border-radius:0;
@@ -453,9 +928,9 @@ tbody tr:last-child td { border-bottom: none; }
   <div style="background:white;border-radius:20px;padding:20px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1rem;color:#1a2332;display:flex;align-items:center;gap:8px;">
-        <i class="fas fa-barcode" style="color:#00BCD4;"></i> Scan IMEI Barcode
+        <i class="fas fa-barcode" style="color:#00BCD4;"></i> <span id="imeiScanTitle">Scan IMEI Barcode</span>
       </div>
-      <button onclick="stopImeiScan()" style="background:#f1f5f9;border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;color:#64748b;display:flex;align-items:center;justify-content:center;">✕</button>
+      <button onclick="stopImeiScan()" style="background:#475569;border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;" title="Exit" aria-label="Exit">✕</button>
     </div>
     <!-- Quagga2 renders video+canvas here -->
     <div id="imeiScanViewfinder" style="position:relative;border-radius:12px;overflow:hidden;background:#000;min-height:200px;">
@@ -468,7 +943,7 @@ tbody tr:last-child td { border-bottom: none; }
       <div style="position:absolute;bottom:12px;right:12px;width:24px;height:24px;border-bottom:3px solid #00BCD4;border-right:3px solid #00BCD4;border-radius:0 0 3px 0;pointer-events:none;z-index:10;"></div>
     </div>
     <div style="margin-top:10px;background:#e0f7fa;border-radius:10px;padding:9px 14px;font-size:0.78rem;color:#006064;display:flex;align-items:center;gap:8px;">
-      <i class="fas fa-lightbulb"></i> Hold steady — align the <strong>IMEI barcode</strong> within the frame
+      <i class="fas fa-lightbulb"></i> <span id="imeiScanHint">Hold steady — align the <strong>IMEI barcode</strong> within the frame</span>
     </div>
     <div id="imeiScanStatus" style="margin-top:8px;font-size:0.82rem;color:#94a3b8;text-align:center;min-height:20px;font-weight:500;"></div>
     <!-- Photo fallback for devices where live scan fails -->
@@ -481,37 +956,71 @@ tbody tr:last-child td { border-bottom: none; }
 </div>
 <script>
 let _imeiTarget = null, _imeiTargetEl = null, _quaggaRunning = false, _quaggaDone = false;
+let _scanContinuous = false, _scanOnCode = null, _scanImei = true;
+let _lastScanCode = '', _lastScanAt = 0;
+
+function sanitizeImeiSerial(value) {
+  return String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+function bindImeiSerialField(el) {
+  if (!el || el.dataset.imeiBound) return;
+  el.dataset.imeiBound = '1';
+  const clean = function(){ el.value = sanitizeImeiSerial(el.value); };
+  el.addEventListener('input', clean);
+  el.addEventListener('paste', function(){ setTimeout(clean, 0); });
+  el.addEventListener('blur', clean);
+}
+function _scanValue(code) {
+  return sanitizeImeiSerial(code);
+}
 
 function _onQuaggaDetected(result) {
   if (!_quaggaRunning || _quaggaDone) return;
-  const code = result.codeResult.code;
-  if (!code || code.trim() === '') return;
+  const code = result.codeResult && result.codeResult.code;
+  if (!code || String(code).trim() === '') return;
+  const value = _scanValue(code);
+  if (!value) return;
+  if (_scanContinuous) {
+    const now = Date.now();
+    if (value === _lastScanCode && now - _lastScanAt < 1400) return;
+    _lastScanCode = value;
+    _lastScanAt = now;
+    if (typeof _scanOnCode === 'function') _scanOnCode(value);
+    return;
+  }
   _quaggaDone = true;
   _quaggaRunning = false;
-
-  const digits = code.replace(/\D/g, '');
-  const imei = digits.length >= 14 ? digits.slice(0, 15) : code.trim().toUpperCase();
-
-  // Fill input — use stored reference captured at scan start, fallback to live lookup
-  const el = _imeiTargetEl || document.getElementById(_imeiTarget);
-  if (el) {
-    el.value = imei;
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
+  if (typeof _scanOnCode === 'function') {
+    _scanOnCode(value);
+  } else {
+    const el = _imeiTargetEl || document.getElementById(_imeiTarget);
+    if (el) {
+      el.value = value;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
   }
-  document.getElementById('imeiScanStatus').textContent = '\u2713 Captured: ' + imei;
+  document.getElementById('imeiScanStatus').textContent = '\u2713 Captured: ' + value;
   setTimeout(stopImeiScan, 900);
 }
 
-function startImeiScan(inputId) {
-  _imeiTarget = inputId;
-  _imeiTargetEl = document.getElementById(inputId); // grab reference now while page is stable
+function startBarcodeScan(opts) {
+  opts = opts || {};
+  _imeiTarget = opts.inputId || null;
+  _imeiTargetEl = opts.inputId ? document.getElementById(opts.inputId) : null;
+  _scanContinuous = !!opts.continuous;
+  _scanOnCode = opts.onCode || null;
+  _scanImei = opts.imei !== false;
+  _lastScanCode = '';
+  _lastScanAt = 0;
   _quaggaRunning = false;
   _quaggaDone = false;
+  try { Quagga.offDetected(_onQuaggaDetected); } catch(e) {}
+  document.getElementById('imeiScanTitle').textContent = opts.title || 'Scan IMEI Barcode';
+  document.getElementById('imeiScanHint').innerHTML = opts.hint || 'Hold steady — align the <strong>IMEI barcode</strong> within the frame';
   document.getElementById('imeiScanModal').style.display = 'flex';
   document.getElementById('imeiScanStatus').textContent = 'Starting camera\u2026';
   document.getElementById('imeiPhotoFallback').style.display = 'none';
-  // Remove any Quagga-injected video/canvas from previous session
   document.getElementById('imeiScanViewfinder').querySelectorAll('video,canvas').forEach(function(n){ n.remove(); });
 
   Quagga.init({
@@ -528,7 +1037,7 @@ function startImeiScan(inputId) {
     numOfWorkers: 0,
     frequency: 10,
     decoder: {
-      readers: ['code_128_reader', 'ean_reader', 'code_39_reader']
+      readers: ['code_128_reader', 'ean_reader', 'code_39_reader', 'codabar_reader', 'upc_reader']
     },
     locate: true
   }, function(err) {
@@ -541,12 +1050,35 @@ function startImeiScan(inputId) {
     _quaggaDone = false;
     Quagga.start();
     Quagga.onDetected(_onQuaggaDetected);
-    document.getElementById('imeiScanStatus').textContent = 'Align IMEI barcode in the frame\u2026';
+    document.getElementById('imeiScanStatus').textContent = opts.status || 'Align barcode in the frame\u2026';
   });
+}
+
+function startImeiScan(inputId) {
+  startBarcodeScan({
+    inputId: inputId,
+    imei: true,
+    continuous: false,
+    title: 'Scan IMEI Barcode',
+    hint: 'Hold steady — align the <strong>IMEI barcode</strong> within the frame',
+    status: 'Align IMEI barcode in the frame\u2026'
+  });
+}
+
+function startSerialScan(opts) {
+  startBarcodeScan(Object.assign({
+    imei: false,
+    continuous: true,
+    title: 'Scan Serial Number',
+    hint: 'Scan each serial barcode — quantity increases by 1',
+    status: 'Align serial barcode in the frame\u2026'
+  }, opts || {}));
 }
 
 function stopImeiScan() {
   _quaggaRunning = false;
+  _scanOnCode = null;
+  _scanContinuous = false;
   try { Quagga.stop(); } catch(e) {}
   try { Quagga.offDetected(_onQuaggaDetected); } catch(e) {}
   document.getElementById('imeiScanModal').style.display = 'none';
@@ -558,18 +1090,23 @@ function decodePhotoImei(input) {
   statusEl.textContent = 'Reading photo…';
   const url = URL.createObjectURL(input.files[0]);
   Quagga.decodeSingle({
-    decoder: { readers: ['code_128_reader', 'ean_reader', 'code_39_reader'] },
+    decoder: { readers: ['code_128_reader', 'ean_reader', 'code_39_reader', 'codabar_reader', 'upc_reader'] },
     locate: true,
     src: url
   }, function(result) {
     URL.revokeObjectURL(url);
     if (result && result.codeResult) {
-      const code = result.codeResult.code;
-      const digits = code.replace(/\D/g, '');
-      const imei = digits.length >= 14 ? digits.slice(0, 15) : code.trim().toUpperCase();
-      const el = document.getElementById(_imeiTarget);
-      if (el) { el.value = imei; el.dispatchEvent(new Event('input')); }
-      statusEl.textContent = '✓ Captured: ' + imei;
+      const value = _scanValue(result.codeResult.code);
+      if (_scanContinuous && typeof _scanOnCode === 'function') {
+        _scanOnCode(value);
+        statusEl.textContent = '\u2713 Captured: ' + value + ' — scan next or close';
+        input.value = '';
+        return;
+      }
+      const el = _imeiTargetEl || document.getElementById(_imeiTarget);
+      if (el) { el.value = value; el.dispatchEvent(new Event('input', { bubbles: true })); }
+      if (typeof _scanOnCode === 'function') _scanOnCode(value);
+      statusEl.textContent = '\u2713 Captured: ' + value;
       setTimeout(stopImeiScan, 800);
     } else {
       statusEl.textContent = 'Could not read barcode. Try again or enter manually.';
@@ -598,5 +1135,268 @@ document.querySelectorAll('.sidebar .nav-link').forEach(function(a){
   a.addEventListener('click', function(){ if(window.innerWidth<=768) closeSidebar(); });
 });
 </script>
+<div class="ios-date-ov" id="iosDateOv" onclick="if(event.target===this)window._iosDateClose&&window._iosDateClose(false)">
+  <div class="ios-date-sheet" onclick="event.stopPropagation()">
+    <div class="ios-date-bar">
+      <button type="button" class="ios-cancel" id="iosDateCancel">Cancel</button>
+      <span>Select Date</span>
+      <button type="button" class="ios-done" id="iosDateDone">Done</button>
+    </div>
+    <div class="ios-wheels">
+      <div class="ios-hl"></div>
+      <div class="ios-col" id="iosColMonth"></div>
+      <div class="ios-col" id="iosColDay"></div>
+      <div class="ios-col" id="iosColYear"></div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  const ITEM=36;
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let target=null, draft={y:0,m:0,d:0}, minD=null, maxD=null, snapT={};
+
+  function ymdLocal(dt){
+    return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+  }
+  function parseYmd(s){
+    if(!s) return null;
+    const p=String(s).slice(0,10).split('-');
+    if(p.length<3) return null;
+    const dt=new Date(+p[0], +p[1]-1, +p[2]);
+    return isNaN(dt) ? null : dt;
+  }
+  function daysIn(y,m){ return new Date(y,m+1,0).getDate(); }
+  function fmt(s){
+    const dt=parseYmd(s);
+    if(!dt) return '';
+    return dt.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  }
+  function clampDraft(){
+    const dim=daysIn(draft.y, draft.m);
+    if(draft.d>dim) draft.d=dim;
+    let dt=new Date(draft.y, draft.m, draft.d);
+    if(minD && dt<minD){ draft.y=minD.getFullYear(); draft.m=minD.getMonth(); draft.d=minD.getDate(); }
+    if(maxD && dt>maxD){ draft.y=maxD.getFullYear(); draft.m=maxD.getMonth(); draft.d=maxD.getDate(); }
+  }
+  function fillCol(col, values, selected){
+    col.innerHTML='';
+    const top=document.createElement('div'); top.className='ios-pad'; col.appendChild(top);
+    values.forEach(function(v,i){
+      const d=document.createElement('div');
+      d.className='ios-item'+(i===selected?' on':'');
+      d.textContent=v.label;
+      d.addEventListener('click', function(){ scrollTo(col, i, true); });
+      col.appendChild(d);
+    });
+    const bot=document.createElement('div'); bot.className='ios-pad'; col.appendChild(bot);
+    col.dataset.count=String(values.length);
+    col._iosVals=values.map(function(v){ return v.value; });
+  }
+  function picked(col){
+    const vals=col._iosVals||[];
+    const i=idxOf(col);
+    return vals[i];
+  }
+  function idxOf(col){ return Math.max(0, Math.min(+(col.dataset.count||1)-1, Math.round(col.scrollTop/ITEM))); }
+  function scrollTo(col, i, smooth){
+    col._iosLock=true;
+    col.scrollTo({top:i*ITEM, behavior: smooth?'smooth':'auto'});
+    highlight(col, i);
+    clearTimeout(col._iosUnlock);
+    col._iosUnlock=setTimeout(function(){ col._iosLock=false; }, 140);
+  }
+  function highlight(col, i){
+    [...col.querySelectorAll('.ios-item')].forEach(function(el,n){ el.classList.toggle('on', n===i); });
+  }
+  function bindSnap(col, onPick){
+    col.addEventListener('scroll', function(){
+      const i=idxOf(col);
+      highlight(col, i);
+      if(col._iosLock) return;
+      clearTimeout(snapT[col.id]);
+      snapT[col.id]=setTimeout(function(){
+        scrollTo(col, idxOf(col), true);
+        onPick(idxOf(col));
+      }, 90);
+    });
+  }
+  const colM=document.getElementById('iosColMonth');
+  const colD=document.getElementById('iosColDay');
+  const colY=document.getElementById('iosColYear');
+  const ov=document.getElementById('iosDateOv');
+
+  function yearList(){
+    const y0=minD?minD.getFullYear():(new Date().getFullYear());
+    const y1=maxD?maxD.getFullYear():(new Date().getFullYear()+2);
+    const out=[];
+    for(let y=y0;y<=y1;y++) out.push({label:String(y), value:y});
+    return out;
+  }
+  function monthList(){
+    let m0=0, m1=11;
+    if(minD && minD.getFullYear()===draft.y) m0=minD.getMonth();
+    if(maxD && maxD.getFullYear()===draft.y) m1=maxD.getMonth();
+    const out=[];
+    for(let m=m0;m<=m1;m++) out.push({label:MONTHS[m], value:m});
+    return out;
+  }
+  function dayList(){
+    let d0=1, d1=daysIn(draft.y, draft.m);
+    if(minD && minD.getFullYear()===draft.y && minD.getMonth()===draft.m) d0=minD.getDate();
+    if(maxD && maxD.getFullYear()===draft.y && maxD.getMonth()===draft.m) d1=maxD.getDate();
+    const out=[];
+    for(let d=d0;d<=d1;d++) out.push({label:String(d), value:d});
+    return out;
+  }
+  function rebuildMonths(){
+    const months=monthList();
+    let mi=months.findIndex(function(x){ return x.value===draft.m; });
+    if(mi<0) mi=0;
+    draft.m=months[mi].value;
+    fillCol(colM, months, mi);
+    scrollTo(colM, mi, false);
+  }
+  function rebuildDays(){
+    const days=dayList();
+    let di=days.findIndex(function(x){ return x.value===draft.d; });
+    if(di<0) di=0;
+    draft.d=days[di].value;
+    fillCol(colD, days, di);
+    scrollTo(colD, di, false);
+  }
+  function applyFromCols(){
+    const y=picked(colY); if(y!=null) draft.y=y;
+    const m=picked(colM); if(m!=null) draft.m=m;
+    const d=picked(colD); if(d!=null) draft.d=d;
+    clampDraft();
+  }
+  bindSnap(colM, function(){ applyFromCols(); rebuildDays(); });
+  bindSnap(colD, function(){ applyFromCols(); });
+  bindSnap(colY, function(){ applyFromCols(); rebuildMonths(); rebuildDays(); });
+
+  function openFor(el){
+    if(!el || !ov) return;
+    target=el;
+    minD=parseYmd(el.getAttribute('min'));
+    maxD=parseYmd(el.getAttribute('max'));
+    const cur=parseYmd(el.dataset.iso||el.value)|| minD || new Date();
+    draft={y:cur.getFullYear(), m:cur.getMonth(), d:cur.getDate()};
+    clampDraft();
+    ov.classList.add('show');
+    const years=yearList();
+    const yi=Math.max(0, years.findIndex(function(x){ return x.value===draft.y; }));
+    fillCol(colY, years, yi);
+    rebuildMonths();
+    rebuildDays();
+    requestAnimationFrame(function(){
+      const mi=Math.max(0,(colM._iosVals||[]).indexOf(draft.m));
+      const di=Math.max(0,(colD._iosVals||[]).indexOf(draft.d));
+      scrollTo(colM, mi, false);
+      scrollTo(colD, di, false);
+      scrollTo(colY, yi, false);
+    });
+  }
+  function close(save){
+    if(save && target){
+      clampDraft();
+      const iso=ymdLocal(new Date(draft.y, draft.m, draft.d));
+      target.dataset.iso=iso;
+      target.value=iso;
+      target.dispatchEvent(new Event('input',{bubbles:true}));
+      target.dispatchEvent(new Event('change',{bubbles:true}));
+      syncDisplay(target);
+    }
+    ov.classList.remove('show');
+    target=null;
+  }
+  window._iosDateClose=close;
+  document.getElementById('iosDateCancel').onclick=function(){ close(false); };
+  document.getElementById('iosDateDone').onclick=function(){ close(true); };
+
+  function syncDisplay(el){
+    const iso=el.dataset.iso || (el.value && /^\d{4}-\d{2}-\d{2}/.test(el.value) ? el.value.slice(0,10) : '');
+    if(iso){
+      el.dataset.iso=iso;
+      el.setAttribute('value', iso);
+    }
+    if(!el._iosFace){
+      const face=document.createElement('input');
+      face.type='text';
+      face.className=(el.className||'')+' ios-date-display';
+      face.readOnly=true;
+      face.placeholder=el.placeholder||'Select date';
+      face.required=el.required;
+      face.style.cssText=el.getAttribute('style')||'';
+      el.type='hidden';
+      el.removeAttribute('required');
+      el.parentNode.insertBefore(face, el);
+      function open(){ openFor(el); }
+      face.addEventListener('click', open);
+      el._iosFace=face;
+    }
+    el._iosFace.value=fmt(el.dataset.iso||'');
+  }
+  function enhance(el){
+    if(!el || el.dataset.iosDate==='1') return;
+    el.dataset.iosDate='1';
+    if(el.value) el.dataset.iso=el.value.slice(0,10);
+    const desc=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value');
+    Object.defineProperty(el,'value',{
+      get:function(){ return this.dataset.iso || desc.get.call(this); },
+      set:function(v){
+        this.dataset.iso=(v||'').slice(0,10);
+        desc.set.call(this, this.dataset.iso);
+        syncDisplay(this);
+      },
+      configurable:true
+    });
+    syncDisplay(el);
+  }
+  function scan(){ document.querySelectorAll('input[type="date"]').forEach(enhance); }
+  scan();
+  document.addEventListener('focusin', function(e){
+    if(e.target && e.target.matches && e.target.matches('input[type="date"]')) enhance(e.target);
+  }, true);
+})();
+</script>
+
+{% if global_notification %}
+<div id="globalNotifModal" class="modal-overlay" style="z-index:99999;">
+    <div class="modal-box" style="max-width:480px;text-align:center;padding:32px 24px;border-radius:16px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+        <div style="background:#e0e7ff;width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+            <i class="fas fa-bullhorn" style="font-size:1.8rem;color:#6366f1;"></i>
+        </div>
+        <div style="font-weight:800;font-size:1.3rem;color:#1e293b;margin-bottom:12px;font-family:'Exo 2',sans-serif;">Announcement</div>
+        <div style="font-size:0.95rem;color:#475569;margin-bottom:28px;line-height:1.6;text-align:left;background:#f8fafc;padding:16px;border-radius:12px;border:1px solid #e2e8f0;">
+            {{ global_notification.msg | safe }}
+        </div>
+        <button class="btn btn-primary" onclick="dismissGlobalNotif()" style="width:100%;padding:12px;font-size:1.05rem;font-weight:700;border-radius:10px;justify-content:center;">Acknowledge & Close</button>
+    </div>
+</div>
+<script>
+(function() {
+    const notifId = "{{ global_notification.id }}";
+    if (localStorage.getItem('dismissed_global_notif') !== notifId) {
+        setTimeout(() => {
+            const m = document.getElementById('globalNotifModal');
+            if(m) m.classList.add('show');
+        }, 500);
+    }
+})();
+    function dismissGlobalNotif() {
+        const notifId = "{{ global_notification.id }}";
+        localStorage.setItem('dismissed_global_notif', notifId);
+        document.getElementById('globalNotifModal').classList.remove('show');
+        
+        fetch('/api/ack_notification', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({notif_id: notifId})
+        }).catch(err => console.error(err));
+    }
+</script>
+{% endif %}
+
 </body>
 </html>

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% include '_csrf.html' %}
 <title>Set Reminder — Job #{{ job.id }}</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -24,7 +25,7 @@ input[type=date]:focus{border-color:#FF6B35;}
 .btn-row{display:flex;gap:10px;margin-top:24px;}
 .btn-primary{flex:1;padding:13px;background:linear-gradient(135deg,#FF6B35,#ff8c00);color:white;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s;}
 .btn-primary:hover{opacity:.9;}
-.btn-sec{padding:13px 20px;background:white;border:1.5px solid #e2e8f0;border-radius:12px;font-size:0.9rem;font-weight:600;color:#64748b;cursor:pointer;font-family:inherit;}
+.btn-sec{padding:13px 20px;background:#475569;border:none;border-radius:12px;font-size:0.9rem;font-weight:600;color:#fff;cursor:pointer;font-family:inherit;}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a2332;color:white;padding:12px 24px;border-radius:10px;font-size:0.875rem;font-weight:600;display:none;z-index:999;}
 </style>
 </head>
@@ -55,7 +56,7 @@ input[type=date]:focus{border-color:#FF6B35;}
     </div>
     {% if job.cost %}
     <div>
-      <div class="label">Cost</div>
+      <div class="label">Estimated Cost</div>
       <div class="val">₹{{ '%.2f'|format(job.cost|float) }}</div>
     </div>
     {% endif %}

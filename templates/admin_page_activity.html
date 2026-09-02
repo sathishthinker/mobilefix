@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% block title %}Page Activity — Admin{% endblock %}
+{% block page_title %}Page Activity{% endblock %}
+{% block extra_head %}
+<style>
+.alert-card { border-radius:14px; padding:16px 20px; margin-bottom:14px; display:flex; align-items:flex-start; gap:14px; }
+.online-chip { background:#d1fae5; color:#065f46; border:1.5px solid #a7f3d0; border-radius:999px; padding:6px 14px; font-size:0.82rem; font-weight:600; display:inline-flex; align-items:center; gap:6px; }
+.pulse { width:8px; height:8px; border-radius:50%; background:#10b981; animation:pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+.section-title { font-family:'Exo 2',sans-serif; font-weight:700; font-size:0.95rem; color:#1a2332; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+.pa-kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+.pa-kpi { background:#fff; border:1.5px solid #e2e8f0; border-radius:14px; padding:16px 18px; }
+.pa-kpi .n { font-family:'Exo 2',sans-serif; font-weight:800; font-size:1.45rem; color:#0f766e; }
+.pa-kpi .l { font-size:0.75rem; color:#64748b; font-weight:600; margin-top:2px; }
+.who-chip { display:inline-block; border-radius:999px; padding:2px 8px; font-size:0.72rem; font-weight:700; }
+.who-Owner { background:#e0f2fe; color:#075985; }
+.who-Sales { background:#fef3c7; color:#92400e; }
+.who-Tech { background:#ede9fe; color:#5b21b6; }
+#paShop thead th, #paShop tbody td, #paFeed thead th, #paFeed tbody td {
+  text-align:center !important; vertical-align:middle;
+}
+#paShop thead th:first-child, #paShop tbody td:first-child,
+#paFeed thead th:first-child, #paFeed tbody td:first-child { text-align:left !important; }
+@media(max-width:768px){
+  .pa-kpis{grid-template-columns:1fr 1fr;}
+  .pa-page-head{display:none;}
+  .pa-head{flex-direction:column;align-items:stretch !important;gap:10px;}
+  .pa-head .form-control{max-width:100% !important;width:100%;}
+  #paShop thead th, #paShop tbody td, #paFeed thead th, #paFeed tbody td{text-align:left !important;}
+  #paFeed tbody td[data-label="Path"], #paFeed tbody td[data-label="IP"],
+  #paShop tbody td[data-label="IP"]{display:none !important;}
+  #paShop tbody td[data-label="View"]::before{display:none !important;}
+  #paShop tbody td[data-label="View"]{justify-content:stretch !important;}
+  #paShop tbody td[data-label="View"] .btn{width:100%;justify-content:center;}
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header pa-page-head">
+  <div>
+    <div class="page-title">Page Activity</div>
+    <div class="page-subtitle">Pages shops open after login — Home, Jobs, Sales, Settings, and more</div>
+  </div>
+</div>
+
+{% if filter_shop %}
+<div class="card" style="margin-bottom:16px;">
+  <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <div>
+      <div style="font-weight:800;">{{ filter_shop.shop_name or 'Shop' }}</div>
+      <div style="font-size:0.78rem;color:#94a3b8;">{{ filter_shop.phone }} · showing this shop only</div>
+    </div>
+    <a href="{{ url_for('admin_page_activity') }}" class="btn btn-outline" style="padding:8px 14px;font-size:.78rem;">All shops</a>
+  </div>
+</div>
+{% endif %}
+
+<div class="pa-kpis">
+  <div class="pa-kpi">
+    <div class="n">{{ live_now|length }}</div>
+    <div class="l">Browsing now (15 min)</div>
+  </div>
+  <div class="pa-kpi">
+    <div class="n">{{ views_today }}</div>
+    <div class="l">Page views today</div>
+  </div>
+  <div class="pa-kpi">
+    <div class="n">{{ shops_today }}</div>
+    <div class="l">Shops active today</div>
+  </div>
+  <div class="pa-kpi">
+    <div class="n">{{ unique_pages }}</div>
+    <div class="l">Unique pages today</div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-body">
+    <div class="section-title"><span class="pulse"></span> Currently browsing (last 15 mins)</div>
+    {% if live_now %}
+    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+      {% for o in live_now %}
+      <a href="{{ url_for('admin_page_activity', shop=o.id) }}" class="online-chip" style="text-decoration:none;">
+        <span class="pulse"></span>
+        {{ o.shop_name }}
+        <span style="opacity:.7;font-size:0.76rem;">{{ o.last_page or '—' }} · {{ o.last_who or 'Owner' }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="color:#94a3b8;font-size:0.85rem;">No shops opening pages in the last 15 minutes</div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-header" style="padding:20px 24px 14px;">
+    <div class="pa-head" style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="section-title" style="margin:0;">Shop page summary</div>
+      <input type="search" id="paSearch" class="form-control" placeholder="Search shops..." style="max-width:220px;"
+             autocomplete="off" autocorrect="off" spellcheck="false"
+             oninput="filterPa(this.value)">
+    </div>
+  </div>
+  <div class="card-body" style="padding-top:0;">
+    <div class="table-wrap mob-cards">
+      <table id="paShop">
+        <thead>
+          <tr>
+            <th>Shop</th><th>Today</th><th>Total</th>
+            <th>Last page</th><th>Who</th><th>Last seen</th><th>View</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in shops %}
+          <tr>
+            <td data-label="Shop">
+              <a href="{{ url_for('admin_page_activity', shop=s.id) }}" style="font-weight:700;color:#0f766e;text-decoration:none;">{{ s.shop_name or '—' }}</a>
+              <div style="font-size:0.76rem;color:#94a3b8;">{{ s.phone }}</div>
+            </td>
+            <td data-label="Today">
+              <span style="font-family:'Exo 2',sans-serif;font-weight:800;color:#00BCD4;">{{ s.views_today or 0 }}</span>
+            </td>
+            <td data-label="Total">{{ s.total_views or 0 }}</td>
+            <td data-label="Last page">
+              {% if s.is_live %}<span class="pulse" style="display:inline-block;margin-right:4px;vertical-align:middle;"></span>{% endif %}
+              {{ s.last_page or '—' }}
+            </td>
+            <td data-label="Who">
+              {% if s.last_who %}
+              <span class="who-chip who-{{ s.last_who }}">{{ s.last_who }}{% if s.last_staff and s.last_staff != 'OWNER' %} · {{ s.last_staff }}{% endif %}</span>
+              {% else %}—{% endif %}
+            </td>
+            <td data-label="Last seen" style="font-size:0.82rem;color:#64748b;">
+              {{ s.last_seen[:16].replace('T',' ') if s.last_seen else 'Never' }}
+            </td>
+            <td data-label="View">
+              <button type="button" onclick="openPageHistory({{ s.id }}, {{ (s.shop_name or 'Shop')|tojson }})"
+                class="btn btn-sm btn-outline" style="font-size:0.75rem;padding:5px 12px;">
+                <i class="fas fa-eye"></i> Pages
+              </button>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" style="text-align:center;padding:36px;color:#94a3b8;">No shop page visits recorded yet. After a shop logs in and opens pages, they appear here.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-header" style="padding:20px 24px 14px;">
+    <div class="section-title" style="margin:0;">Recent page visits</div>
+  </div>
+  <div class="card-body" style="padding-top:0;">
+    <div class="table-wrap mob-cards">
+      <table id="paFeed">
+        <thead>
+          <tr>
+            <th>Time</th><th>Shop</th><th>Who</th><th>Page</th><th>Path</th><th>IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for v in views %}
+          <tr>
+            <td data-label="Time" style="font-size:0.82rem;color:#64748b;white-space:nowrap;">{{ (v.created_at or '')[:16].replace('T',' ') }}</td>
+            <td data-label="Shop">
+              <a href="{{ url_for('admin_page_activity', shop=v.shop_id) }}" style="font-weight:700;color:#0f766e;text-decoration:none;">{{ v.shop_name or '—' }}</a>
+              <div style="font-size:0.74rem;color:#94a3b8;">{{ v.phone }}</div>
+            </td>
+            <td data-label="Who">
+              <span class="who-chip who-{{ v.who or 'Owner' }}">{{ v.who or 'Owner' }}{% if v.staff_name and v.staff_name != 'OWNER' %} · {{ v.staff_name }}{% endif %}</span>
+            </td>
+            <td data-label="Page" style="font-weight:700;">{{ v.page or '—' }}</td>
+            <td data-label="Path" style="font-size:0.76rem;color:#94a3b8;font-family:monospace;">{{ v.path or '—' }}</td>
+            <td data-label="IP" style="font-size:0.76rem;color:#94a3b8;font-family:monospace;">{{ v.ip_address or '—' }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" style="text-align:center;padding:36px;color:#94a3b8;">No page visits yet</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="pageHistModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:18px;padding:28px;width:90%;max-width:720px;max-height:85vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,0.25);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <div>
+        <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:1.1rem;" id="pageHistTitle">Page History</div>
+        <div style="font-size:0.78rem;color:#94a3b8;margin-top:2px;">Last 80 pages opened after login</div>
+      </div>
+      <button type="button" onclick="closePageHistory()" style="background:#475569;border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Close" aria-label="Close">✕</button>
+    </div>
+    <div id="pageHistBody">
+      <div style="text-align:center;padding:30px;color:#94a3b8;">Loading...</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function filterPa(q) {
+  q = (q || '').toLowerCase();
+  document.querySelectorAll('#paShop tbody tr').forEach(function(r) {
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function openPageHistory(uid, name) {
+  document.getElementById('pageHistTitle').textContent = name + ' — Page History';
+  document.getElementById('pageHistBody').innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;">Loading...</div>';
+  document.getElementById('pageHistModal').style.display = 'flex';
+  fetch('/admin/page-views/' + uid)
+    .then(function(r) { return r.json(); })
+    .then(function(rows) {
+      if (!rows.length) {
+        document.getElementById('pageHistBody').innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;">No page visits recorded yet</div>';
+        return;
+      }
+      var html = '<div style="display:flex;flex-direction:column;gap:8px;">';
+      rows.forEach(function(v) {
+        var who = v.who || 'Owner';
+        var staff = (v.staff_name && v.staff_name !== 'OWNER') ? ' · ' + v.staff_name : '';
+        html += '<div style="padding:12px 14px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0;">';
+        html += '<div style="font-size:0.85rem;font-weight:700;color:#0f766e;">' + (v.page || '—') + '</div>';
+        html += '<div style="font-size:0.75rem;color:#64748b;margin-top:3px;">' + (v.created_at || '').slice(0, 16) + '</div>';
+        html += '<div style="font-size:0.75rem;color:#475569;margin-top:4px;">';
+        html += who + staff + ' &nbsp;·&nbsp; ' + (v.path || '—') + ' &nbsp;·&nbsp; IP: ' + (v.ip_address || '—');
+        html += '</div></div>';
+      });
+      html += '</div>';
+      document.getElementById('pageHistBody').innerHTML = html;
+    })
+    .catch(function() {
+      document.getElementById('pageHistBody').innerHTML = '<div style="text-align:center;padding:30px;color:#ef4444;">Failed to load page history</div>';
+    });
+}
+
+function closePageHistory() {
+  document.getElementById('pageHistModal').style.display = 'none';
+}
+
+document.getElementById('pageHistModal').addEventListener('click', function(e) {
+  if (e.target === this) closePageHistory();
+});
+</script>
+{% endblock %}

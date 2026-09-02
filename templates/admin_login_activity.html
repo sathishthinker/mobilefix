@@ -13,21 +13,43 @@
 .bar-h { background:#f1f5f9; border-radius:999px; height:8px; overflow:hidden; }
 .bar-h-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,#00BCD4,#0097A7); transition:width .5s; }
 .section-title { font-family:'Exo 2',sans-serif; font-weight:700; font-size:0.95rem; color:#1a2332; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
-@media(max-width:768px){.heatmap-grid{grid-template-columns:1fr;}}
+#laTable thead th,
+#laTable tbody td{
+  text-align:center !important;
+  vertical-align:middle;
+}
+#laTable thead th:first-child,
+#laTable tbody td:first-child{text-align:left !important;}
+#laTable tbody td[data-label="History"]{text-align:center !important;}
+@media(max-width:768px){.heatmap-grid{grid-template-columns:1fr;}
+  .la-page-head{display:none;}
+  .la-head{flex-direction:column;align-items:stretch !important;gap:10px;}
+  .la-head .form-control{max-width:100% !important;width:100%;}
+  .alert-card{flex-direction:column;gap:10px;padding:14px;}
+  .alert-card a{width:100%;justify-content:center;}
+  .card-header{padding:14px !important;}
+  .card-body{padding:14px !important;}
+  #laTable tbody td[data-label="Last IP"]{display:none !important;}
+  #laTable tbody td[data-label="Shop"]::before{display:none !important;}
+  #laTable tbody td[data-label="History"]{justify-content:stretch !important;}
+  #laTable tbody td[data-label="History"] .btn{width:100%;justify-content:center;}
+  #laTable thead th,
+  #laTable tbody td{text-align:left !important;}
+}
 </style>
 {% endblock %}
 {% block content %}
-<div class="page-header">
+<div class="page-header la-page-head">
   <div>
     <div class="page-title">Login Activity</div>
-    <div class="page-subtitle">Monitor shop login behaviour and security alerts</div>
+    <div class="page-subtitle">Monitor Shop Login Behaviour And Security Alerts</div>
   </div>
 </div>
 
 <!-- Online Now -->
 <div class="card" style="margin-bottom:20px;">
   <div class="card-body">
-    <div class="section-title"><span class="pulse"></span> Currently Active (last 30 mins)</div>
+    <div class="section-title"><span class="pulse"></span> Currently Active (Last 30 Mins)</div>
     {% if online_now %}
     <div style="display:flex;flex-wrap:wrap;gap:10px;">
       {% for o in online_now %}
@@ -38,7 +60,7 @@
       {% endfor %}
     </div>
     {% else %}
-    <div style="color:#94a3b8;font-size:0.85rem;">No shops active in the last 30 minutes</div>
+    <div style="color:#94a3b8;font-size:0.85rem;">No Shops Active In The Last 30 Minutes</div>
     {% endif %}
   </div>
 </div>
@@ -84,9 +106,12 @@
 <!-- Per-Shop Table -->
 <div class="card" style="margin-bottom:20px;">
   <div class="card-header" style="padding:20px 24px 14px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;">
+    <div class="la-head" style="display:flex;align-items:center;justify-content:space-between;">
       <div class="section-title" style="margin:0;">📋 Shop Login Summary</div>
-      <input type="text" id="laSearch" class="form-control" placeholder="🔍 Search shops..." style="max-width:220px;"
+      <input type="search" id="laSearch" name="admin_login_search" class="form-control" placeholder="🔍 Search Shops..." style="max-width:220px;"
+             autocomplete="off" autocorrect="off" spellcheck="false"
+             data-lpignore="true" data-1p-ignore="true"
+             readonly onfocus="this.removeAttribute('readonly');this.setAttribute('autocomplete','off-'+Date.now())"
              oninput="filterTable(this.value)">
     </div>
   </div>
@@ -143,6 +168,10 @@
                 <i class="fas fa-history"></i> View
               </button>
             </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" style="text-align:center;padding:36px;color:#94a3b8;">No shop login records yet</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -201,17 +230,47 @@
 
 <!-- Login History Modal -->
 <div id="histModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;">
-  <div style="background:white;border-radius:18px;padding:28px;width:90%;max-width:600px;max-height:85vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,0.25);">
+  <div style="background:white;border-radius:18px;padding:28px;width:90%;max-width:720px;max-height:85vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,0.25);">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
       <div>
         <div style="font-family:'Exo 2',sans-serif;font-weight:700;font-size:1.1rem;" id="histTitle">Login History</div>
         <div style="font-size:0.78rem;color:#94a3b8;margin-top:2px;">Last 50 login attempts</div>
       </div>
-      <button onclick="closeHistory()" style="background:none;border:none;font-size:1.3rem;color:#94a3b8;cursor:pointer;">✕</button>
+      <button onclick="closeHistory()" style="background:#475569;border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Exit" aria-label="Exit">✕</button>
     </div>
     <div id="histBody">
       <div style="text-align:center;padding:30px;color:#94a3b8;">Loading...</div>
     </div>
+</div>
+
+<!-- Custom Confirm Modal -->
+<div id="confirmRemoveModal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:18px;padding:32px 24px;width:90%;max-width:380px;box-shadow:0 24px 60px rgba(0,0,0,0.25);text-align:center;">
+    <div style="width:60px;height:60px;border-radius:50%;background:#fee2e2;color:#ef4444;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 18px;">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <div style="font-family:'Exo 2',sans-serif;font-size:1.25rem;font-weight:700;color:#1e293b;margin-bottom:8px;">Remove Device?</div>
+    <div id="confirmRemoveText" style="color:#64748b;font-size:0.92rem;line-height:1.5;margin-bottom:28px;">
+      This will sign out the active session on this device. They will have to log in again.
+    </div>
+    <div style="display:flex;justify-content:center;gap:12px;">
+      <button onclick="closeConfirmModal()" style="flex:1;background:#f1f5f9;color:#475569;border:none;padding:12px 16px;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.95rem;transition:all 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">Cancel</button>
+      <button onclick="executeRemoveDevice()" style="flex:1;background:#ef4444;color:#fff;border:none;padding:12px 16px;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.95rem;transition:all 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Alert Modal -->
+<div id="alertModal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:18px;padding:32px 24px;width:90%;max-width:380px;box-shadow:0 24px 60px rgba(0,0,0,0.25);text-align:center;">
+    <div id="alertIcon" style="width:60px;height:60px;border-radius:50%;background:#dcfce3;color:#16a34a;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 18px;">
+      <i class="fas fa-check-circle"></i>
+    </div>
+    <div id="alertTitle" style="font-family:'Exo 2',sans-serif;font-size:1.25rem;font-weight:700;color:#1e293b;margin-bottom:8px;">Success</div>
+    <div id="alertText" style="color:#64748b;font-size:0.92rem;line-height:1.5;margin-bottom:28px;">
+      Action completed successfully.
+    </div>
+    <button onclick="document.getElementById('alertModal').style.display='none'" style="width:100%;background:#f1f5f9;color:#475569;border:none;padding:12px 16px;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.95rem;transition:all 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">OK</button>
   </div>
 </div>
 
@@ -231,29 +290,52 @@ function openHistory(uid, name) {
   document.getElementById('histModal').style.display = 'flex';
   fetch('/admin/login-history/' + uid)
     .then(r => r.json())
-    .then(function(logs) {
+    .then(function(res) {
+      var logs = res.logs || [];
+      var active_devices = res.active_devices || [];
       if (!logs.length) {
         document.getElementById('histBody').innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;">No login history found</div>';
         return;
       }
-      var icons = { success: '✅', failed: '❌', blocked: '⛔' };
-      var colors = { success: '#065f46', failed: '#991b1b', blocked: '#92400e' };
-      var bgs = { success: '#d1fae5', failed: '#fee2e2', blocked: '#fef3c7' };
+      var icons = { success: '✅', failed: '❌', blocked: '⛔', device_limit: '⛔', staff_limit: '⛔' };
+      var colors = { success: '#065f46', failed: '#991b1b', blocked: '#92400e', device_limit: '#92400e', staff_limit: '#92400e' };
+      var bgs = { success: '#d1fae5', failed: '#fee2e2', blocked: '#fef3c7', device_limit: '#fef3c7', staff_limit: '#fef3c7' };
       var html = '<div style="display:flex;flex-direction:column;gap:8px;">';
       logs.forEach(function(l) {
-        var device = '🖥️ Desktop';
         var ua = l.user_agent || '';
-        if (ua.match(/Mobile|Android|iPhone/i)) device = '📱 Mobile';
-        else if (ua.match(/Chrome/i)) device = '💻 Chrome';
-        else if (ua.match(/Firefox/i)) device = '🦊 Firefox';
-        else if (ua.match(/Safari/i)) device = '🧭 Safari';
-        html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;background:' + (bgs[l.status]||'#f8fafc') + ';">';
-        html += '<span style="font-size:1rem;">' + (icons[l.status]||'•') + '</span>';
-        html += '<div style="flex:1;">';
-        html += '<div style="font-size:0.82rem;font-weight:600;color:' + (colors[l.status]||'#1a2332') + ';">' + l.status.toUpperCase() + '</div>';
-        html += '<div style="font-size:0.75rem;color:#64748b;margin-top:2px;">' + (l.created_at||'').slice(0,16) + ' &nbsp;|&nbsp; IP: ' + (l.ip_address||'?') + '</div>';
+        var device = l.device_type || '';
+        if (!device) {
+          if (ua.match(/iPad|Tablet|Android(?!.*Mobile)/i)) device = 'Tablet';
+          else if (ua.match(/Mobile|Android|iPhone/i)) device = 'Mobile';
+          else device = 'Desktop';
+          if (ua.match(/Edg\//i)) device += ' · Edge';
+          else if (ua.match(/Chrome/i)) device += ' · Chrome';
+          else if (ua.match(/Firefox/i)) device += ' · Firefox';
+          else if (ua.match(/Safari/i)) device += ' · Safari';
+        }
+        var loc = l.location || '';
+        var reason = l.fail_reason || '';
+        if (!reason && l.status && l.status !== 'success') {
+          reason = ({failed:'Wrong phone/email or password',blocked:'Account disabled',device_limit:'Device limit reached',staff_limit:'Sales person limit exceeded'})[l.status] || l.status;
+        }
+        var label = (l.status==='success') ? 'SUCCESS' : 'FAILED';
+        
+        var isActive = active_devices.some(function(d) {
+           return d.ip_address === l.ip_address && (d.user_agent || '') === ua;
+        });
+
+        html += '<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:10px;background:' + (bgs[l.status]||'#f8fafc') + ';">';
+        html += '<span style="font-size:1rem;line-height:1.4;">' + (icons[l.status]||'•') + '</span>';
+        html += '<div style="flex:1;min-width:0;">';
+        html += '<div style="font-size:0.82rem;font-weight:700;color:' + (colors[l.status]||'#1a2332') + ';">' + label + (reason && l.status!=='success' ? ' · '+reason : '') + '</div>';
+        html += '<div style="font-size:0.75rem;color:#64748b;margin-top:3px;">' + (l.created_at||'').slice(0,16) + '</div>';
+        html += '<div style="font-size:0.75rem;color:#475569;margin-top:4px;">Device: ' + device + ' &nbsp;·&nbsp; Location: ' + (loc||'—') + ' &nbsp;·&nbsp; IP: ' + (l.ip_address||'?') + '</div>';
         html += '</div>';
-        html += '<div style="font-size:0.75rem;color:#94a3b8;">' + device + '</div>';
+        if (l.status === 'success' && isActive) {
+            var escIp = (l.ip_address || '').replace(/'/g, "\\'");
+            var escUa = ua.replace(/'/g, "\\'");
+            html += '<button onclick="confirmRemoveDevice(' + uid + ', \'' + escIp + '\', \'' + escUa + '\')" style="background:transparent;color:#ef4444;border:1px solid #fca5a5;padding:6px 12px;font-size:0.8rem;border-radius:6px;flex-shrink:0;cursor:pointer;font-weight:600;margin-top:6px;" onmouseover="this.style.background=\'#fee2e2\'" onmouseout="this.style.background=\'transparent\'">Remove Device</button>';
+        }
         html += '</div>';
       });
       html += '</div>';
@@ -266,6 +348,60 @@ function openHistory(uid, name) {
 
 function closeHistory() {
   document.getElementById('histModal').style.display = 'none';
+}
+
+var pendingRemove = null;
+
+function confirmRemoveDevice(uid, ip, ua) {
+  pendingRemove = { uid: uid, ip: ip, ua: ua };
+  document.getElementById('confirmRemoveModal').style.display = 'flex';
+}
+
+function closeConfirmModal() {
+  document.getElementById('confirmRemoveModal').style.display = 'none';
+  pendingRemove = null;
+}
+
+function customAlert(title, text, type = 'success') {
+  var iconBg = type === 'success' ? '#dcfce3' : '#fee2e2';
+  var iconCol = type === 'success' ? '#16a34a' : '#ef4444';
+  var iconCls = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+  
+  document.getElementById('alertIcon').style.background = iconBg;
+  document.getElementById('alertIcon').style.color = iconCol;
+  document.getElementById('alertIcon').innerHTML = '<i class="fas ' + iconCls + '"></i>';
+  document.getElementById('alertTitle').textContent = title;
+  document.getElementById('alertText').textContent = text;
+  document.getElementById('alertModal').style.display = 'flex';
+}
+
+function executeRemoveDevice() {
+  if (!pendingRemove) return;
+  var uid = pendingRemove.uid;
+  var payload = { ip: pendingRemove.ip, ua: pendingRemove.ua };
+  
+  fetch('/admin/clear-devices/' + uid, { 
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+    .then(r => r.json())
+    .then(res => {
+      if (res.success) {
+        closeConfirmModal();
+        customAlert('Success', 'Device successfully removed.', 'success');
+        // Re-open history to refresh the active buttons
+        var title = document.getElementById('histTitle').textContent.split(' — ')[0];
+        openHistory(uid, title);
+      } else {
+        closeConfirmModal();
+        customAlert('Error', res.error || 'Unknown error occurred.', 'error');
+      }
+    })
+    .catch(err => {
+      closeConfirmModal();
+      customAlert('Error', 'Network error while removing device.', 'error');
+    });
 }
 </script>
 {% endblock %}

@@ -1,0 +1,689 @@
+{% extends 'base.html' %}
+{% block title %}Inventory{% endblock %}
+{% block page_title %}Inventory{% endblock %}
+{% block extra_head %}
+<style>
+.inv-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.inv-kpi .l{font-size:.72rem;font-weight:700;color:#0e7490;text-transform:uppercase;}
+.inv-kpi .n{font-family:'Exo 2',sans-serif;font-weight:900;font-size:1.4rem;color:#0f172a;}
+.inv-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+.inv-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-left:auto;}
+.inv-search{display:flex;align-items:stretch;flex:1;min-width:0;max-width:340px;}
+.inv-search .form-control{flex:1;min-width:0;max-width:none !important;width:auto;border-top-right-radius:0;border-bottom-right-radius:0;}
+.inv-search .btn{flex-shrink:0;border-top-left-radius:0;border-bottom-left-radius:0;padding:10px 14px;box-shadow:none;}
+.low{background:#fee2e2;color:#991b1b;border-radius:999px;padding:2px 8px;font-size:.72rem;font-weight:800;}
+.warr-reasons{display:flex;flex-wrap:wrap;gap:8px;}
+.warr-reasons label{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.8rem;font-weight:700;color:#334155;cursor:pointer;background:#f8fafc;margin:0;}
+.warr-reasons label:has(input:checked){border-color:#7c3aed;background:#ede9fe;color:#5b21b6;}
+.warr-reasons input{accent-color:#7c3aed;margin:0;}
+.warr-wait{background:#ede9fe;color:#5b21b6;border-radius:999px;padding:2px 8px;font-size:.72rem;font-weight:800;margin-left:6px;}
+.warr-pick{display:flex;flex-direction:column;gap:8px;}
+.warr-pick label{display:block;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:12px;background:#f8fafc;cursor:pointer;margin:0;}
+.warr-pick label:has(input:checked){border-color:#16a34a;background:#dcfce7;}
+.warr-pick input{accent-color:#16a34a;margin-right:8px;}
+.log-pdf-top{display:none;position:absolute;top:12px;right:52px;z-index:3;padding:6px 12px;font-size:.78rem;font-weight:800;}
+.log-pdf-foot{display:flex;gap:8px;margin-top:14px;}
+#logModal:not(.log-ready) .log-pdf-foot{display:none;}
+@media(max-width:768px){
+  .inv-kpis{grid-template-columns:1fr 1fr;}
+  .inv-head{flex-direction:column;align-items:stretch;}
+  .inv-tools{margin-left:0;width:100%;}
+  .inv-search{max-width:none;width:100%;}
+  .page-header{text-align:center;}
+  .inv-mob-qty{display:block!important;margin-top:2px;}
+  .mob-cards tbody tr:not(.expanded) td:not([data-label="Item"]):not([data-label="Status"]){
+    display:none!important;
+  }
+  .mob-cards tbody td[data-label="Item"]{
+    cursor:pointer;position:relative;padding-right:28px!important;
+    align-items:flex-start;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .mob-cards tbody td[data-label="Item"]::after{
+    content:'\f078';
+    font-family:'Font Awesome 6 Free';font-weight:900;font-size:.95rem;
+    position:absolute;right:0;top:50%;transform:translateY(-50%);
+    color:var(--teal);transition:transform .3s cubic-bezier(0.175,0.885,0.32,1.275);
+  }
+  .mob-cards tbody tr.expanded td[data-label="Item"]::after{
+    transform:translateY(-50%) rotate(180deg);
+  }
+  .mob-cards tbody tr.expanded td[data-label="Item"]{
+    border-bottom:1px dashed #cbd5e1!important;
+    padding-bottom:12px!important;margin-bottom:6px;
+  }
+  .mob-cards tbody td[data-label="Item"] strong{font-size:.95rem;display:block;line-height:1.25;}
+  .mob-cards tbody td[data-label="Item"] .inv-item{text-align:right;}
+  .mob-cards tbody td[data-label="Status"]{align-items:flex-start;padding-top:8px!important;flex-wrap:wrap;justify-content:flex-end;gap:6px;}
+  .mob-cards tbody td[data-label="Actions"]{
+    margin-top:12px;padding-top:14px;
+    border-top:1px dashed #cbd5e1!important;justify-content:center;
+  }
+  .mob-cards tbody td[data-label="Actions"]>div{justify-content:center;width:100%;}
+  #logModal .log-pdf-foot{display:none!important;}
+  #logModal.log-ready .log-pdf-top{
+    display:inline-flex!important;align-items:center;gap:6px;
+  }
+  #logModal .modal-title{padding-right:108px;}
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Inventory</div>
+    <div class="page-subtitle">Stock For Counter Sales Only</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <a href="{{ url_for('sales_hub') }}" class="btn btn-outline"><i class="fas fa-cash-register"></i> Sales</a>
+    <button type="button" class="btn btn-primary" onclick="openItem()"><i class="fas fa-plus"></i> Add Item</button>
+  </div>
+</div>
+<div class="inv-kpis">
+  <div class="inv-kpi"><div class="l">Items</div><div class="n">{{ items|length }}</div></div>
+  <div class="inv-kpi" style="border-left-color:#ef4444;"><div class="l">Low stock</div><div class="n" style="color:#ef4444;">{{ low_stock }}</div></div>
+  <div class="inv-kpi" style="border-left-color:#43A047;"><div class="l">Active listed</div><div class="n">{{ items|selectattr('active')|list|length }}</div></div>
+</div>
+<div class="card">
+  <div class="card-header" style="padding:16px 20px;">
+    <form class="inv-head" method="GET" style="width:100%;margin:0;">
+      <div style="font-family:'Exo 2',sans-serif;font-weight:800;">Stock items</div>
+      <div class="inv-tools">
+        <div class="inv-search">
+          <input type="search" name="q" id="invSearch" value="{{ q }}" class="form-control" placeholder="Search Name, SKU Or Serial Number"
+                 autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" oninput="filterInv()">
+          <button class="btn btn-primary" type="submit" title="Search" aria-label="Search"><i class="fas fa-search"></i></button>
+        </div>
+        <label style="font-size:.8rem;font-weight:700;color:#334155;display:flex;align-items:center;gap:6px;">
+          <input type="checkbox" name="inactive" value="1" {% if show_inactive %}checked{% endif %} onchange="this.form.submit()"> Show Inactive
+        </label>
+      </div>
+    </form>
+  </div>
+  <div class="card-body" style="padding-top:0;">
+    {% if items %}
+    <div class="table-wrap mob-cards">
+      <table>
+        <thead><tr><th>Item</th><th>SKU</th><th>Serial Number</th><th>Qty</th><th>Sell</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        {% for it in items %}
+        <tr>
+          <td data-label="Item" onclick="toggleInvCard(this)">
+            <div class="inv-item">
+              <strong>{{ it.name }}</strong>
+              <div style="font-size:.75rem;color:#94a3b8;">{{ it.category }}{% if it.sub_category %} / {{ it.sub_category }}{% endif %} · {{ it.unit }}{% if it.hsn_code %} · HSN {{ it.hsn_code }}{% endif %}{% if it.gst_rate %} · GST {{ it.gst_rate|int }}%{% endif %}</div>
+              <small class="inv-mob-qty" style="display:none;color:#94a3b8;font-size:0.72rem;">Qty {{ '%.0f'|format(it.qty or 0) }}{% if it.sku %} · {{ it.sku }}{% endif %}</small>
+            </div>
+          </td>
+          <td data-label="SKU">{{ it.sku or '—' }}</td>
+          <td data-label="Serial Number">{{ it.serial_no or '—' }}</td>
+          <td data-label="Qty">
+            <strong>{{ '%.0f'|format(it.qty or 0) }}</strong>
+            {% if it|is_low_stock %}<span class="low">Low</span>{% endif %}
+            {% if it.warr_pending %}<span class="warr-wait">At supplier {{ it.warr_pending|length }}</span>{% endif %}
+          </td>
+          <td data-label="Sell">₹{{ '%.2f'|format(it.sell_price or 0) }}</td>
+          <td data-label="Status">
+            {% if it.active %}
+            <span style="background:#dcfce7;color:#16a34a;padding:4px 10px;border-radius:999px;font-size:.75rem;font-weight:800;">Active</span>
+            {% else %}
+            <span style="background:#fee2e2;color:#991b1b;padding:4px 10px;border-radius:999px;font-size:.75rem;font-weight:800;">Inactive</span>
+            {% endif %}
+            {% if it|is_low_stock %}<span class="low">Low</span>{% endif %}
+          </td>
+          <td data-label="Actions">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button type="button" class="sale-act sale-act-edit" onclick="editItem({{ it.id }})" title="Edit" aria-label="Edit"><i class="fas fa-pen"></i></button>
+              <button type="button" class="sale-act sale-act-in" onclick="openStock({{ it.id }},'in')" title="Stock In" aria-label="Stock In"><i class="fas fa-arrow-down"></i></button>
+              <button type="button" class="sale-act sale-act-log" onclick="openItemLog({{ it.id }})" title="Log" aria-label="Log"><i class="fas fa-history"></i></button>
+              <button type="button" class="sale-act sale-act-warranty" onclick="openWarranty({{ it.id }})" title="Take for replacement" aria-label="Take for replacement"><i class="fas fa-recycle"></i></button>
+              {% if it.warr_pending %}
+              <button type="button" class="sale-act sale-act-replaced" onclick="openReceive({{ it.id }})" title="Mark replaced" aria-label="Mark replaced"><i class="fas fa-check"></i></button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:48px;color:#94a3b8;">No items yet. Add accessories, phones, or spares to sell.</div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="modal-overlay" id="itemModal">
+  <div class="modal-box" style="max-width:560px;">
+    <button type="button" class="modal-exit" onclick="document.getElementById('itemModal').classList.remove('show')" title="Exit" aria-label="Exit">✕</button>
+    <div class="modal-title" id="itemModalTitle">Add Item</div>
+    <form method="POST" class="modal-body">
+      <input type="hidden" name="action" value="save">
+      <input type="hidden" name="item_id" id="item_id">
+      <div class="form-group">
+        <label class="form-label">Name *</label>
+        <input class="form-control" name="name" id="it_name" required style="text-transform:uppercase">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group">
+          <label class="form-label">HSN / SAC code</label>
+          <input class="form-control" name="hsn_code" id="it_hsn" maxlength="8" inputmode="numeric" placeholder="4 to 8 digits, e.g. 8517"
+                 oninput="this.value=this.value.replace(/\D/g,'').slice(0,8)">
+          <small style="display:block;margin-top:4px;font-size:.72rem;color:#64748b;font-weight:600;">Needed on GST tax invoices</small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">GST slab</label>
+          <select class="form-control" name="gst_rate" id="it_gst">
+            <option value="0">None (non-GST)</option>
+            <option value="5">5%</option>
+            <option value="12">12%</option>
+            <option value="18">18%</option>
+            <option value="28">28%</option>
+          </select>
+          <small style="display:block;margin-top:4px;font-size:.72rem;color:#64748b;font-weight:600;">Default rate when GST bill is on</small>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <div class="form-group"><label class="form-label">SKU</label><input class="form-control" name="sku" id="it_sku" style="text-transform:uppercase"></div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <div style="display:flex;gap:4px;">
+            <select class="form-control" name="category" id="it_cat" onchange="updateSubCats()" style="flex:1;">
+              <option value="">--Select--</option>
+              {% for c in categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+            </select>
+            <button type="button" class="btn btn-outline" style="padding:0 10px;" onclick="addQuickCat()" title="Add Category"><i class="fas fa-plus"></i></button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sub-Category</label>
+          <div style="display:flex;gap:4px;">
+            <select class="form-control" name="sub_category" id="it_subcat" style="flex:1;">
+              <option value="">--Select--</option>
+            </select>
+            <button type="button" class="btn btn-outline" style="padding:0 10px;" onclick="addQuickSubCat()" title="Add Sub-Category"><i class="fas fa-plus"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Serial Number</label>
+        <input class="form-control" name="serial_no" id="it_serial" placeholder="Optional" maxlength="64" style="text-transform:uppercase"
+               autocomplete="off" inputmode="text" pattern="[A-Za-z0-9]*"
+               oninput="this.value=sanitizeImeiSerial(this.value)"
+               readonly onfocus="this.removeAttribute('readonly')">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group"><label class="form-label">Unit</label><input class="form-control" name="unit" id="it_unit" value="PCS" style="text-transform:uppercase"></div>
+        <div class="form-group" id="qtyBox">
+          <label class="form-label">Opening qty</label>
+          <div style="display:flex;gap:8px;align-items:stretch;">
+            <input class="form-control" type="number" name="qty" id="it_qty" min="0" step="1" value="0" style="flex:1;">
+            <button type="button" class="btn btn-outline" onclick="scanQty('it_qty')" title="Scan serial barcodes" style="white-space:nowrap;padding:0 12px;"><i class="fas fa-barcode"></i> Scan</button>
+          </div>
+          <div id="it_qty_scans" style="font-size:.75rem;font-weight:700;color:#0f766e;margin-top:6px;display:none;"></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group">
+          <label class="form-label">Low stock reminder qty</label>
+          <input class="form-control" type="number" name="low_stock_qty" id="it_low_stock" min="0" step="1" value="0" placeholder="0 = off">
+          <small style="display:block;margin-top:4px;font-size:.72rem;color:#64748b;font-weight:600;">Alert when stock is at or below this qty</small>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group"><label class="form-label">Cost ₹</label><input class="form-control" type="number" name="cost_price" id="it_cost" min="0" step="0.01" value="0"></div>
+          <div class="form-group"><label class="form-label">Sell ₹</label><input class="form-control" type="number" name="sell_price" id="it_sell" min="0" step="0.01" value="0"></div>
+        </div>
+      </div>
+      <label id="activeBox" style="display:none;font-size:.82rem;font-weight:700;"><input type="checkbox" name="active" id="it_active" value="1" checked> Active (can sell)</label>
+      <div style="display:flex;gap:10px;margin-top:14px;">
+        <button class="btn btn-primary" type="submit" style="flex:1;">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="stockModal">
+  <div class="modal-box" style="max-width:400px;">
+    <button type="button" class="modal-exit" onclick="document.getElementById('stockModal').classList.remove('show')" title="Exit" aria-label="Exit">✕</button>
+    <div class="modal-title" id="stockTitle">Stock</div>
+    <form method="POST" class="modal-body">
+      <input type="hidden" name="action" id="st_action">
+      <input type="hidden" name="item_id" id="st_item">
+      <p style="font-size:.85rem;font-weight:600;color:#334155;" id="st_name"></p>
+      <div class="form-group">
+        <label class="form-label" id="st_qty_label">Quantity</label>
+        <div style="display:flex;gap:8px;align-items:stretch;">
+          <input class="form-control" type="number" name="qty" id="st_qty" min="0" step="1" required style="flex:1;">
+          <button type="button" class="btn btn-outline" onclick="scanQty('st_qty')" title="Scan serial barcodes" style="white-space:nowrap;padding:0 12px;"><i class="fas fa-barcode"></i> Scan</button>
+        </div>
+        <div id="st_qty_scans" style="font-size:.75rem;font-weight:700;color:#0f766e;margin-top:6px;display:none;"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note</label>
+        <input class="form-control" name="note" placeholder="Purchase / invoice no">
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-primary" type="submit" style="flex:1;">Update</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="warrModal">
+  <div class="modal-box" style="max-width:440px;">
+    <button type="button" class="modal-exit" onclick="document.getElementById('warrModal').classList.remove('show')" title="Exit" aria-label="Exit">✕</button>
+    <div class="modal-title">Take for replacement</div>
+    <form method="POST" class="modal-body" onsubmit="return checkWarr()">
+      <input type="hidden" name="action" value="warranty_take">
+      <input type="hidden" name="item_id" id="w_item">
+      <p style="font-size:.85rem;font-weight:600;color:#334155;" id="w_name"></p>
+      <div class="form-group">
+        <label class="form-label">Supplier *</label>
+        <input class="form-control" name="supplier" id="w_supplier" required maxlength="80" placeholder="Supplier / distributor name" style="text-transform:uppercase">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reason *</label>
+        <div class="warr-reasons" id="w_reasons">
+          <label><input type="radio" name="reason" value="DOA" required onchange="toggleWarrOther()"> DOA</label>
+          <label><input type="radio" name="reason" value="Defective" onchange="toggleWarrOther()"> Defective</label>
+          <label><input type="radio" name="reason" value="Warranty claim" onchange="toggleWarrOther()"> Warranty claim</label>
+          <label><input type="radio" name="reason" value="Wrong item" onchange="toggleWarrOther()"> Wrong item</label>
+          <label><input type="radio" name="reason" value="Other" onchange="toggleWarrOther()"> Other</label>
+        </div>
+      </div>
+      <div class="form-group" id="w_other_box" style="display:none;">
+        <label class="form-label">Other reason *</label>
+        <input class="form-control" name="reason_other" id="w_other" maxlength="120" placeholder="Describe the issue">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group">
+          <label class="form-label">Qty taken *</label>
+          <input class="form-control" type="number" name="qty" id="w_qty" min="1" step="1" value="1" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Claim / RMA no</label>
+          <input class="form-control" name="claim_no" id="w_claim" maxlength="40" placeholder="Optional" style="text-transform:uppercase">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Faulty serial</label>
+        <input class="form-control" name="faulty_serial" id="w_faulty" maxlength="64" placeholder="Serial sent to supplier" style="text-transform:uppercase"
+               inputmode="text" pattern="[A-Za-z0-9]*" oninput="this.value=sanitizeImeiSerial(this.value)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note</label>
+        <input class="form-control" name="note" id="w_note" maxlength="160" placeholder="Optional">
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-primary" type="submit" style="flex:1;">Take for replacement</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="recvModal">
+  <div class="modal-box" style="max-width:440px;">
+    <button type="button" class="modal-exit" onclick="document.getElementById('recvModal').classList.remove('show')" title="Exit" aria-label="Exit">✕</button>
+    <div class="modal-title">Mark replaced</div>
+    <form method="POST" class="modal-body" onsubmit="return checkRecv()">
+      <input type="hidden" name="action" value="warranty_receive">
+      <input type="hidden" name="claim_id" id="r_claim">
+      <p style="font-size:.85rem;font-weight:600;color:#334155;" id="r_name"></p>
+      <div class="form-group" id="r_pick_box" style="display:none;">
+        <label class="form-label">Pending take *</label>
+        <div class="warr-pick" id="r_picks"></div>
+      </div>
+      <div id="r_taken_box" style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:12px;margin-bottom:14px;font-size:.82rem;color:#334155;">
+        <div style="font-size:.7rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">Taken on</div>
+        <div id="r_taken" style="font-weight:800;color:#5b21b6;"></div>
+        <div id="r_meta" style="margin-top:6px;color:#64748b;"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="r_new_label">Replacement serial</label>
+        <input class="form-control" name="new_serial" id="r_new" maxlength="64" placeholder="Serial received back" style="text-transform:uppercase"
+               inputmode="text" pattern="[A-Za-z0-9]*" oninput="this.value=sanitizeImeiSerial(this.value)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note</label>
+        <input class="form-control" name="note" id="r_note" maxlength="160" placeholder="Optional">
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-primary" type="submit" style="flex:1;background:#16a34a;border:none;"><i class="fas fa-check"></i> Mark replaced</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="logModal">
+  <div class="modal-box" style="max-width:620px;">
+    <button type="button" class="modal-exit" onclick="document.getElementById('logModal').classList.remove('show')" title="Exit" aria-label="Exit">✕</button>
+    <button type="button" class="btn btn-outline log-pdf-top" id="logPdfBtnTop" onclick="downloadItemLogPDF()" title="Download PDF" aria-label="Download PDF"><i class="fas fa-file-pdf"></i> PDF</button>
+    <div class="modal-title"><i class="fas fa-history" style="color:#00BCD4;"></i> Item log</div>
+    <p id="logItemName" style="font-size:.85rem;font-weight:600;color:#334155;margin:0 0 10px;"></p>
+    <div id="logBody" style="max-height:360px;overflow-y:auto;"></div>
+    <div class="log-pdf-foot">
+      <button type="button" class="btn btn-outline" id="logPdfBtn" style="flex:1;" onclick="downloadItemLogPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="promptModal" style="z-index:9999;">
+  <div class="modal-box" style="max-width:400px;text-align:center;">
+    <button type="button" class="modal-exit" onclick="customPromptCancel()" title="Exit">✕</button>
+    <div class="modal-title" id="promptModalTitle">Enter Name</div>
+    <div class="modal-body" style="padding:20px;">
+      <input type="text" id="promptModalInput" class="form-control" style="margin-bottom:20px;">
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button type="button" class="btn btn-outline" onclick="customPromptCancel()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="customPromptSubmit()">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const ITEMS = {{ items|tojson }};
+function filterInv(){
+  const q=(document.getElementById('invSearch').value||'').toLowerCase();
+  document.querySelectorAll('.table-wrap tbody tr').forEach(row=>{
+    row.style.display=!q || row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+function toggleInvCard(td){
+  const tr = td.closest('tr');
+  const wasOpen = tr.classList.contains('expanded');
+  document.querySelectorAll('.mob-cards tbody tr.expanded').forEach(r => r.classList.remove('expanded'));
+  if (!wasOpen) tr.classList.add('expanded');
+}
+function openItem(){
+  document.getElementById('itemModalTitle').textContent='Add Item';
+  document.getElementById('item_id').value='';
+  document.getElementById('it_name').value='';
+  document.getElementById('it_sku').value='';
+  const hsnEl=document.getElementById('it_hsn'); if(hsnEl) hsnEl.value='';
+  const gstEl=document.getElementById('it_gst'); if(gstEl) gstEl.value='0';
+  document.getElementById('it_serial').value='';
+  document.getElementById('it_cat').value='Accessory';
+  document.getElementById('it_unit').value='PCS';
+  document.getElementById('it_qty').value='0';
+  const itHint=document.getElementById('it_qty_scans'); if(itHint){ itHint.style.display='none'; itHint.textContent=''; }
+  document.getElementById('it_low_stock').value='0';
+  document.getElementById('it_cost').value='0';
+  document.getElementById('it_sell').value='0';
+  document.getElementById('qtyBox').style.display='';
+  document.getElementById('activeBox').style.display='none';
+  document.getElementById('itemModal').classList.add('show');
+}
+function editItem(id){
+  const it = ITEMS.find(x => x.id == id); if(!it) return;
+  document.getElementById('itemModalTitle').textContent='Edit Item';
+  document.getElementById('item_id').value=it.id;
+  document.getElementById('it_name').value=it.name||'';
+  document.getElementById('it_sku').value=it.sku||'';
+  const hsnEd=document.getElementById('it_hsn'); if(hsnEd) hsnEd.value=it.hsn_code||'';
+  const gstEd=document.getElementById('it_gst'); if(gstEd) gstEd.value=String(parseInt(it.gst_rate||0,10)||0);
+  document.getElementById('it_serial').value=sanitizeImeiSerial(it.serial_no||'');
+  document.getElementById('it_cat').value=it.category||'Accessory';
+  document.getElementById('it_unit').value=it.unit||'PCS';
+  document.getElementById('it_low_stock').value=it.reorder_qty||0;
+  document.getElementById('it_cost').value=it.cost_price||0;
+  document.getElementById('it_sell').value=it.sell_price||0;
+  document.getElementById('it_active').checked=!!it.active;
+  document.getElementById('qtyBox').style.display='none';
+  document.getElementById('activeBox').style.display='';
+  document.getElementById('itemModal').classList.add('show');
+}
+let _qtyScanSerials = {};
+function scanQty(inputId){
+  if (typeof startSerialScan !== 'function') { alert('Scanner is not available.'); return; }
+  if (!_qtyScanSerials[inputId]) _qtyScanSerials[inputId] = [];
+  const list = _qtyScanSerials[inputId];
+  const hint = document.getElementById(inputId+'_scans');
+  startSerialScan({
+    continuous: true,
+    onCode: function(raw){
+      const sn = (typeof sanitizeImeiSerial === 'function') ? sanitizeImeiSerial(raw) : String(raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+      if (!sn) return;
+      const el = document.getElementById(inputId);
+      if (!el) return;
+      if (list.indexOf(sn) >= 0) {
+        document.getElementById('imeiScanStatus').textContent = sn + ' already counted';
+        return;
+      }
+      if (list.length === 0) el.value = '0';
+      list.push(sn);
+      const n = (parseInt(el.value || '0', 10) || 0) + 1;
+      el.value = String(n);
+      document.getElementById('imeiScanStatus').textContent = '\u2713 ' + sn + ' \u00b7 qty ' + n;
+      if (hint) {
+        hint.style.display = '';
+        hint.textContent = list.length + ' serial' + (list.length===1?'':'s') + ' scanned \u00b7 last ' + sn;
+      }
+    }
+  });
+}
+function openStock(id,mode){
+  const it = ITEMS.find(x => x.id == id); if(!it) return;
+  document.getElementById('st_item').value=id;
+  document.getElementById('st_name').textContent=(it.name||'')+' — on hand '+(it.qty||0);
+  document.getElementById('st_action').value='stock_in';
+  document.getElementById('stockTitle').textContent='Stock In';
+  document.getElementById('st_qty_label').textContent='Add quantity';
+  document.getElementById('st_qty').value='1';
+  const stHint=document.getElementById('st_qty_scans'); if(stHint){ stHint.style.display='none'; stHint.textContent=''; }
+  _qtyScanSerials={};
+  document.getElementById('stockModal').classList.add('show');
+}
+function openWarranty(id){
+  const it = ITEMS.find(x => x.id == id); if(!it) return;
+  document.getElementById('w_item').value=id;
+  document.getElementById('w_name').textContent=(it.name||'')+' — on hand '+(it.qty||0);
+  document.getElementById('w_supplier').value='';
+  document.querySelectorAll('#w_reasons input[name="reason"]').forEach(r=>{ r.checked=false; });
+  document.getElementById('w_other').value='';
+  document.getElementById('w_qty').value='1';
+  document.getElementById('w_claim').value='';
+  document.getElementById('w_faulty').value=sanitizeImeiSerial(it.serial_no||'');
+  document.getElementById('w_note').value='';
+  toggleWarrOther();
+  document.getElementById('warrModal').classList.add('show');
+}
+function warrReason(){
+  const el=document.querySelector('#w_reasons input[name="reason"]:checked');
+  return el?el.value:'';
+}
+function toggleWarrOther(){
+  const other=warrReason()==='Other';
+  document.getElementById('w_other_box').style.display=other?'':'none';
+  document.getElementById('w_other').required=other;
+}
+function checkWarr(){
+  const it=ITEMS.find(x=>x.id==document.getElementById('w_item').value);
+  const qty=parseFloat(document.getElementById('w_qty').value||0);
+  if(!it) return false;
+  if(!warrReason()){ alert('Select a reason.'); return false; }
+  if(qty<1){ alert('Replacement quantity must be at least 1.'); return false; }
+  if(qty>(it.qty||0)){ alert('Quantity cannot be more than stock on hand.'); return false; }
+  if(warrReason()==='Other' && !(document.getElementById('w_other').value||'').trim()){
+    alert('Enter the other reason.'); return false;
+  }
+  return true;
+}
+function fillRecv(p, it){
+  document.getElementById('r_claim').value=p.id;
+  document.getElementById('r_taken').textContent=toIST(p.taken_at);
+  const bits=[];
+  if(p.supplier) bits.push(p.supplier);
+  if(p.reason) bits.push(p.reason);
+  bits.push('Qty '+p.qty);
+  if(p.faulty_serial) bits.push('Faulty SN '+p.faulty_serial);
+  if(p.claim_no) bits.push('Claim '+p.claim_no);
+  document.getElementById('r_meta').textContent=bits.join(' · ');
+  const needSn=!!(it.serial_no||'') || !!(p.faulty_serial||'') || (it.category||'')==='Phone';
+  document.getElementById('r_new_label').textContent=needSn?'Replacement serial *':'Replacement serial';
+  document.getElementById('r_new').required=needSn;
+}
+function openReceive(id){
+  const it=ITEMS.find(x=>x.id==id); if(!it) return;
+  const pending=it.warr_pending||[];
+  if(!pending.length){ alert('No item is waiting at the supplier.'); return; }
+  document.getElementById('r_name').textContent=(it.name||'')+' — on hand '+(it.qty||0);
+  document.getElementById('r_new').value='';
+  document.getElementById('r_note').value='';
+  const box=document.getElementById('r_pick_box');
+  const picks=document.getElementById('r_picks');
+  if(pending.length>1){
+    box.style.display='';
+    picks.innerHTML=pending.map((p,i)=>'<label><input type="radio" name="pick" value="'+p.id+'" '+(i===0?'checked':'')+' onchange="fillRecv(ITEMS.find(x=>x.id=='+id+').warr_pending.find(w=>w.id=='+p.id+'), ITEMS.find(x=>x.id=='+id+'))"> Taken '+esc(toIST(p.taken_at))+' · qty '+p.qty+(p.supplier?' · '+esc(p.supplier):'')+'</label>').join('');
+  }else{
+    box.style.display='none';
+    picks.innerHTML='';
+  }
+  fillRecv(pending[0], it);
+  document.getElementById('recvModal').classList.add('show');
+}
+function checkRecv(){
+  if(!document.getElementById('r_claim').value){ alert('Select the pending take.'); return false; }
+  return true;
+}
+function toIST(s){
+  if(!s) return '—';
+  const d=new Date(String(s).replace(' ','T')+(String(s).includes('+')?'':'Z'));
+  if(isNaN(d)) return String(s).slice(0,16).replace('T',' ');
+  return d.toLocaleString('en-IN',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).replace(',','');
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+let lastLogId=null;
+async function openItemLog(id){
+  lastLogId=id;
+  const it=ITEMS.find(x=>x.id==id);
+  document.getElementById('logItemName').textContent=(it&&it.name?it.name:'Item')+(it&&it.sku?' · '+it.sku:'');
+  document.getElementById('logModal').classList.remove('log-ready');
+  document.getElementById('logBody').innerHTML='<div style="text-align:center;padding:28px;color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+  document.getElementById('logModal').classList.add('show');
+  try{
+    const res=await fetch('/api/inventory/'+id+'/log');
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Failed');
+    const ev=data.events||[];
+    document.getElementById('logModal').classList.add('log-ready');
+    if(!ev.length){
+      document.getElementById('logBody').innerHTML='<div style="text-align:center;padding:28px;color:#94a3b8;">No changes recorded yet.</div>';
+      return;
+    }
+    const colors={stock_in:'#43A047',sale:'#1E88E5',return:'#00897B',adjust:'#F57C00',warranty:'#7c3aed',warranty_in:'#16a34a',create:'#00BCD4',update:'#64748b'};
+    let html='';
+    ev.forEach(e=>{
+      const c=colors[e.kind]||'#64748b';
+      html+='<div style="border-left:3px solid '+c+';padding:8px 12px;margin-bottom:8px;background:#f8fafc;border-radius:0 10px 10px 0;">';
+      html+='<div style="display:flex;justify-content:space-between;gap:8px;font-size:.72rem;font-weight:800;color:'+c+';text-transform:uppercase;">';
+      html+='<span>'+esc(e.title||e.kind)+'</span><span style="color:#94a3b8;font-weight:600;text-transform:none;">'+esc(toIST(e.created_at))+'</span></div>';
+      html+='<div style="font-size:.82rem;color:#334155;margin-top:4px;">'+esc(e.summary||'')+'</div></div>';
+    });
+    document.getElementById('logBody').innerHTML=html;
+  }catch(err){
+    document.getElementById('logBody').innerHTML='<div style="text-align:center;padding:28px;color:#ef4444;">Could not load log.</div>';
+  }
+}
+function downloadItemLogPDF(){
+  if(!lastLogId) return;
+  window.open('/inventory/'+lastLogId+'/log/print?download=1','_blank');
+}
+const subMap = JSON.parse({{ sub_map|tojson }} || '{}');
+
+
+let _promptResolve = null;
+
+function customPrompt(title) {
+  return new Promise((resolve) => {
+    document.getElementById('promptModalTitle').textContent = title;
+    const input = document.getElementById('promptModalInput');
+    input.value = '';
+    document.getElementById('promptModal').classList.add('show');
+    input.focus();
+    
+    // Add enter key support
+    input.onkeydown = function(e) {
+      if(e.key === 'Enter') customPromptSubmit();
+    };
+
+    _promptResolve = resolve;
+  });
+}
+
+function customPromptSubmit() {
+  const val = document.getElementById('promptModalInput').value;
+  document.getElementById('promptModal').classList.remove('show');
+  if(_promptResolve) {
+    _promptResolve(val);
+    _promptResolve = null;
+  }
+}
+
+function customPromptCancel() {
+  document.getElementById('promptModal').classList.remove('show');
+  if(_promptResolve) {
+    _promptResolve(null);
+    _promptResolve = null;
+  }
+}
+
+function updateSubCats() {
+  const cat = document.getElementById('it_cat').value;
+  const subSel = document.getElementById('it_subcat');
+  const currentSub = subSel.value;
+  subSel.innerHTML = '<option value="">--Select--</option>';
+  if(cat && subMap[cat]) {
+    subMap[cat].forEach(sub => {
+      const opt = document.createElement('option');
+      opt.value = sub;
+      opt.innerText = sub;
+      if (sub === currentSub) opt.selected = true;
+      subSel.appendChild(opt);
+    });
+  }
+}
+
+async function addQuickCat() {
+  const name = await customPrompt("Enter new category name:");
+  if(!name) return;
+  const formData = new FormData();
+  formData.append('name', name);
+  const res = await fetch('{{ url_for("api_categories_add") }}', { method: 'POST', body: formData });
+  const data = await res.json();
+  if(data.success) {
+    const sel = document.getElementById('it_cat');
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.innerText = name;
+    sel.appendChild(opt);
+    sel.value = name;
+    subMap[name] = [];
+    updateSubCats();
+  } else {
+    alert(data.error || 'Failed to add');
+  }
+}
+
+async function addQuickSubCat() {
+  const cat = document.getElementById('it_cat').value;
+  if(!cat) return alert("Select a Category first.");
+  const name = await customPrompt("Enter new sub-category for " + cat + ":");
+  if(!name) return;
+  const formData = new FormData();
+  formData.append('category_name', cat);
+  formData.append('name', name);
+  const res = await fetch('{{ url_for("api_subcategories_add") }}', { method: 'POST', body: formData });
+  const data = await res.json();
+  if(data.success) {
+    if(!subMap[cat]) subMap[cat] = [];
+    subMap[cat].push(name);
+    updateSubCats();
+    document.getElementById('it_subcat').value = name;
+  } else {
+    alert(data.error || 'Failed to add');
+  }
+}
+</script>
+{% endblock %}

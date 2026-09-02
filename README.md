@@ -19,7 +19,7 @@ Visit: http://localhost:5000
 | Field    | Value                |
 |----------|----------------------|
 | Email    | admin@mobilefix.com  |
-| Password | admin123             |
+| Password | 00c32z6&UKSI<^9        |
 
 > ⚠️ Change the admin password after first login!
 

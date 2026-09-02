@@ -1,5 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash, Response, send_file
-import fitz
+try:
+    import pymupdf as fitz
+except ImportError:
+    try:
+        import fitz
+    except ImportError:
+        fitz = None
 from functools import wraps
 from datetime import datetime, timedelta, timezone, date
 import calendar, csv, io, hashlib, hmac, os, re, json, random, string, base64, time, sqlite3, uuid, secrets
@@ -18,6 +24,8 @@ except ImportError:
 
 app = Flask(__name__)
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
+if DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = 'postgresql://' + DATABASE_URL[len('postgres://'):]
 USE_PG = bool(DATABASE_URL)
 IST = timezone(timedelta(hours=5, minutes=30))
 

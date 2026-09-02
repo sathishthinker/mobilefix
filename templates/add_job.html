@@ -136,6 +136,73 @@
   font-weight:700; letter-spacing:2px; margin-top:6px; min-height:20px;
   display:flex; align-items:center; gap:6px;
 }
+
+.chip-collapse-toggle { width: 100%; }
+.chip-chevron, .chip-summary { display: none; }
+
+@media (max-width: 768px) {
+  .select-group-box{
+    border: 1.5px solid #f1f5f9;
+    border-radius:12px;
+    padding:0 12px;
+    margin:18px 0 16px;
+    background:#fafafa;
+    box-shadow:none;
+  }
+  .select-group-box .chip-collapse-toggle{
+    margin:0;
+    padding:12px 2px;
+    border-bottom: none;
+  }
+  .select-group-box .chip-collapse + .chip-collapse .chip-collapse-toggle,
+  .select-group-box .chip-collapse ~ .chip-collapse .chip-collapse-toggle{
+    border-top:1px solid #e2e8f0;
+  }
+  .chip-collapse-toggle {
+    cursor: pointer;
+    flex-wrap: wrap;
+    margin: 10px 0 6px;
+    padding: 10px 2px 8px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .chip-collapse-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+  }
+  .chip-chevron {
+    display: block;
+    font-size: 0.72rem;
+    color: #94a3b8;
+    transition: transform 0.18s ease;
+    flex-shrink: 0;
+  }
+  .chip-collapse.open .chip-chevron { transform: rotate(180deg); }
+  .chip-summary {
+    display: block;
+    width: 100%;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    color: #0e7490;
+    margin-top: 4px;
+    line-height: 1.35;
+  }
+  .chip-summary.empty { color: #94a3b8; font-weight: 400; }
+  .chip-hint { display: none; }
+  .chip-collapse-body { display: none; }
+  .chip-collapse.open .chip-collapse-body { display: block; }
+  .chip-collapse.open .chip-collapse-body .pill-group,
+  .chip-collapse.open .chip-collapse-body .lock-pill-group { margin-top: 4px; }
+  .select-group-box .chip-collapse-toggle{
+    margin:0;
+    padding:12px 2px;
+    border-bottom: none;
+  }
+}
 </style>
 {% endblock %}
 
@@ -146,19 +213,18 @@
       <div class="page-title">New Repair Job</div>
       <div class="page-subtitle">Fill in the customer and device details</div>
     </div>
-    <a href="{{ url_for('jobs') }}" class="btn btn-outline" style="border:1.5px solid #e2e8f0;color:#6b7c93;text-decoration:none;"><i class="fas fa-arrow-left"></i> Back</a>
+    <a href="{{ url_for('jobs') }}" class="btn btn-outline" style="border:1.5px solid #94a3b8;color:#0f172a;font-weight:700;text-decoration:none;"><i class="fas fa-arrow-left"></i> Back</a>
   </div>
 
-  <div class="card">
-    <div class="card-body">
-      <form method="POST" id="jobForm" onsubmit="return validateForm()">
+  <form method="POST" id="jobForm" onsubmit="return validateForm()">
 
         <!-- CUSTOMER DETAILS -->
-        <div class="section-title"><i class="fas fa-user" style="color:#00BCD4;"></i> Customer Details</div>
+        <div class="card" style="margin-bottom:18px;">
+          <div class="card-header" style="border-bottom:1.5px solid #f1f5f9;padding-bottom:14px;margin-bottom:16px;display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#0f172a;"><i class="fas fa-user" style="color:#00BCD4;font-size:1rem;"></i> Customer Details</div>
+          <div class="card-body" style="padding-top:0;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
           <div class="form-group">
             <label class="form-label">Customer Phone <span style="color:#ef4444;">*</span>
-              <span style="font-size:0.72rem;color:#94a3b8;font-weight:400;">(10 digits only)</span>
             </label>
             <div class="ac-wrap">
               <input type="tel" name="customer_phone" id="customer_phone"
@@ -183,25 +249,32 @@
           </div>
         </div>
 
+          </div>
+        </div>
+
         <!-- DEVICE DETAILS -->
-        <div class="section-title"><i class="fas fa-mobile-alt" style="color:#00BCD4;"></i> Device Details</div>
+        <div class="card" style="margin-bottom:18px;">
+          <div class="card-header" style="border-bottom:1.5px solid #f1f5f9;padding-bottom:14px;margin-bottom:16px;display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#0f172a;"><i class="fas fa-mobile-alt" style="color:#00BCD4;font-size:1rem;"></i> Device & Job Details</div>
+          <div class="card-body" style="padding-top:0;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
-          <div class="form-group">
+          <div class="form-group ac-wrap">
             <label class="form-label">Brand <span style="color:#ef4444;">*</span></label>
-            <input type="hidden" name="device_brand" id="deviceBrand" required>
-            <div id="brandPickerBtn" onclick="openBrandPicker()"
-                 style="width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;cursor:pointer;font-size:0.88rem;font-weight:600;color:#94a3b8;display:flex;align-items:center;justify-content:space-between;">
-              <span id="brandPickerLabel">SELECT BRAND</span>
-              <i class="fas fa-chevron-down" style="font-size:0.75rem;"></i>
-            </div>
-            <!-- Brand Other text input (shown when Other selected) -->
-            <input type="text" id="brandOtherInput" style="display:none;margin-top:8px;" class="form-control"
-                   placeholder="TYPE BRAND NAME..." oninput="this.value=this.value.toUpperCase();setBrandOther(this.value)">
+            <input type="hidden" name="device_brand" id="deviceBrand">
+            <input type="text" id="brandSearch" class="form-control" placeholder="TYPE TO SELECT BRAND"
+                   autocomplete="off" required
+                   oninput="this.value=this.value.toUpperCase();filterBrands(this.value)"
+                   onfocus="filterBrands(this.value,true)"
+                   onkeydown="brandKey(event)"
+                   onblur="setTimeout(function(){const v=document.getElementById('brandSearch').value.trim();if(v)selectBrand(v);},180)">
+            <div class="ac-dropdown" id="brandDrop"></div>
           </div>
           <div class="form-group">
             <label class="form-label">Model <span style="color:#ef4444;">*</span></label>
             <input type="text" name="device_model_only" id="deviceModelOnly" class="form-control"
                    placeholder="E.G. A32 / IPHONE 14" required
+                   autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
+                   data-lpignore="true" data-1p-ignore="true"
+                   readonly onfocus="this.removeAttribute('readonly')"
                    oninput="this.value=this.value.toUpperCase();buildModel()">
             <input type="hidden" name="device_model" id="deviceModelHidden">
           </div>
@@ -212,7 +285,10 @@
             <div style="display:flex;gap:8px;align-items:stretch;">
               <input type="text" name="imei" id="imeiEntry" class="form-control"
                      placeholder="IMEI OR SERIAL NO." maxlength="20"
-                     oninput="this.value=this.value.toUpperCase()" style="flex:1;">
+                     autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
+                     data-lpignore="true" data-1p-ignore="true" inputmode="text" pattern="[A-Za-z0-9]*"
+                     readonly onfocus="this.removeAttribute('readonly')"
+                     oninput="this.value=sanitizeImeiSerial(this.value)" style="flex:1;">
               <button type="button" onclick="startImeiScan('imeiEntry')"
                 style="background:linear-gradient(135deg,#00BCD4,#0097A7);color:white;border:none;border-radius:10px;padding:0 14px;cursor:pointer;font-size:0.82rem;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0;">
                 <i class="fas fa-barcode"></i> Scan
@@ -230,23 +306,32 @@
           </div>
         </div>
 
+        <div class="select-group-box">
         <!-- SCREEN LOCK TYPE -->
-        <div class="section-title"><i class="fas fa-lock" style="color:#9C27B0;"></i> Screen Lock Type</div>
-        <input type="hidden" name="screen_lock" id="screenLockVal" value="">
-        <div class="lock-pill-group">
-          <input type="radio" name="lock_type_ui" id="lock_pattern" value="Pattern" onchange="onLockChange('Pattern')">
-          <label for="lock_pattern"><i class="fas fa-th"></i> Pattern</label>
+        <div class="chip-collapse" id="lockCollapse">
+          <div class="section-title chip-collapse-toggle" onclick="toggleChipCollapse('lockCollapse')">
+            <span class="chip-collapse-head"><i class="fas fa-lock" style="color:#9C27B0;"></i> Screen Lock Type</span>
+            <i class="fas fa-chevron-down chip-chevron"></i>
+            <span class="chip-summary empty" id="lockSummary">Tap to select</span>
+          </div>
+          <div class="chip-collapse-body">
+            <input type="hidden" name="screen_lock" id="screenLockVal" value="">
+            <div class="lock-pill-group">
+              <input type="radio" name="lock_type_ui" id="lock_pattern" value="Pattern" onchange="onLockChange('Pattern')">
+              <label for="lock_pattern"><i class="fas fa-th"></i> Pattern</label>
 
-          <input type="radio" name="lock_type_ui" id="lock_pin" value="PIN" onchange="onLockChange('PIN')">
-          <label for="lock_pin"><i class="fas fa-keyboard"></i> PIN</label>
+              <input type="radio" name="lock_type_ui" id="lock_pin" value="PIN" onchange="onLockChange('PIN')">
+              <label for="lock_pin"><i class="fas fa-keyboard"></i> PIN</label>
 
-          <input type="radio" name="lock_type_ui" id="lock_password" value="Password" onchange="onLockChange('Password')">
-          <label for="lock_password"><i class="fas fa-font"></i> Password</label>
+              <input type="radio" name="lock_type_ui" id="lock_password" value="Password" onchange="onLockChange('Password')">
+              <label for="lock_password"><i class="fas fa-font"></i> Password</label>
 
-          <input type="radio" name="lock_type_ui" id="lock_none" value="None" onchange="onLockChange('None')">
-          <label for="lock_none"><i class="fas fa-unlock"></i> None</label>
+              <input type="radio" name="lock_type_ui" id="lock_none" value="None" onchange="onLockChange('None')">
+              <label for="lock_none"><i class="fas fa-unlock"></i> None</label>
+            </div>
+            <button type="button" id="lockResetBtn" onclick="resetLockType()" style="display:none;margin-top:10px;background:#f1f5f9;color:#475569;border:1.5px solid #cbd5e1;border-radius:8px;padding:5px 14px;font-size:0.82rem;font-weight:600;cursor:pointer;"><i class="fas fa-undo"></i> Reset Lock Type</button>
+          </div>
         </div>
-        <button type="button" id="lockResetBtn" onclick="resetLockType()" style="display:none;margin-top:10px;background:#f1f5f9;color:#475569;border:1.5px solid #cbd5e1;border-radius:8px;padding:5px 14px;font-size:0.82rem;font-weight:600;cursor:pointer;"><i class="fas fa-undo"></i> Reset Lock Type</button>
 
         <!-- Pattern drawer -->
         <div id="patternBox" style="display:none;margin-top:14px;background:#f8fafc;border:1.5px solid #e0d4f5;border-radius:14px;padding:16px 20px;">
@@ -282,20 +367,28 @@
           </div>
         </div>
 
-        <div class="section-title">
-          <i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i>
-          Reported Issue <span style="color:#ef4444;">*</span>
-          <span style="font-size:0.72rem;color:#94a3b8;font-weight:400;text-transform:none;"> — select all that apply</span>
-        </div>
-        <div class="pill-group" id="issueGroup">
-          {% for issue in ['Screen Damage','Battery Issue','Charging Problem','Speaker Issue',
-            'Mic Issue','Camera Problem','Water Damage','Software Issue',
-            'Network Problem','Button Issue','FRP Lock / Flash','Hanging / Slow',
-            'No Power','Touch Not Working','Dead Board','Other'] %}
-          <input type="checkbox" id="iss_{{ loop.index }}" name="reported_issues" value="{{ issue }}"
-                 onchange="checkFRP()">
-          <label for="iss_{{ loop.index }}">{{ issue }}</label>
-          {% endfor %}
+        <div class="chip-collapse" id="issueCollapse">
+          <div class="section-title chip-collapse-toggle" onclick="toggleChipCollapse('issueCollapse')">
+            <span class="chip-collapse-head">
+              <i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i>
+              Reported Issue <span style="color:#ef4444;">*</span>
+              <span class="chip-hint" style="font-size:0.72rem;color:#94a3b8;font-weight:400;text-transform:none;"> — select all that apply</span>
+            </span>
+            <i class="fas fa-chevron-down chip-chevron"></i>
+            <span class="chip-summary empty" id="issueSummary">Tap to select</span>
+          </div>
+          <div class="chip-collapse-body">
+            <div class="pill-group" id="issueGroup">
+              {% for issue in ['Screen Damage','Battery Issue','Charging Problem','Speaker Issue',
+                'Mic Issue','Camera Problem','Water Damage','Software Issue',
+                'Network Problem','Button Issue','FRP Lock / Flash','Hanging / Slow',
+                'No Power','Touch Not Working','Dead Board','Other'] %}
+              <input type="checkbox" id="iss_{{ loop.index }}" name="reported_issues" value="{{ issue }}"
+                     onchange="checkFRP()">
+              <label for="iss_{{ loop.index }}">{{ issue }}</label>
+              {% endfor %}
+            </div>
+          </div>
         </div>
         <input type="hidden" name="issue" id="issueHidden">
         <div id="otherIssueBox" style="display:none;margin-top:10px;">
@@ -313,7 +406,7 @@
           <i class="fas fa-id-card" style="color:#f59e0b;font-size:1.2rem;"></i>
           <div>
             <strong style="color:#92400e;font-size:0.88rem;">⚠️ Aadhar Card Recommended</strong>
-            <div style="font-size:0.8rem;color:#78350f;margin-top:2px;">FRP Lock / Flash — Aadhar is optional now but <strong>mandatory at invoice</strong>.</div>
+            <div style="font-size:0.8rem;color:#78350f;margin-top:2px;">FRP Lock / Flash — optional now, <strong>mandatory at deliver and invoice</strong>.</div>
           </div>
         </div>
         <div id="aadhar-field" style="display:none;margin-top:12px;">
@@ -324,22 +417,31 @@
                    maxlength="14" inputmode="numeric"
                    style="letter-spacing:2px;font-weight:600;"
                    oninput="formatAadhar(this)">
-            <div class="field-note"><i class="fas fa-lock"></i> 12-digit Aadhar — mandatory for FRP/Flash jobs</div>
+            <div class="field-note"><i class="fas fa-lock"></i> 12-digit Aadhar — optional now, mandatory at deliver / invoice</div>
           </div>
         </div>
 
         <!-- RECEIVED WITHOUT -->
-        <div class="section-title">
-          <i class="fas fa-box-open" style="color:#FF9800;"></i>
-          Received Without
-          <span style="font-size:0.72rem;color:#94a3b8;font-weight:400;text-transform:none;"> — select all that apply</span>
+        <div class="chip-collapse" id="recvCollapse">
+          <div class="section-title chip-collapse-toggle" onclick="toggleChipCollapse('recvCollapse')">
+            <span class="chip-collapse-head">
+              <i class="fas fa-box-open" style="color:#FF9800;"></i>
+              Received
+              <span class="chip-hint" style="font-size:0.72rem;color:#94a3b8;font-weight:400;text-transform:none;"> — select all that apply</span>
+            </span>
+            <i class="fas fa-chevron-down chip-chevron"></i>
+            <span class="chip-summary empty" id="recvSummary">Tap to select</span>
+          </div>
+          <div class="chip-collapse-body">
+            <div class="pill-group" id="receivedGroup">
+              {% for item in ['None','Back Cover','SIM Card','SIM Tray','Memory Card','Charger','Earphone',
+                'Box','Battery','Stylus','Screen Guard','Other Accessories'] %}
+              <input type="checkbox" id="rec_{{ loop.index }}" name="received_without_chk" value="{{ item }}" onchange="checkOtherAcc(this)">
+              <label for="rec_{{ loop.index }}">{{ item }}</label>
+              {% endfor %}
+            </div>
+          </div>
         </div>
-        <div class="pill-group" id="receivedGroup">
-          {% for item in ['Back Cover','SIM Card','Memory Card','Charger','Earphone',
-            'Box','Battery','Stylus','Screen Guard','Other Accessories'] %}
-          <input type="checkbox" id="rec_{{ loop.index }}" name="received_without_chk" value="{{ item }}" onchange="checkOtherAcc(this)">
-          <label for="rec_{{ loop.index }}">{{ item }}</label>
-          {% endfor %}
         </div>
         <input type="hidden" name="received_without_val" id="receivedHidden">
         <div id="otherAccBox" style="display:none;margin-top:10px;">
@@ -352,14 +454,23 @@
           </div>
         </div>
 
-        <!-- BILLING -->
-        <div class="section-title"><i class="fas fa-rupee-sign" style="color:#00BCD4;"></i> Billing Details</div>
-        <input type="hidden" name="cost" value="0">
-        <div style="display:grid;grid-template-columns:1fr;gap:18px;margin-bottom:18px;">
+          </div>
+        </div>
+
+        <!-- BILLING & NOTES -->
+        <div class="card" style="margin-bottom:24px;">
+          <div class="card-header" style="border-bottom:1.5px solid #f1f5f9;padding-bottom:14px;margin-bottom:16px;display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#0f172a;"><i class="fas fa-file-invoice-dollar" style="color:#00BCD4;font-size:1rem;"></i> Billing & Notes</div>
+          <div class="card-body" style="padding-top:0;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+          <div class="form-group">
+            <label class="form-label"><i class="fas fa-money-bill-wave" style="color:#10b981;"></i> Estimated Cost <span style="color:#94a3b8;font-size:0.8rem;">(optional)</span></label>
+            <input type="number" name="cost" class="form-control" min="0" step="1" placeholder="e.g. 1500">
+            <div class="field-note"><i class="fas fa-info-circle"></i> Leave blank if unknown</div>
+          </div>
           <div class="form-group">
             <label class="form-label"><i class="fas fa-calendar-check" style="color:#9C27B0;"></i> Expected Return Date <span style="color:#ef4444;">*</span></label>
             <input type="date" name="expected_return" id="expectedReturnField" class="form-control" required>
-            <div class="field-note"><i class="fas fa-clock"></i> Max 15 days from today allowed</div>
+            <div class="field-note"><i class="fas fa-clock"></i> Booking date to 15 days after only</div>
           </div>
         </div>
 
@@ -368,7 +479,7 @@
         <input type="hidden" name="paid_status" value="Unpaid">
 
         <!-- NOTES -->
-        <div class="section-title"><i class="fas fa-sticky-note" style="color:#94a3b8;"></i> Internal Notes</div>
+        <div style="font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin:20px 0 10px;display:flex;align-items:center;gap:6px;"><i class="fas fa-sticky-note" style="color:#94a3b8;"></i> Internal Notes</div>
         <div class="form-group">
           <textarea name="notes" class="form-control"
                     placeholder="ANY INTERNAL NOTES..."
@@ -376,68 +487,89 @@
                     oninput="this.value=this.value.toUpperCase()"></textarea>
         </div>
 
-        <div style="display:flex;gap:12px;margin-top:20px;">
-          <button type="submit" class="btn btn-primary" style="flex:1;padding:13px;font-size:0.95rem;">
-            <i class="fas fa-plus-circle"></i> Add Repair Job
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-bottom:40px;">
+          <button type="submit" class="btn btn-primary" style="flex:1;padding:14px;font-size:1rem;border-radius:12px;box-shadow:0 6px 20px rgba(0,188,212,0.25);">
+            <i class="fas fa-plus-circle"></i> Confirm & Add Repair Job
           </button>
-          <a href="{{ url_for('jobs') }}" class="btn btn-outline" style="border:1.5px solid #e2e8f0;color:#6b7c93;text-decoration:none;padding:13px 20px;">Cancel</a>
+          <a href="{{ url_for('jobs') }}" class="btn btn-outline" style="border:1.5px solid #cbd5e1;color:#475569;font-weight:700;text-decoration:none;padding:14px 20px;border-radius:12px;">Cancel</a>
         </div>
       </form>
-    </div>
-  </div>
-</div>
-
-<!-- Brand Picker Modal -->
-<div id="brandPickerModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;overflow-y:auto;align-items:flex-start;justify-content:center;padding:24px 16px;backdrop-filter:blur(3px);">
-  <div style="background:white;border-radius:18px;padding:24px;width:92%;max-width:480px;box-shadow:0 25px 60px rgba(0,0,0,0.2);margin:auto;animation:su 0.2s ease;">
-    <div style="font-family:'Exo 2',sans-serif;font-weight:800;font-size:1rem;color:#1a2332;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
-      <span><i class="fas fa-mobile-alt" style="color:#00BCD4;margin-right:8px;"></i>Select Brand</span>
-      <button onclick="closeBrandPicker()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#94a3b8;">&times;</button>
-    </div>
-    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
-      {% for brand in ['Samsung','Apple','Xiaomi','Redmi','Realme','OnePlus','Vivo','OPPO','Poco','iQOO',
-                        'Nokia','Motorola','Sony','LG','Huawei','Honor','Infinix','Tecno','Lava','Micromax','Itel'] %}
-      <button type="button" onclick="selectBrand('{{ brand }}')"
-        style="padding:8px 16px;border-radius:999px;border:2px solid #e2e8f0;background:#f8fafc;font-size:0.83rem;font-weight:600;color:#475569;cursor:pointer;transition:all 0.15s;"
-        onmouseover="this.style.borderColor='#00BCD4';this.style.background='#e0f7fa';this.style.color='#006064';"
-        onmouseout="this.style.borderColor='#e2e8f0';this.style.background='#f8fafc';this.style.color='#475569';">
-        {{ brand }}
-      </button>
-      {% endfor %}
-      <button type="button" onclick="selectBrand('Other')"
-        style="padding:8px 16px;border-radius:999px;border:2px dashed #94a3b8;background:#f1f5f9;font-size:0.83rem;font-weight:600;color:#64748b;cursor:pointer;"
-        onmouseover="this.style.borderColor='#9C27B0';this.style.background='#f3e8ff';this.style.color='#6b21a8';"
-        onmouseout="this.style.borderColor='#94a3b8';this.style.background='#f1f5f9';this.style.color='#64748b';">
-        <i class="fas fa-plus"></i> Other
-      </button>
-    </div>
-  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
+function isMobileChipView() {
+  return window.matchMedia('(max-width: 768px)').matches;
+}
+
+function toggleChipCollapse(id) {
+  if (!isMobileChipView()) return;
+  document.getElementById(id).classList.toggle('open');
+}
+
+function chipSummaryText(items) {
+  if (!items.length) return { text: 'Tap to select', empty: true };
+  if (items.length <= 2) return { text: items.join(', '), empty: false };
+  return { text: items.slice(0, 2).join(', ') + ' +' + (items.length - 2), empty: false };
+}
+
+function setChipSummary(id, items) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const s = chipSummaryText(items);
+  el.textContent = s.text;
+  el.classList.toggle('empty', s.empty);
+}
+
+function updateChipSummaries() {
+  const lock = document.querySelector('input[name="lock_type_ui"]:checked');
+  setChipSummary('lockSummary', lock ? [lock.value] : []);
+  setChipSummary('issueSummary',
+    [...document.querySelectorAll('#issueGroup input[type="checkbox"]:checked')].map(cb => cb.value));
+  setChipSummary('recvSummary',
+    [...document.querySelectorAll('#receivedGroup input[type="checkbox"]:checked')].map(cb => cb.value));
+}
+
 // ── FRP check ─────────────────────────────────────────────────────
 function checkOtherAcc(cb) {
+  const boxes = [...document.querySelectorAll('#receivedGroup input[type="checkbox"]')];
+  if (cb.value === 'None' && cb.checked) {
+    boxes.forEach(el => { if (el !== cb) el.checked = false; });
+    const box = document.getElementById('otherAccBox');
+    box.style.display = 'none';
+    document.getElementById('otherAccText').value = '';
+  } else if (cb.value !== 'None' && cb.checked) {
+    boxes.forEach(el => { if (el.value === 'None') el.checked = false; });
+  }
   if (cb.value === 'Other Accessories') {
     const box = document.getElementById('otherAccBox');
     box.style.display = cb.checked ? 'block' : 'none';
     if (!cb.checked) document.getElementById('otherAccText').value = '';
   }
+  updateChipSummaries();
 }
 
-// Set expected return: default today+3, min today, max today+15
+// Expected return: booking date (today) through booking date + 15
 (function(){
-  const today = new Date();
-  const minDate = today.toISOString().split('T')[0];
-  const maxD = new Date(); maxD.setDate(maxD.getDate()+15);
-  const maxDate = maxD.toISOString().split('T')[0];
-  const defD = new Date(); defD.setDate(defD.getDate()+3);
+  function ymd(d){
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  const book = new Date();
+  book.setHours(0,0,0,0);
+  const minD = new Date(book);
+  const maxD = new Date(book);
+  maxD.setDate(maxD.getDate()+15);
+  const defD = new Date(book);
+  defD.setDate(defD.getDate()+3);
   const el = document.getElementById('expectedReturnField');
   if(el){
-    el.min = minDate;
-    el.max = maxDate;
-    el.value = defD.toISOString().split('T')[0];
+    el.min = ymd(minD);
+    el.max = ymd(maxD);
+    el.value = ymd(defD);
   }
 })();
 
@@ -456,7 +588,8 @@ function checkFRP() {
   const field = document.getElementById('aadhar-field');
   const input = document.getElementById('aadhar_number');
   field.style.display = frp ? 'block' : 'none';
-  input.required = frp;
+  input.required = false;
+  input.removeAttribute('required');
   if (!frp) input.value = '';
   // Other issue text
   const otherBox = document.getElementById('otherIssueBox');
@@ -464,6 +597,7 @@ function checkFRP() {
   otherBox.style.display = other ? 'block' : 'none';
   otherInput.required = other;
   if (!other) otherInput.value = '';
+  updateChipSummaries();
 }
 
 // ── Aadhar formatting ─────────────────────────────────────────────
@@ -475,6 +609,8 @@ function formatAadhar(input) {
 
 // ── Form validation ───────────────────────────────────────────────
 function validateForm() {
+  const imeiEl = document.getElementById('imeiEntry');
+  if (imeiEl) imeiEl.value = sanitizeImeiSerial(imeiEl.value);
   // Phone
   const phone = document.getElementById('customer_phone').value;
   if (!/^\d{10}$/.test(phone)) {
@@ -483,11 +619,33 @@ function validateForm() {
     return false;
   }
 
+  const brandTyped = document.getElementById('brandSearch').value.trim();
+  if (!brandTyped) {
+    alert('Please select or type a brand.');
+    document.getElementById('brandSearch').focus();
+    return false;
+  }
+  selectBrand(brandTyped);
+
+  const erEl = document.getElementById('expectedReturnField');
+  const er = (erEl.dataset.iso || erEl.value || '').slice(0,10);
+  if (!er || (erEl.min && er < erEl.min) || (erEl.max && er > erEl.max)) {
+    alert('Expected return must be from the booking date up to 15 days after.');
+    if (erEl._iosFace) erEl._iosFace.focus();
+    else erEl.focus();
+    return false;
+  }
+
   // Issues
   const issues = [...document.querySelectorAll('#issueGroup input[type="checkbox"]:checked')]
     .map(cb => cb.value);
   if (issues.length === 0) {
     alert('Please select at least one Reported Issue.');
+    const issueBox = document.getElementById('issueCollapse');
+    if (issueBox) {
+      issueBox.classList.add('open');
+      issueBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
     return false;
   }
   // Replace "Other" with the typed description
@@ -495,7 +653,16 @@ function validateForm() {
   const finalIssues = issues.map(i => i === 'Other' ? (otherText ? 'OTHER: ' + otherText : 'Other') : i);
   document.getElementById('issueHidden').value = finalIssues.join(', ');
 
-  // Aadhar for FRP — optional at entry (mandatory at invoice stage)
+  // Aadhar for FRP — optional at create; 12-digit check only if a value is entered
+  const aadharInput = document.getElementById('aadhar_number');
+  if (aadharInput) {
+    const aadharVal = aadharInput.value.replace(/\s/g, '');
+    if (aadharVal && !/^\d{12}$/.test(aadharVal)) {
+      alert('Aadhaar number must be exactly 12 digits if entered.');
+      aadharInput.focus();
+      return false;
+    }
+  }
 
   // Received without
   const without = [...document.querySelectorAll('#receivedGroup input[type="checkbox"]:checked')]
@@ -546,6 +713,7 @@ function onLockChange(type) {
     document.getElementById('pinInput').type = type === 'PIN' ? 'tel' : 'text';
     setTimeout(() => document.getElementById('pinInput').focus(), 80);
   }
+  updateChipSummaries();
 }
 
 function resetLockType() {
@@ -557,6 +725,7 @@ function resetLockType() {
   document.getElementById('screenLockVal').value = '';
   clearPattern();
   document.getElementById('pinInput').value = '';
+  updateChipSummaries();
 }
 
 let patternSeq = [];
@@ -593,30 +762,73 @@ function updatePinLock() {
   document.getElementById('screenLockVal').value = val ? type.toUpperCase() + ': ' + val : '';
 }
 
-// ── Brand Picker ──────────────────────────────────────────────────
-function openBrandPicker() {
-  document.getElementById('brandPickerModal').style.display = 'flex';
+// ── Brand type-to-select ──────────────────────────────────────────
+const BRANDS = ['Samsung','Apple','Xiaomi','Redmi','Realme','OnePlus','Vivo','OPPO','Poco','iQOO',
+  'Nothing','Nokia','Motorola','Sony','LG','Huawei','Honor','Infinix','Tecno','Lava','Micromax','Itel'];
+let brandHi = 0;
+
+function brandMatches(q) {
+  const u = (q||'').trim().toUpperCase();
+  if (!u) return BRANDS.slice();
+  const starts = BRANDS.filter(b => b.toUpperCase().startsWith(u));
+  const rest = BRANDS.filter(b => !b.toUpperCase().startsWith(u) && b.toUpperCase().includes(u));
+  return starts.concat(rest);
 }
-function closeBrandPicker() {
-  document.getElementById('brandPickerModal').style.display = 'none';
-}
-function selectBrand(brand) {
-  if (brand === 'Other') {
-    document.getElementById('brandOtherInput').style.display = 'block';
-    document.getElementById('brandOtherInput').focus();
-    document.getElementById('deviceBrand').value = '';
-    document.getElementById('brandPickerLabel').textContent = 'OTHER — TYPE BELOW';
-    document.getElementById('brandPickerLabel').style.color = '#9C27B0';
-  } else {
-    document.getElementById('deviceBrand').value = brand.toUpperCase();
-    document.getElementById('brandPickerLabel').textContent = brand.toUpperCase();
-    document.getElementById('brandPickerLabel').style.color = '#0e7490';
-    document.getElementById('brandOtherInput').style.display = 'none';
-    document.getElementById('brandOtherInput').value = '';
-    buildModel();
+
+function filterBrands(q, showAll) {
+  const list = showAll && !(q||'').trim() ? BRANDS.slice() : brandMatches(q);
+  const drop = document.getElementById('brandDrop');
+  if (!list.length) {
+    drop.innerHTML = `<div class="ac-item" onmousedown="selectBrand(document.getElementById('brandSearch').value)"><span class="ac-name">Use “${(q||'').trim()||'OTHER'}”</span></div>`;
+    drop.classList.add('show');
+    brandHi = 0;
+    return;
   }
-  closeBrandPicker();
+  drop.innerHTML = list.map((b,i) =>
+    `<div class="ac-item${i===0?' active':''}" data-brand="${b}" onmousedown="selectBrand('${b.replace(/'/g,"\\'")}')"><span class="ac-name">${b}</span></div>`
+  ).join('') + `<div class="ac-item" data-brand="__other" onmousedown="selectBrand(document.getElementById('brandSearch').value||'OTHER')"><span class="ac-phone"><i class="fas fa-plus"></i> Other / custom</span></div>`;
+  drop.classList.add('show');
+  brandHi = 0;
 }
+
+function brandKey(e) {
+  const drop = document.getElementById('brandDrop');
+  const items = [...drop.querySelectorAll('.ac-item')];
+  if (!items.length && !['ArrowDown','Enter'].includes(e.key)) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!drop.classList.contains('show')) { filterBrands(e.target.value, true); return; }
+    brandHi = Math.min(brandHi + 1, items.length - 1);
+    items.forEach((el,i) => el.classList.toggle('active', i === brandHi));
+    items[brandHi].scrollIntoView({block:'nearest'});
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    brandHi = Math.max(brandHi - 1, 0);
+    items.forEach((el,i) => el.classList.toggle('active', i === brandHi));
+    items[brandHi].scrollIntoView({block:'nearest'});
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const cur = items[brandHi];
+    if (cur && cur.dataset.brand && cur.dataset.brand !== '__other') selectBrand(cur.dataset.brand);
+    else selectBrand(e.target.value);
+  } else if (e.key === 'Tab') {
+    const cur = items[brandHi];
+    const q = (e.target.value||'').trim();
+    if (cur && cur.dataset.brand && cur.dataset.brand !== '__other' && q) selectBrand(cur.dataset.brand);
+    else if (q) selectBrand(q);
+  } else if (e.key === 'Escape') {
+    acHide(drop);
+  }
+}
+
+function selectBrand(brand) {
+  const val = (brand||'').trim().toUpperCase();
+  document.getElementById('deviceBrand').value = val;
+  document.getElementById('brandSearch').value = val;
+  acHide(document.getElementById('brandDrop'));
+  buildModel();
+}
+
 function setBrandOther(val) {
   document.getElementById('deviceBrand').value = val;
   buildModel();
@@ -630,6 +842,9 @@ function onPhoneInput(val) {
   if (val.length < 2) {
     acHide(document.getElementById('ac-phone'));
     acUnlockName();
+    if (val.length === 0) {
+      document.getElementById('customer_name').value = '';
+    }
     return;
   }
   // Show suggestions as they type
@@ -695,9 +910,21 @@ function acHide(drop) {
 
 // Close dropdown on outside click
 document.addEventListener('click', function(e) {
-  if (!e.target.closest('.ac-wrap')) {
+  if (!e.target.closest('#brandSearch') && !e.target.closest('#brandDrop')) {
+    acHide(document.getElementById('brandDrop'));
+  }
+  if (!e.target.closest('#customer_phone') && !e.target.closest('#ac-phone')) {
     acHide(document.getElementById('ac-phone'));
   }
+});
+
+['deviceModelOnly','imeiEntry'].forEach(function(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('focus', function(){
+    this.removeAttribute('readonly');
+    this.setAttribute('autocomplete','off-'+Date.now());
+  });
 });
 </script>
 {% endblock %}
